@@ -1,4 +1,4 @@
-name = "GridFunctions"
+name = "MatsubaraFunctions"
 uuid = "3b93aed6-d40a-4520-b131-eee49889bcc0"
 authors = ["Dominik Kiese <dkiese1308.physik@gmail.com>"]
 version = "0.1.0"
