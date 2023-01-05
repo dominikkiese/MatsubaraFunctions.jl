@@ -38,8 +38,89 @@ struct MatsubaraFunction{Ds, Dg, Dt}
     end
 end
 
+# basic addition
+function Base.:+(
+    f1 :: MatsubaraFunction{Ds, Dg, Dt}, 
+    f2 :: MatsubaraFunction{Ds, Dg, Dt}
+    )  :: MatsubaraFunction{Ds, Dg, Dt} where {Ds, Dg, Dt}
+
+    for i in 1 : Dg 
+        @assert isapprox(f1.grids[i], f2.grids[i]) "Grids must be equal for addition" 
+    end
+
+    return MatsubaraFunction(f1.shape, f1.grids, @turbo f1.data .+ f2.data)
+end
+
+function add!(
+    f1 :: MatsubaraFunction{Ds, Dg, Dt}, 
+    f2 :: MatsubaraFunction{Ds, Dg, Dt}
+    )  :: Nothing where {Ds, Dg, Dt}
+
+    for i in 1 : Dg 
+        @assert isapprox(f1.grids[i], f2.grids[i]) "Grids must be equal for addition" 
+    end 
+
+    @turbo f1.data .+= f2.data
+
+    return nothing 
+end
+
+# basic subtraction
+function Base.:-(
+    f1 :: MatsubaraFunction{Ds, Dg, Dt}, 
+    f2 :: MatsubaraFunction{Ds, Dg, Dt}
+    )  :: MatsubaraFunction{Ds, Dg, Dt} where {Ds, Dg, Dt}
+
+    for i in 1 : Dg 
+        @assert isapprox(f1.grids[i], f2.grids[i]) "Grids must be equal for subtraction" 
+    end 
+
+    return MatsubaraFunction(f1.shape, f1.grids, @turbo f1.data .- f2.data)
+end
+
+function subtract!(
+    f1 :: MatsubaraFunction{Ds, Dg, Dt}, 
+    f2 :: MatsubaraFunction{Ds, Dg, Dt}
+    )  :: Nothing where {Ds, Dg, Dt}
+
+    for i in 1 : Dg 
+        @assert isapprox(f1.grids[i], f2.grids[i]) "Grids must be equal for subtraction" 
+    end 
+
+    @turbo f1.data .-= f2.data
+
+    return nothing 
+end
+
+# basic multiplication with scalar 
+function Base.:*(
+    val :: Float64, 
+    f   :: MatsubaraFunction{Ds, Dg, Dt}
+    )   :: MatsubaraFunction{Ds, Dg, Dt} where {Ds, Dg, Dt}
+
+    return MatsubaraFunction(f.shape, f.grids, @turbo val .* f.data)
+end
+
+function Base.:*(
+    f   :: MatsubaraFunction{Ds, Dg, Dt},
+    val :: Float64
+    )   :: MatsubaraFunction{Ds, Dg, Dt} where {Ds, Dg, Dt}
+
+    return MatsubaraFunction(f.shape, f.grids, @turbo val .* f.data)
+end
+
+function mult!(
+    f   :: MatsubaraFunction{Ds, Dg, Dt},
+    val :: Float64
+    )   :: Nothing where {Ds, Dg, Dt}
+
+    @turbo f.data .*= val 
+
+    return nothing
+end
+
 # call to Matsubara function on 1D grid
-function (f :: MatsubaraFunction{Ds, 1, Dt})(
+@inbounds @fastmath function (f :: MatsubaraFunction{Ds, 1, Dt})(
     x  :: NTuple{Ds, Int64}, 
     w  :: Float64
     ; 
@@ -49,7 +130,7 @@ function (f :: MatsubaraFunction{Ds, 1, Dt})(
     ax = first(f.grids[1]) <= w <= last(f.grids[1])
 
     if ax
-        p = Param(w, f.grids[1])
+        p = Param(w, f.grids[1]) 
         return p.wgts[1] * f.data[x..., p.idxs[1]] + p.wgts[2] * f.data[x..., p.idxs[2]]
     else 
         return bc 
@@ -57,7 +138,7 @@ function (f :: MatsubaraFunction{Ds, 1, Dt})(
 end
 
 # call to Matsubara function on 2D grid
-function (f :: MatsubaraFunction{Ds, 2, Dt})(
+@inbounds @fastmath function (f :: MatsubaraFunction{Ds, 2, Dt})(
     x  :: NTuple{Ds, Int64}, 
     w  :: NTuple{2, Float64}
     ; 
@@ -81,7 +162,7 @@ function (f :: MatsubaraFunction{Ds, 2, Dt})(
 end
 
 # call to Matsubara function on 3D grid
-function (f :: MatsubaraFunction{Ds, 3, Dt})(
+@inbounds @fastmath function (f :: MatsubaraFunction{Ds, 3, Dt})(
     x  :: NTuple{Ds, Int64}, 
     w  :: NTuple{3, Float64}
     ; 

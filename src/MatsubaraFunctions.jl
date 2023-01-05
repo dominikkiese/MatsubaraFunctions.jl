@@ -1,9 +1,11 @@
 module MatsubaraFunctions
 
-include("matsubara.jl")
-include("interpolation.jl")
-include("function.jl")
+    using Test 
+    using LoopVectorization
 
-export mk_grid, MatsubaraFunction
+    include("matsubara.jl")
+    include("interpolation.jl")
+    include("function.jl")
 
-end # module MatsubaraFunctions
+    export mk_grid, MatsubaraFunction, add!, subtract!, mult!
+end

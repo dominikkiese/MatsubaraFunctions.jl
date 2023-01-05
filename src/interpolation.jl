@@ -11,6 +11,7 @@ struct Param
     end
 
     # Note: grid is assumed to be sorted & linear and val is assumed to be in grid
+    # convenience constructor
     function Param(
         val  :: Float64, 
         grid :: Vector{Float64}

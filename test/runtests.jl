@@ -1,3 +1,4 @@
+using Test
 using MatsubaraFunctions 
 
 @testset "Evaluation" begin 
