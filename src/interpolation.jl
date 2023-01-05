@@ -19,7 +19,10 @@ struct Param
 
         delta    = grid[2] - grid[1]
         position = (val - grid[1]) / delta
-        idxs     = floor(Int64, position) + 1, ceil(Int64, position) + 1
+
+        # compute nearest-neighbor indices
+        # add min to upper index to improve robustness with respect to rounding errors
+        idxs = floor(Int64, position) + 1, min(ceil(Int64, position) + 1, length(grid))
 
         if idxs[1] < idxs[2]
             return Param(idxs, ((grid[idxs[2]] - val) / delta, (val - grid[idxs[1]]) / delta))
