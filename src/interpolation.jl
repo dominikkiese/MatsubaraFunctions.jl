@@ -10,11 +10,10 @@ struct Param
         return new(idxs, wgts)
     end
 
-    # Note: grid is assumed to be sorted & linear and val is assumed to be in grid
-    # convenience constructor
+    # convenience constructor (val is assumed to be in grid)
     function Param(
         val  :: Float64, 
-        grid :: Vector{Float64}
+        grid :: MatsubaraGrid
         )    :: Param
 
         delta    = grid[2] - grid[1]

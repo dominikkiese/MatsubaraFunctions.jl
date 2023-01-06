@@ -2,28 +2,27 @@ using Test
 using MatsubaraFunctions 
 
 @testset "Evaluation" begin 
-    gf = mk_grid(1.0, 10, :Fermion)
-    gb = mk_grid(1.0, 10, :Boson)
+    fg = FermionGrid(1.0, 10)
+    bg = BosonGrid(1.0, 10)
 
-    nf = length(gf)
-    nb = length(gb)
+    nf = length(fg)
+    nb = length(bg)
 
-    f1D = MatsubaraFunction((10, 10), (gf,), rand(10, 10, nf))
-    f2D = MatsubaraFunction((10, 10), (gb, gf), rand(10, 10, nb, nf))
-    f3D = MatsubaraFunction((10, 10), (gb, gf, gf), rand(10, 10, nb, nf, nf))
+    f1D = MatsubaraFunction((fg,), (10, 10), rand(nf, 10, 10))
+    f2D = MatsubaraFunction((bg, fg), (10, 10), rand(nb, nf, 10, 10))
+    f3D = MatsubaraFunction((bg, fg, fg), (10, 10), rand(nb, nf, nf, 10, 10))
 
     for n in 1 : 10 
         x     = rand(1 : 10), rand(1 : 10)
-        idx1D = rand(1 : nf)
-        idx2D = rand(1 : nb), rand(1 : nf) 
-        idx3D = rand(1 : nb), rand(1 : nf), rand(1 : nf)
+        idx1D = rand(1 : nf), x...
+        idx2D = rand(1 : nb), rand(1 : nf), x...
+        idx3D = rand(1 : nb), rand(1 : nf), rand(1 : nf), x...
+        w1D   = fg[idx1D[1]]
+        w2D   = bg[idx2D[1]], fg[idx2D[2]]
+        w3D   = bg[idx3D[1]], fg[idx3D[2]], fg[idx3D[3]]
 
-        w1D = gf[idx1D[1]]
-        w2D = gb[idx2D[1]], gf[idx2D[2]]
-        w3D = gb[idx3D[1]], gf[idx3D[2]], gf[idx3D[3]]
-
-        @test isapprox(f1D(x, w1D), f1D.data[x..., idx1D])
-        @test isapprox(f2D(x, w2D), f2D.data[x..., idx2D...])
-        @test isapprox(f3D(x, w3D), f3D.data[x..., idx3D...])
+        @test isapprox(f1D(w1D, x...), f1D[idx1D...])
+        @test isapprox(f2D(w2D, x...), f2D[idx2D...])
+        @test isapprox(f3D(w3D, x...), f3D[idx3D...])
     end 
 end
