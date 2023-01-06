@@ -11,17 +11,21 @@ module MatsubaraFunctions
 
     export
         # matsubara.jl
+        AbstractParticle,
+        Fermion,
+        Boson,
         MatsubaraGrid, 
-        FermionGrid, 
-        BosonGrid,
 
         # function.jl
         MatsubaraFunction, 
         grids_shape,
         shape, 
         data_shape,
+        add,
         add!, 
+        subtract,
         subtract!, 
+        mult,
         mult!,
 
         # io.jl

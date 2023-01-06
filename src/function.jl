@@ -5,25 +5,29 @@ struct MatsubaraFunction{Dg, Ds, Dt}
 
     # safe constructor
     function MatsubaraFunction(
-        grids :: NTuple{Dg, MatsubaraGrid}, 
-        shape :: NTuple{Ds, Int64}, 
-        data  :: Array{Float64, Dt}
-        )     :: MatsubaraFunction{Dg, Ds, Dt} where {Dg, Ds, Dt}
-        
+        grids  :: NTuple{Dg, MatsubaraGrid}, 
+        shape  :: NTuple{Ds, Int64}, 
+        data   :: Array{Float64, Dt}
+        ;
+        checks :: Bool = true
+        )      :: MatsubaraFunction{Dg, Ds, Dt} where {Dg, Ds, Dt}
+
         # throw warning for Dg > 3
         if Dg > 3 @warn "Matsubara function not callable on hybercubic grids" end
-
-        # check dimensions
-        @assert Dg + Ds == Dt "Dimensions do not match"
         
-        # check grids
-        for g in grids
-            @assert isapprox(g.T, grids[1].T) "Grids must be defined for the same temperature"
-            @assert issorted(g) "Grids must be sorted"
-            delta = g[2] - g[1]
+        if checks
+            # check dimensions
+            @assert Dg + Ds == Dt "Dimensions do not match"
+            
+            # check grids
+            for g in grids
+                @assert isapprox(g.T, grids[1].T) "Grids must be defined for the same temperature"
+                @assert issorted(g) "Grids must be sorted"
+                delta = g[2] - g[1]
 
-            for i in 2 : (length(g) - 1)
-                @assert isapprox(g[i + 1] - g[i], delta) "Grids must be linear"
+                for i in 2 : (length(g) - 1)
+                    @assert isapprox(g[i + 1] - g[i], delta) "Grids must be linear"
+                end
             end
         end
 
@@ -32,14 +36,16 @@ struct MatsubaraFunction{Dg, Ds, Dt}
 
     # convenience constructor
     function MatsubaraFunction(
-        grids :: NTuple{Dg, MatsubaraGrid},
-        shape :: NTuple{Ds, Int64}
-        )     :: MatsubaraFunction{Dg, Ds, Dg + Ds} where {Dg, Ds}
+        grids  :: NTuple{Dg, MatsubaraGrid},
+        shape  :: NTuple{Ds, Int64}
+        ;
+        checks :: Bool = true
+        )      :: MatsubaraFunction{Dg, Ds, Dg + Ds} where {Dg, Ds}
 
         dims = length.(grids)..., shape...
         data = Array{Float64, Dg + Ds}(undef, dims)
 
-        return MatsubaraFunction(grids, shape, data)
+        return MatsubaraFunction(grids, shape, data; checks)
     end
 end
 
@@ -78,74 +84,84 @@ end
 
 
 # basic addition
-function Base.:+(
-    f1 :: MatsubaraFunction{Dg, Ds, Dt}, 
-    f2 :: MatsubaraFunction{Dg, Ds, Dt}
-    )  :: MatsubaraFunction{Dg, Ds, Dt} where {Dg, Ds, Dt}
+function add(
+    f1     :: MatsubaraFunction{Dg, Ds, Dt}, 
+    f2     :: MatsubaraFunction{Dg, Ds, Dt}
+    ;
+    checks :: Bool = true
+    )      :: MatsubaraFunction{Dg, Ds, Dt} where {Dg, Ds, Dt}
 
-    for i in 1 : Dg 
-        @assert isapprox(f1.grids[i].data, f2.grids[i].data) "Grids must be equal for addition" 
+    if checks
+        for i in 1 : Dg 
+            @assert isapprox(f1.grids[i].data, f2.grids[i].data) "Grids must be equal for addition" 
+        end
     end
 
-    return MatsubaraFunction(f1.grids, f1.shape, @turbo f1.data .+ f2.data)
+    return MatsubaraFunction(f1.grids, f1.shape, @tturbo f1.data .+ f2.data; checks)
 end
 
 function add!(
-    f1 :: MatsubaraFunction{Dg, Ds, Dt}, 
-    f2 :: MatsubaraFunction{Dg, Ds, Dt}
-    )  :: Nothing where {Dg, Ds, Dt}
+    f1     :: MatsubaraFunction{Dg, Ds, Dt}, 
+    f2     :: MatsubaraFunction{Dg, Ds, Dt}
+    ;
+    checks :: Bool = true
+    )      :: Nothing where {Dg, Ds, Dt}
 
-    for i in 1 : Dg 
-        @assert isapprox(f1.grids[i].data, f2.grids[i].data) "Grids must be equal for addition" 
-    end 
+    if checks
+        for i in 1 : Dg 
+            @assert isapprox(f1.grids[i].data, f2.grids[i].data) "Grids must be equal for addition" 
+        end 
+    end
 
-    @turbo f1.data .+= f2.data
+    @tturbo f1.data .+= f2.data
 
     return nothing 
 end
 
 # basic subtraction
-function Base.:-(
-    f1 :: MatsubaraFunction{Dg, Ds, Dt}, 
-    f2 :: MatsubaraFunction{Dg, Ds, Dt}
-    )  :: MatsubaraFunction{Dg, Ds, Dt} where {Dg, Ds, Dt}
+function subtract(
+    f1     :: MatsubaraFunction{Dg, Ds, Dt}, 
+    f2     :: MatsubaraFunction{Dg, Ds, Dt}
+    ;
+    checks :: Bool = true
+    )      :: MatsubaraFunction{Dg, Ds, Dt} where {Dg, Ds, Dt}
 
-    for i in 1 : Dg 
-        @assert isapprox(f1.grids[i].data, f2.grids[i].data) "Grids must be equal for subtraction" 
-    end 
+    if checks
+        for i in 1 : Dg 
+            @assert isapprox(f1.grids[i].data, f2.grids[i].data) "Grids must be equal for subtraction" 
+        end 
+    end
 
-    return MatsubaraFunction(f1.grids, f1.shape, @turbo f1.data .- f2.data)
+    return MatsubaraFunction(f1.grids, f1.shape, @tturbo f1.data .- f2.data; checks)
 end
 
 function subtract!(
-    f1 :: MatsubaraFunction{Dg, Ds, Dt}, 
-    f2 :: MatsubaraFunction{Dg, Ds, Dt}
-    )  :: Nothing where {Dg, Ds, Dt}
+    f1     :: MatsubaraFunction{Dg, Ds, Dt}, 
+    f2     :: MatsubaraFunction{Dg, Ds, Dt}
+    ;
+    checks :: Bool = true
+    )      :: Nothing where {Dg, Ds, Dt}
 
-    for i in 1 : Dg 
-        @assert isapprox(f1.grids[i].data, f2.grids[i].data) "Grids must be equal for subtraction" 
+    if checks
+        for i in 1 : Dg 
+            @assert isapprox(f1.grids[i].data, f2.grids[i].data) "Grids must be equal for subtraction" 
+        end
     end 
 
-    @turbo f1.data .-= f2.data
+    @tturbo f1.data .-= f2.data
 
     return nothing 
 end
 
 # basic multiplication with scalar 
-function Base.:*(
-    val :: Float64, 
-    f   :: MatsubaraFunction{Dg, Ds, Dt}
-    )   :: MatsubaraFunction{Dg, Ds, Dt} where {Dg, Ds, Dt}
+function mult(
+    f      :: MatsubaraFunction{Dg, Ds, Dt},
+    val    :: Float64
+    ;
+    checks :: Bool = true
+    )      :: MatsubaraFunction{Dg, Ds, Dt} where {Dg, Ds, Dt}
 
-    return MatsubaraFunction(f.grids, f.shape, @turbo val .* f.data)
-end
-
-function Base.:*(
-    f   :: MatsubaraFunction{Dg, Ds, Dt},
-    val :: Float64
-    )   :: MatsubaraFunction{Dg, Ds, Dt} where {Dg, Ds, Dt}
-
-    return MatsubaraFunction(f.grids, f.shape, @turbo val .* f.data)
+    return MatsubaraFunction(f.grids, f.shape, @tturbo val .* f.data; checks)
 end
 
 function mult!(
@@ -153,7 +169,7 @@ function mult!(
     val :: Float64
     )   :: Nothing where {Dg, Ds, Dt}
 
-    @turbo f.data .*= val 
+    @tturbo f.data .*= val 
 
     return nothing
 end
@@ -184,7 +200,7 @@ end
 
 
 # call to Matsubara function on 1D grid
-@inbounds @fastmath function (f :: MatsubaraFunction{1, Ds, Dt})(
+@inbounds function (f :: MatsubaraFunction{1, Ds, Dt})(
     w  :: Float64,
     x  :: Vararg{Int64, Ds} 
     ; 
@@ -202,7 +218,7 @@ end
 end
 
 # call to Matsubara function on 2D grid
-@inbounds @fastmath function (f :: MatsubaraFunction{2, Ds, Dt})(
+@inbounds function (f :: MatsubaraFunction{2, Ds, Dt})(
     w  :: NTuple{2, Float64},
     x  :: Vararg{Int64, Ds} 
     ; 
@@ -226,7 +242,7 @@ end
 end
 
 # call to Matsubara function on 3D grid
-@inbounds @fastmath function (f :: MatsubaraFunction{3, Ds, Dt})(
+@inbounds function (f :: MatsubaraFunction{3, Ds, Dt})(
     w  :: NTuple{3, Float64},
     x  :: Vararg{Int64, Ds} 
     ; 

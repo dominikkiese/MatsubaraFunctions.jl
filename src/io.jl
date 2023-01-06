@@ -4,8 +4,8 @@ function save_matsubara_grid!(
     h :: HDF5.File 
     ) :: Nothing 
 
-    attributes(h)[l * "/type"] = "$(typeof(g))"
-    attributes(h)[l * "/T"]    = g.T 
+    attributes(h)[l * "/T"]    = g.T
+    attributes(h)[l * "/type"] = "$(g.type)"
     h[l * "/data"]             = g.data
 
     return nothing 
@@ -16,14 +16,14 @@ function load_matsubara_grid(
     h :: HDF5.File 
     ) :: MatsubaraGrid 
 
-    type = read_attribute(h, l * "/type")
     T    = read_attribute(h, l * "/T")
+    type = read_attribute(h, l * "/type")
     data = read(h, l * "/data")
 
-    if type == "FermionGrid"
-        return FermionGrid(T, data)
-    elseif type == "BosonGrid"
-        return BosonGrid(T, data)
+    if type == "Fermion"
+        return MatsubaraGrid(T, data, :Fermion)
+    elseif type == "Boson"
+        return MatsubaraGrid(T, data, :Boson)
     else 
         error("Grid type $(type) unknown")
     end 

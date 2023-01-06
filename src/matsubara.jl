@@ -1,138 +1,96 @@
-abstract type MatsubaraGrid end 
+# define particle types for dispatch
+abstract type AbstractParticle end 
+
+struct Fermion <: AbstractParticle end 
+struct Boson   <: AbstractParticle end
 
 
 
-# fermionic Matsubara grid
-struct FermionGrid <: MatsubaraGrid
+# define grid type
+struct MatsubaraGrid
     T    :: Float64 
     data :: Vector{Float64}
+    type :: Symbol
 
     # basic constructor 
-    function FermionGrid(
+    function MatsubaraGrid(
         T    :: Float64,
-        data :: Vector{Float64}
-        )    :: FermionGrid 
-
-        return new(T, data)
+        data :: Vector{Float64},
+        type :: Symbol
+        )    :: MatsubaraGrid
+    
+        return new(T, data, type)
     end
 
-    # convenience constructor
-    function FermionGrid(
+    # convenience constructor for fermionic grid 
+    function MatsubaraGrid(
         T    :: Float64,
-        N    :: Int64
+        N    :: Int64,
+             :: Type{Fermion}
         ; 
         plus :: Bool = false
-        )    :: FermionGrid 
+        )    :: MatsubaraGrid 
 
         if plus
-            return new(T, Float64[pi * T * (2.0 * n + 1) for n in 0 : N])
+            return MatsubaraGrid(T, Float64[pi * T * (2.0 * n + 1) for n in 0 : N], :Fermion)
         else
-            return new(T, Float64[pi * T * (2.0 * n + 1) for n in -N - 1 : N])
+            return MatsubaraGrid(T, Float64[pi * T * (2.0 * n + 1) for n in -N - 1 : N], :Fermion)
+        end
+    end
+
+    # convenience constructor for bosonic grid 
+    function MatsubaraGrid(
+        T    :: Float64,
+        N    :: Int64,
+             :: Type{Boson}
+        ; 
+        plus :: Bool = false
+        )    :: MatsubaraGrid 
+
+        if plus
+            return MatsubaraGrid(T, Float64[2.0 * pi * T * n for n in 0 : N], :Boson)
+        else
+            return MatsubaraGrid(T, Float64[2.0 * pi * T * n for n in -N : N], :Boson)
         end
     end
 end
 
-# make fermionic Matsubara grid indexable
+
+
+# make Matsubara grid indexable
 function Base.:getindex(
-    fg  :: FermionGrid,
-    idx :: Int64 
-    )   :: Float64 
+    grid :: MatsubaraGrid,
+    idx  :: Int64 
+    )    :: Float64 
 
     # bounds check performed by Base.Array
-    return fg.data[idx]
+    return grid.data[idx]
 end
 
-# make fermionic Matsubara grid iterable
+
+
+# make Matsubara grid iterable
 function Base.length(
-    fg :: FermionGrid
-    )  :: Int64
+    grid :: MatsubaraGrid
+    )    :: Int64
 
-    return length(fg.data)
+    return length(grid.data)
 end
 
 function Base.iterate(
-    fg :: FermionGrid
-    )  :: Tuple{Float64, Int64}
+    grid :: MatsubaraGrid
+    )    :: Tuple{Float64, Int64}
 
-    return fg[1], 1 
+    return grid[1], 1 
 end
 
 function Base.iterate(
-    fg    :: FermionGrid,
+    grid  :: MatsubaraGrid,
     state :: Int64
     )     :: Union{Nothing, Tuple{Float64, Int64}}
 
-    if state <= length(fg)
-        return fg[state], state + 1 
-    else 
-        return nothing 
-    end
-end
-
-
-
-# bosonic Matsubara grid
-struct BosonGrid <: MatsubaraGrid
-    T    :: Float64 
-    data :: Vector{Float64}
-
-    # basic constructor 
-    function BosonGrid(
-        T    :: Float64,
-        data :: Vector{Float64}
-        )    :: BosonGrid 
-
-        return new(T, data)
-    end
-
-    # convenience constructor
-    function BosonGrid(
-        T    :: Float64,
-        N    :: Int64
-        ; 
-        plus :: Bool = false
-        )    :: BosonGrid 
-
-        if plus
-            return new(T, Float64[2.0 * pi * T * n for n in 0 : N])
-        else
-            return new(T, Float64[2.0 * pi * T * n for n in -N : N])
-        end
-    end
-end
-
-# make bosonic Matsubara grid indexable
-function Base.:getindex(
-    bg  :: BosonGrid,
-    idx :: Int64 
-    )   :: Float64 
-
-    # bounds check performed by Base.Array
-    return bg.data[idx]
-end
-
-# make bosonic Matsubara grid iterable
-function Base.length(
-    bg :: BosonGrid
-    )  :: Int64
-
-    return length(bg.data)
-end
-
-function Base.iterate(
-    bg :: BosonGrid
-    )  :: Tuple{Float64, Int64}
-
-    return bg[1], 1 
-end
-
-function Base.iterate(
-    bg    :: BosonGrid,
-    state :: Int64
-    )     :: Union{Nothing, Tuple{Float64, Int64}}
-
-    if state <= length(bg)
-        return bg[state], state + 1 
+    if state <= length(grid)
+        return grid[state], state + 1 
     else 
         return nothing 
     end

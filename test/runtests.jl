@@ -2,8 +2,8 @@ using Test
 using MatsubaraFunctions 
 
 @testset "Evaluation" begin 
-    fg = FermionGrid(1.0, 10)
-    bg = BosonGrid(1.0, 10)
+    fg = MatsubaraGrid(1.0, 10, Fermion)
+    bg = MatsubaraGrid(1.0, 10, Boson)
 
     nf = length(fg)
     nb = length(bg)
