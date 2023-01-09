@@ -184,7 +184,7 @@ end
 function Base.:getindex(
     f :: MatsubaraFunction{Dg, Ds, Dt, Q},
     x :: Vararg{Int64, Dt}
-    ) :: Float64 where {Dg, Ds, Dt, Q <: Number}
+    ) :: Q where {Dg, Ds, Dt, Q <: Number}
 
     return f.data[x...]
 end
@@ -192,9 +192,9 @@ end
 # setindex! method (bounds check performed by Base.Array)
 function Base.:setindex!(
     f   :: MatsubaraFunction{Dg, Ds, Dt, Q},
-    val :: Float64,
+    val :: Qp,
     x   :: Vararg{Int64, Dt}
-    )   :: Nothing where {Dg, Ds, Dt, Q <: Number}
+    )   :: Nothing where {Dg, Ds, Dt, Q <: Number, Qp <: Number}
 
     f.data[x...] = val
 

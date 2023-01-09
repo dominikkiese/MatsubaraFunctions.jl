@@ -46,8 +46,8 @@ function save_matsubara_function!(
 end
 
 function load_matsubara_function(
-    l :: String,
-    h :: HDF5.File
+    h :: HDF5.File,
+    l :: String
     ) :: MatsubaraFunction
 
     idxs  = eachindex(keys(h[l * "/grids"]))
