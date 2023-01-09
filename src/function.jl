@@ -13,7 +13,7 @@ struct MatsubaraFunction{Dg, Ds, Dt, Q <: Number}
         )      :: MatsubaraFunction{Dg, Ds, Dt, Q} where {Dg, Ds, Dt, Q <: Number}
 
         # error for integer data type
-        if Q <: Integer error("Integer data type not supported") end
+        if Q <: Integer || Q <: Complex{Int} error("Integer data type not supported") end
 
         # throw warning for Dg > 3
         if Dg > 3 @warn "Matsubara function not callable on hybercubic grids" end
