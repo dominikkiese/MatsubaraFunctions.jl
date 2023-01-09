@@ -219,7 +219,7 @@ end
         val = bc
 
         for n in eachindex(tail)
-            val += tail[n] * (bv_dn / w)^n * f.data[1, x...]
+            val += tail[n] * (bv_dn / w)^n * (f.data[1, x...] - bc)
         end
             
         return val 
@@ -228,7 +228,7 @@ end
         val = bc
 
         for n in eachindex(tail)
-            val += tail[n] * (bv_up / w)^n * f.data[end, x...]
+            val += tail[n] * (bv_up / w)^n * (f.data[end, x...] - bc)
         end
             
         return val 
