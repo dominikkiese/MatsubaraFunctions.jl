@@ -203,21 +203,40 @@ end
 
 
 
-# call to Matsubara function on 1D grid
+# call to Matsubara function on 1D grid (allows to pass tail moments for extrapolation)
 @inbounds function (f :: MatsubaraFunction{1, Ds, Dt, Q})(
-    w  :: Float64,
-    x  :: Vararg{Int64, Ds} 
+    w    :: Float64,
+    x    :: Vararg{Int64, Ds} 
     ; 
-    bc :: Float64 = 0.0
-    )  :: Q where{Ds, Dt, Q <: Number}
+    bc   :: Float64 = 0.0,
+    tail :: NTuple{P, Float64} = ()
+    )    :: Q where{Ds, Dt, Q <: Number, P}
 
-    ax = f.grids[1][1] <= w <= f.grids[1][grids_shape(f, 1)]
+    bv_dn = f.grids[1][1]
+    bv_up = f.grids[1][grids_shape(f, 1)]
 
-    if ax
+    if w < bv_dn 
+        val = bc
+
+        for n in eachindex(tail)
+            val += tail[n] * (bv_dn / w)^n * f.data[1, x...]
+        end
+            
+        return val 
+        
+    elseif w > bv_up 
+        val = bc
+
+        for n in eachindex(tail)
+            val += tail[n] * (bv_up / w)^n * f.data[end, x...]
+        end
+            
+        return val 
+
+    else
         p = Param(w, f.grids[1]) 
+
         return p.wgts[1] * f.data[p.idxs[1], x...] + p.wgts[2] * f.data[p.idxs[2], x...]
-    else 
-        return bc 
     end 
 end
 
