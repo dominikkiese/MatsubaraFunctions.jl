@@ -1,7 +1,6 @@
 module MatsubaraFunctions
 
     using Test 
-    using LoopVectorization
     using HDF5
 
     include("matsubara.jl")

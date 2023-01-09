@@ -30,17 +30,17 @@ function load_matsubara_grid(
 end
 
 function save_matsubara_function!(
-    f :: MatsubaraFunction{Dg, Ds, Dt},
+    f :: MatsubaraFunction{Dg, Ds, Dt, Q},
     l :: String,
     h :: HDF5.File
-    ) :: Nothing where {Dg, Ds, Dt}
+    ) :: Nothing where {Dg, Ds, Dt, Q <: Number}
 
     for i in eachindex(f.grids)
         save_matsubara_grid!(f.grids[i], l * "/grids/grid_$i", h)
     end
 
-    h[l * "/shape"] = Int64[f.shape...] 
-    h[l * "/data"]  = f.data
+    attributes(h)[l * "/shape"] = Int64[f.shape...] 
+    h[l * "/data"]              = f.data
 
     return nothing 
 end
@@ -52,7 +52,7 @@ function load_matsubara_function(
 
     idxs  = eachindex(keys(h[l * "/grids"]))
     grids = MatsubaraGrid[load_matsubara_grid(l * "/grids/grid_$i", h) for i in idxs]
-    shape = read(h, l * "/shape")
+    shape = read_attribute(h, l * "/shape")
     data  = read(h, l * "/data")
     
     return MatsubaraFunction((grids...,), (shape...,), data)

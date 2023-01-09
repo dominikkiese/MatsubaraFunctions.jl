@@ -1,16 +1,19 @@
-struct MatsubaraFunction{Dg, Ds, Dt}
+struct MatsubaraFunction{Dg, Ds, Dt, Q <: Number}
     grids :: NTuple{Dg, MatsubaraGrid}
     shape :: NTuple{Ds, Int64}          
-    data  :: Array{Float64, Dt}
+    data  :: Array{Q, Dt}
 
     # safe constructor
     function MatsubaraFunction(
         grids  :: NTuple{Dg, MatsubaraGrid}, 
         shape  :: NTuple{Ds, Int64}, 
-        data   :: Array{Float64, Dt}
+        data   :: Array{Q, Dt}
         ;
         checks :: Bool = true
-        )      :: MatsubaraFunction{Dg, Ds, Dt} where {Dg, Ds, Dt}
+        )      :: MatsubaraFunction{Dg, Ds, Dt, Q} where {Dg, Ds, Dt, Q <: Number}
+
+        # error for integer data type
+        if Q <: Integer error("Integer data type not supported") end
 
         # throw warning for Dg > 3
         if Dg > 3 @warn "Matsubara function not callable on hybercubic grids" end
@@ -31,19 +34,20 @@ struct MatsubaraFunction{Dg, Ds, Dt}
             end
         end
 
-        return new{Dg, Ds, Dt}(grids, shape, data)
+        return new{Dg, Ds, Dt, Q}(grids, shape, data)
     end
 
     # convenience constructor
     function MatsubaraFunction(
         grids  :: NTuple{Dg, MatsubaraGrid},
-        shape  :: NTuple{Ds, Int64}
+        shape  :: NTuple{Ds, Int64},
+               :: Type{Q}
         ;
         checks :: Bool = true
-        )      :: MatsubaraFunction{Dg, Ds, Dg + Ds} where {Dg, Ds}
+        )      :: MatsubaraFunction{Dg, Ds, Dg + Ds, Q} where {Dg, Ds, Q <: Number}
 
         dims = length.(grids)..., shape...
-        data = Array{Float64, Dg + Ds}(undef, dims)
+        data = Array{Q, Dg + Ds}(undef, dims)
 
         return MatsubaraFunction(grids, shape, data; checks)
     end
@@ -53,30 +57,30 @@ end
 
 # getter functions 
 function grids_shape(
-    f :: MatsubaraFunction{Dg, Ds, Dt}
-    ) :: NTuple{Dg, Int64} where {Dg, Ds, Dt}
+    f :: MatsubaraFunction{Dg, Ds, Dt, Q}
+    ) :: NTuple{Dg, Int64} where {Dg, Ds, Dt, Q <: Number}
 
     return length.(f.grids)
 end
 
 function grids_shape(
-    f   :: MatsubaraFunction{Dg, Ds, Dt},
+    f   :: MatsubaraFunction{Dg, Ds, Dt, Q},
     idx :: Int64
-    )   :: Int64 where {Dg, Ds, Dt}
+    )   :: Int64 where {Dg, Ds, Dt, Q <: Number}
 
     return length(f.grids[idx])
 end
 
 function shape(
-    f :: MatsubaraFunction{Dg, Ds, Dt}
-    ) :: NTuple{Ds, Int64} where {Dg, Ds, Dt}
+    f :: MatsubaraFunction{Dg, Ds, Dt, Q}
+    ) :: NTuple{Ds, Int64} where {Dg, Ds, Dt, Q <: Number}
 
     return f.shape 
 end 
 
 function data_shape(
-    f :: MatsubaraFunction{Dg, Ds, Dt}
-    ) :: NTuple{Dt, Int64} where {Dg, Ds, Dt}
+    f :: MatsubaraFunction{Dg, Ds, Dt, Q}
+    ) :: NTuple{Dt, Int64} where {Dg, Ds, Dt, Q <: Number}
 
     return size(f.data)
 end
@@ -85,11 +89,11 @@ end
 
 # basic addition
 function add(
-    f1     :: MatsubaraFunction{Dg, Ds, Dt}, 
-    f2     :: MatsubaraFunction{Dg, Ds, Dt}
+    f1     :: MatsubaraFunction{Dg, Ds, Dt, Q}, 
+    f2     :: MatsubaraFunction{Dg, Ds, Dt, Q}
     ;
     checks :: Bool = true
-    )      :: MatsubaraFunction{Dg, Ds, Dt} where {Dg, Ds, Dt}
+    )      :: MatsubaraFunction{Dg, Ds, Dt, Q} where {Dg, Ds, Dt, Q <: Number}
 
     if checks
         for i in 1 : Dg 
@@ -97,15 +101,15 @@ function add(
         end
     end
 
-    return MatsubaraFunction(f1.grids, f1.shape, @tturbo f1.data .+ f2.data; checks)
+    return MatsubaraFunction(f1.grids, f1.shape, f1.data .+ f2.data; checks)
 end
 
 function add!(
-    f1     :: MatsubaraFunction{Dg, Ds, Dt}, 
-    f2     :: MatsubaraFunction{Dg, Ds, Dt}
+    f1     :: MatsubaraFunction{Dg, Ds, Dt, Q}, 
+    f2     :: MatsubaraFunction{Dg, Ds, Dt, Q}
     ;
     checks :: Bool = true
-    )      :: Nothing where {Dg, Ds, Dt}
+    )      :: Nothing where {Dg, Ds, Dt, Q <: Number}
 
     if checks
         for i in 1 : Dg 
@@ -113,18 +117,18 @@ function add!(
         end 
     end
 
-    @tturbo f1.data .+= f2.data
+    f1.data .+= f2.data
 
     return nothing 
 end
 
 # basic subtraction
 function subtract(
-    f1     :: MatsubaraFunction{Dg, Ds, Dt}, 
-    f2     :: MatsubaraFunction{Dg, Ds, Dt}
+    f1     :: MatsubaraFunction{Dg, Ds, Dt, Q}, 
+    f2     :: MatsubaraFunction{Dg, Ds, Dt, Q}
     ;
     checks :: Bool = true
-    )      :: MatsubaraFunction{Dg, Ds, Dt} where {Dg, Ds, Dt}
+    )      :: MatsubaraFunction{Dg, Ds, Dt, Q} where {Dg, Ds, Dt, Q <: Number}
 
     if checks
         for i in 1 : Dg 
@@ -132,15 +136,15 @@ function subtract(
         end 
     end
 
-    return MatsubaraFunction(f1.grids, f1.shape, @tturbo f1.data .- f2.data; checks)
+    return MatsubaraFunction(f1.grids, f1.shape, f1.data .- f2.data; checks)
 end
 
 function subtract!(
-    f1     :: MatsubaraFunction{Dg, Ds, Dt}, 
-    f2     :: MatsubaraFunction{Dg, Ds, Dt}
+    f1     :: MatsubaraFunction{Dg, Ds, Dt, Q}, 
+    f2     :: MatsubaraFunction{Dg, Ds, Dt, Q}
     ;
     checks :: Bool = true
-    )      :: Nothing where {Dg, Ds, Dt}
+    )      :: Nothing where {Dg, Ds, Dt, Q <: Number}
 
     if checks
         for i in 1 : Dg 
@@ -148,28 +152,28 @@ function subtract!(
         end
     end 
 
-    @tturbo f1.data .-= f2.data
+    f1.data .-= f2.data
 
     return nothing 
 end
 
 # basic multiplication with scalar 
 function mult(
-    f      :: MatsubaraFunction{Dg, Ds, Dt},
-    val    :: Float64
+    f      :: MatsubaraFunction{Dg, Ds, Dt, Q},
+    val    :: Qp
     ;
     checks :: Bool = true
-    )      :: MatsubaraFunction{Dg, Ds, Dt} where {Dg, Ds, Dt}
+    )      :: MatsubaraFunction{Dg, Ds, Dt, Q} where {Dg, Ds, Dt, Q <: Number, Qp <: Number}
 
-    return MatsubaraFunction(f.grids, f.shape, @tturbo val .* f.data; checks)
+    return MatsubaraFunction(f.grids, f.shape, val .* f.data; checks)
 end
 
 function mult!(
-    f   :: MatsubaraFunction{Dg, Ds, Dt},
-    val :: Float64
-    )   :: Nothing where {Dg, Ds, Dt}
+    f   :: MatsubaraFunction{Dg, Ds, Dt, Q},
+    val :: Qp
+    )   :: Nothing where {Dg, Ds, Dt, Q <: Number, Qp <: Number}
 
-    @tturbo f.data .*= val 
+    f.data .*= val 
 
     return nothing
 end
@@ -178,19 +182,19 @@ end
 
 # getindex method (bounds check performed by Base.Array)
 function Base.:getindex(
-    f :: MatsubaraFunction{Dg, Ds, Dt},
+    f :: MatsubaraFunction{Dg, Ds, Dt, Q},
     x :: Vararg{Int64, Dt}
-    ) :: Float64 where {Dg, Ds, Dt}
+    ) :: Float64 where {Dg, Ds, Dt, Q <: Number}
 
     return f.data[x...]
 end
 
 # setindex! method (bounds check performed by Base.Array)
 function Base.:setindex!(
-    f   :: MatsubaraFunction{Dg, Ds, Dt},
+    f   :: MatsubaraFunction{Dg, Ds, Dt, Q},
     val :: Float64,
     x   :: Vararg{Int64, Dt}
-    )   :: Nothing where {Dg, Ds, Dt}
+    )   :: Nothing where {Dg, Ds, Dt, Q <: Number}
 
     f.data[x...] = val
 
@@ -200,12 +204,12 @@ end
 
 
 # call to Matsubara function on 1D grid
-@inbounds function (f :: MatsubaraFunction{1, Ds, Dt})(
+@inbounds function (f :: MatsubaraFunction{1, Ds, Dt, Q})(
     w  :: Float64,
     x  :: Vararg{Int64, Ds} 
     ; 
     bc :: Float64 = 0.0
-    )  :: Float64 where{Ds, Dt}
+    )  :: Q where{Ds, Dt, Q <: Number}
 
     ax = f.grids[1][1] <= w <= f.grids[1][grids_shape(f, 1)]
 
@@ -218,12 +222,12 @@ end
 end
 
 # call to Matsubara function on 2D grid
-@inbounds function (f :: MatsubaraFunction{2, Ds, Dt})(
+@inbounds function (f :: MatsubaraFunction{2, Ds, Dt, Q})(
     w  :: NTuple{2, Float64},
     x  :: Vararg{Int64, Ds} 
     ; 
     bc :: Float64 = 0.0
-    )  :: Float64 where{Ds, Dt}
+    )  :: Q where{Ds, Dt, Q <: Number}
 
     ax1 = f.grids[1][1] <= w[1] <= f.grids[1][grids_shape(f, 1)]
     ax2 = f.grids[2][1] <= w[2] <= f.grids[2][grids_shape(f, 2)]
@@ -242,12 +246,12 @@ end
 end
 
 # call to Matsubara function on 3D grid
-@inbounds function (f :: MatsubaraFunction{3, Ds, Dt})(
+@inbounds function (f :: MatsubaraFunction{3, Ds, Dt, Q})(
     w  :: NTuple{3, Float64},
     x  :: Vararg{Int64, Ds} 
     ; 
     bc :: Float64 = 0.0
-    )  :: Float64 where{Ds, Dt}
+    )  :: Q where{Ds, Dt, Q <: Number}
 
     ax1 = f.grids[1][1] <= w[1] <= f.grids[1][grids_shape(f, 1)]
     ax2 = f.grids[2][1] <= w[2] <= f.grids[2][grids_shape(f, 2)]
