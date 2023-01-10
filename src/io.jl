@@ -1,42 +1,38 @@
 function save_matsubara_grid!(
-    g :: MatsubaraGrid, 
+    h :: HDF5.File,
     l :: String,
-    h :: HDF5.File 
-    ) :: Nothing 
+    g :: MatsubaraGrid{GT}
+    ) :: Nothing where {GT <: AbstractGrid}
 
     attributes(h)[l * "/T"]    = g.T
     attributes(h)[l * "/type"] = "$(g.type)"
+    attributes(h)[l * "/GT"]   = "$(GT)"
     h[l * "/data"]             = g.data
 
     return nothing 
 end 
 
 function load_matsubara_grid(
-    l :: String, 
-    h :: HDF5.File 
+    h :: HDF5.File,
+    l :: String
     ) :: MatsubaraGrid 
 
     T    = read_attribute(h, l * "/T")
     type = read_attribute(h, l * "/type")
+    GT   = read_attribute(h, l * "/GT")
     data = read(h, l * "/data")
 
-    if type == "Fermion"
-        return MatsubaraGrid(T, data, :Fermion)
-    elseif type == "Boson"
-        return MatsubaraGrid(T, data, :Boson)
-    else 
-        error("Grid type $(type) unknown")
-    end 
+    return MatsubaraGrid(T, data, Symbol(type), eval(Meta.parse(GT)))
 end
 
 function save_matsubara_function!(
-    f :: MatsubaraFunction{Dg, Ds, Dt, Q},
+    h :: HDF5.File,
     l :: String,
-    h :: HDF5.File
-    ) :: Nothing where {Dg, Ds, Dt, Q <: Number}
+    f :: MatsubaraFunction{Dg, Ds, Dt, GT, Q}
+    ) :: Nothing where {Dg, Ds, Dt, GT <: AbstractGrid, Q <: Number}
 
     for i in eachindex(f.grids)
-        save_matsubara_grid!(f.grids[i], l * "/grids/grid_$i", h)
+        save_matsubara_grid!(h, l * "/grids/grid_$i", f.grids[i])
     end
 
     attributes(h)[l * "/shape"] = Int64[f.shape...] 
@@ -51,7 +47,7 @@ function load_matsubara_function(
     ) :: MatsubaraFunction
 
     idxs  = eachindex(keys(h[l * "/grids"]))
-    grids = MatsubaraGrid[load_matsubara_grid(l * "/grids/grid_$i", h) for i in idxs]
+    grids = MatsubaraGrid[load_matsubara_grid(h, l * "/grids/grid_$i") for i in idxs]
     shape = read_attribute(h, l * "/shape")
     data  = read(h, l * "/data")
     
