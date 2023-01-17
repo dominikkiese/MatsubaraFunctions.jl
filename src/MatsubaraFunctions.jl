@@ -2,6 +2,8 @@ module MatsubaraFunctions
 
     using Test 
     using HDF5
+    using LoopVectorization
+    using StaticArrays
 
     include("types.jl")
     include("matsubara.jl")
@@ -32,6 +34,7 @@ module MatsubaraFunctions
         subtract!, 
         mult,
         mult!,
+        sum,
 
         # io.jl
         save_matsubara_grid!, 

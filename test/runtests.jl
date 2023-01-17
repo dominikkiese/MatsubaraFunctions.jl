@@ -60,3 +60,30 @@ end
         @test isapprox(f3D(w3D, x...), f3D[idx3D...])
     end 
 end
+
+@testset "Summation" begin 
+    T  = 0.5
+    ξ  = 0.5
+    fg = MatsubaraGrid(T, 512, Fermion)
+    f1 = MatsubaraFunction((fg,), (1,));
+    f2 = MatsubaraFunction((fg,), (1,));
+    f3 = MatsubaraFunction((fg,), (1,));
+    f4 = MatsubaraFunction((fg,), (1,));
+    f5 = MatsubaraFunction((fg,), (1,), Float64);
+
+    for v in 1 : length(fg)
+        f1[v, 1] = 1.0 / (im * fg[v])
+        f2[v, 1] = 1.0 / (im * fg[v] - ξ)
+        f3[v, 1] = 1.0 / (im * fg[v] + ξ)
+        f4[v, 1] = 1.0 / (im * fg[v] - ξ) / (im * fg[v] - ξ)
+        f5[v, 1] = 1.0 / fg[v]
+    end 
+
+    ρ(x, T) = 1.0 / (exp(x / T) + 1.0)
+
+    @test isapprox(sum(f1, 1), ρ(0.0, T); atol = 1e-4, rtol = 0.0)
+    @test isapprox(sum(f2, 1), ρ(ξ, T); atol = 1e-4, rtol = 0.0)
+    @test isapprox(sum(f3, 1), 1.0 - ρ(ξ, T); atol = 1e-4, rtol = 0.0)
+    @test isapprox(sum(f4, 1), ρ(ξ, T) * (ρ(ξ, T) - 1.0) / T; atol = 1e-4, rtol = 0.0)
+    @test isapprox(sum(f5, 1), im * ρ(0.0, T); atol = 1e-4, rtol = 0.0)
+end

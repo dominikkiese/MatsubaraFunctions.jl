@@ -87,7 +87,16 @@ struct MatsubaraGrid{GT <: AbstractGrid}
     end
 end
 
+
+
 # make Matsubara grid indexable
+function Base.:lastindex(
+    grid :: MatsubaraGrid{GT}
+    )    :: Int64 where {GT <: AbstractGrid}
+
+    return lastindex(grid.data)
+end
+
 function Base.:getindex(
     grid :: MatsubaraGrid{GT},
     idx  :: Int64 
@@ -96,6 +105,17 @@ function Base.:getindex(
     # bounds check performed by Base.Array
     return grid.data[idx]
 end
+
+function Base.:getindex(
+    grid :: MatsubaraGrid{GT},
+    idxs :: UnitRange{Int64},
+    )    :: Vector{Float64} where {GT <: AbstractGrid}
+
+    # bounds check performed by Base.Array 
+    return grid.data[idxs]
+end  
+
+
 
 # make Matsubara grid iterable
 function Base.length(

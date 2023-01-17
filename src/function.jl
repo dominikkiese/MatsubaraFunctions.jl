@@ -186,7 +186,7 @@ end
 
 
 
-# getindex method (bounds check performed by Base.Array)
+# getindex methods (bounds check performed by Base.Array)
 function Base.:getindex(
     f :: MatsubaraFunction{GD, SD, DD, GT, Q},
     x :: Vararg{Int64, DD}
@@ -216,7 +216,7 @@ end
     ; 
     bc   :: Float64 = 0.0,
     tail :: NTuple{P, Float64} = ()
-    )    :: Q where{SD, DD, GT <: AbstractGrid, Q <: Number, P}
+    )    :: Q where{SD, DD, P, GT <: AbstractGrid, Q <: Number}
 
     bv_dn = f.grids[1][1]
     bv_up = f.grids[1][grids_shape(f, 1)]
@@ -297,4 +297,117 @@ end
     else 
         return bc 
     end 
+end
+
+
+
+# sum data of Matsubara function on 1D grid for real-valued data
+@inbounds function sum_me(
+    f :: MatsubaraFunction{1, SD, DD, GT, Q},
+    x :: Vararg{Int64, SD} 
+    ) :: Q where{SD, DD, GT <: AbstractGrid, Q <: Real}
+
+    slice = @view f.data[:, x...]
+    sum   = 0.0
+
+    @turbo for idx in eachindex(slice)
+        sum += slice[idx]
+    end 
+
+    return sum
+end
+
+# sum data of Matsubara function on 1D grid for complex-valued data
+@inbounds function sum_me(
+    f :: MatsubaraFunction{1, SD, DD, GT, Complex{Q}},
+    x :: Vararg{Int64, SD} 
+    ) :: Complex{Q} where{SD, DD, GT <: AbstractGrid, Q <: Real}
+
+    slice  = reinterpret(Q, @view f.data[:, x...])
+    vw_re  = @view slice[1 : 2 : end - 1]
+    vw_im  = @view slice[2 : 2 : end]
+    sum_re = 0.0
+    sum_im = 0.0
+
+    @turbo for idx in eachindex(vw_re)
+        sum_re += vw_re[idx]
+    end 
+
+    @turbo for idx in eachindex(vw_im)
+        sum_im += vw_im[idx]
+    end 
+
+    return sum_re + im * sum_im
+end
+
+# compute Matsubara sum over Matsubara function on 1D grid for real-valued data
+@inbounds function Base.:sum(
+    f :: MatsubaraFunction{1, SD, DD, Linear, Q},
+    x :: Vararg{Int64, SD}
+    ) :: Complex{Q} where {SD, DD, Q <: Real}
+
+    # read data
+    ydat = SVector{3, Q}(f.data[end, x...], f.data[end - 1, x...], f.data[end - 2, x...])
+    xdat = SVector{3, Float64}(1.0 / f.grids[1][end], 1.0 / f.grids[1][end - 1], 1.0 / f.grids[1][end - 2])
+
+    # generate Vandermonde matrix 
+    mat = @SMatrix Float64[1.0 xdat[1] xdat[1] * xdat[1];
+                           1.0 xdat[2] xdat[2] * xdat[2];
+                           1.0 xdat[3] xdat[3] * xdat[3]]
+
+    # compute fitting coefficients 
+    coeff = inv(mat) * ydat
+    α0    = coeff[1]
+    α1    = im * coeff[2]
+    α2    = -coeff[3]
+
+    # compute the Matsubara sum using quadratic asymptotic model
+    T   = f.grids[1].T
+    num = grids_shape(f, 1)
+    val = -T * (num * α0 - sum_me(f, x...)) + 0.5 * (α1 - 0.5 * α2 / T)
+    sum = 0.0
+
+    @turbo for w in 1 : num
+        sum += T * α2 / f.grids[1].data[w] / f.grids[1].data[w]
+    end
+
+    return val + sum
+end
+
+# compute Matsubara sum over Matsubara function on 1D grid for complex-valued data
+@inbounds function Base.:sum(
+    f :: MatsubaraFunction{1, SD, DD, Linear, Complex{Q}},
+    x :: Vararg{Int64, SD}
+    ) :: Complex{Q} where {SD, DD, Q <: Real}
+
+    # read data
+    ydat = SVector{3, Complex{Q}}(f.data[end, x...], f.data[end - 1, x...], f.data[end - 2, x...])
+    xdat = SVector{3, Float64}(1.0 / f.grids[1][end], 1.0 / f.grids[1][end - 1], 1.0 / f.grids[1][end - 2])
+
+    # generate Vandermonde matrix 
+    mat = @SMatrix Float64[1.0 xdat[1] xdat[1] * xdat[1];
+                           1.0 xdat[2] xdat[2] * xdat[2];
+                           1.0 xdat[3] xdat[3] * xdat[3]]
+
+    # compute fitting coefficients 
+    coeff = inv(mat) * ydat
+    α0    = coeff[1]
+    α1    = im * coeff[2]
+    α2    = -coeff[3]
+
+    # compute the Matsubara sum using quadratic asymptotic model
+    T   = f.grids[1].T
+    num = grids_shape(f, 1)
+    val = -T * (num * α0 - sum_me(f, x...)) + 0.5 * (α1 - 0.5 * α2 / T)
+    
+    sum_re = 0.0; α2_re = real(α2)
+    sum_im = 0.0; α2_im = imag(α2)
+
+    @turbo for w in 1 : num
+        val     = T / f.grids[1].data[w] / f.grids[1].data[w]
+        sum_re += α2_re * val
+        sum_im += α2_im * val
+    end
+
+    return val + sum_re + im * sum_im
 end
