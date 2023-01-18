@@ -62,10 +62,10 @@ end
     T  = 0.5
     ξ  = 0.5
     fg = MatsubaraGrid(T, 512, Fermion)
-    f1 = MatsubaraFunction((fg,), (1,));
-    f2 = MatsubaraFunction((fg,), (1,));
-    f3 = MatsubaraFunction((fg,), (1,));
-    f4 = MatsubaraFunction((fg,), (1,), Float64);
+    f1 = MatsubaraFunction((fg,), (1,))
+    f2 = MatsubaraFunction((fg,), (1,))
+    f3 = MatsubaraFunction((fg,), (1,))
+    f4 = MatsubaraFunction((fg,), (1,), Float64)
 
     for v in 1 : length(fg)
         f1[v, 1] = 1.0 / (im * fg[v])
@@ -86,11 +86,11 @@ end
     T  = 0.5
     ξ  = 0.5
     fg = MatsubaraGrid(T, 512, Fermion)
-    f1 = MatsubaraFunction((fg,), (1,));
-    f2 = MatsubaraFunction((fg,), (1,));
-    f3 = MatsubaraFunction((fg,), (1,));
-    f4 = MatsubaraFunction((fg,), (1,));
-    f5 = MatsubaraFunction((fg,), (1,), Float64);
+    f1 = MatsubaraFunction((fg,), (1,))
+    f2 = MatsubaraFunction((fg,), (1,))
+    f3 = MatsubaraFunction((fg,), (1,))
+    f4 = MatsubaraFunction((fg,), (1,))
+    f5 = MatsubaraFunction((fg,), (1,), Float64)
 
     for v in 1 : length(fg)
         f1[v, 1] = 1.0 / (im * fg[v])

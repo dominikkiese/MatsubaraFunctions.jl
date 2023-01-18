@@ -212,7 +212,7 @@ end
 
 
 # compute tail moments in quadratic approximation 
-@inbounds function tail_moments(
+@inline @inbounds function tail_moments(
     f :: MatsubaraFunction{1, SD, DD, GT, Q},
     x :: Vararg{Int64, SD} 
     ) :: SVector{3, Q} where {SD, DD, GT <: AbstractGrid, Q <: Number}
@@ -313,7 +313,7 @@ end
 
 
 # sum data of Matsubara function on 1D grid for real-valued data
-@inbounds function sum_me(
+@inline @inbounds function sum_me(
     f :: MatsubaraFunction{1, SD, DD, GT, Q},
     x :: Vararg{Int64, SD} 
     ) :: Q where{SD, DD, GT <: AbstractGrid, Q <: Real}
@@ -329,7 +329,7 @@ end
 end
 
 # sum data of Matsubara function on 1D grid for complex-valued data
-@inbounds function sum_me(
+@inline @inbounds function sum_me(
     f :: MatsubaraFunction{1, SD, DD, GT, Complex{Q}},
     x :: Vararg{Int64, SD} 
     ) :: Complex{Q} where{SD, DD, GT <: AbstractGrid, Q <: Real}

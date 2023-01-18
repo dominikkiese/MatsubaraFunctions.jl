@@ -4,12 +4,14 @@ module MatsubaraFunctions
     using HDF5
     using LoopVectorization
     using StaticArrays
+    using TimerOutputs
 
     include("types.jl")
     include("matsubara.jl")
     include("interpolation.jl")
     include("function.jl")
     include("io.jl")
+    include("timers.jl")
 
     export
         # types.jl 
@@ -41,5 +43,8 @@ module MatsubaraFunctions
         save_matsubara_grid!, 
         load_matsubara_grid, 
         save_matsubara_function!, 
-        load_matsubara_function
+        load_matsubara_function,
+
+        # timers.jl 
+        get_timers
 end
