@@ -34,6 +34,7 @@ module MatsubaraFunctions
         subtract!, 
         mult,
         mult!,
+        tail_moments,
         sum,
 
         # io.jl

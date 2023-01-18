@@ -186,22 +186,24 @@ end
 
 
 
-# getindex methods (bounds check performed by Base.Array)
+# getindex methods
 function Base.:getindex(
     f :: MatsubaraFunction{GD, SD, DD, GT, Q},
     x :: Vararg{Int64, DD}
     ) :: Q where {GD, SD, DD, GT <: AbstractGrid, Q <: Number}
 
+    # bounds check performed by Base.Array
     return f.data[x...]
 end
 
-# setindex! method (bounds check performed by Base.Array)
+# setindex! methods
 function Base.:setindex!(
     f   :: MatsubaraFunction{GD, SD, DD, GT, Q},
     val :: Qp,
     x   :: Vararg{Int64, DD}
     )   :: Nothing where {GD, SD, DD, GT <: AbstractGrid, Q <: Number, Qp <: Number}
 
+    # bounds check performed by Base.Array
     f.data[x...] = val
 
     return nothing
@@ -209,40 +211,49 @@ end
 
 
 
-# call to Matsubara function on 1D grid (allows to pass tail moments for extrapolation)
+# compute tail moments in quadratic approximation 
+@inbounds function tail_moments(
+    f :: MatsubaraFunction{1, SD, DD, GT, Q},
+    x :: Vararg{Int64, SD} 
+    ) :: SVector{3, Q} where {SD, DD, GT <: AbstractGrid, Q <: Number}
+
+    # read data
+    ydat = SVector{3, Q}(f.data[end, x...], f.data[end - 1, x...], f.data[end - 2, x...])
+    xdat = SVector{3, Float64}(1.0 / f.grids[1][end], 1.0 / f.grids[1][end - 1], 1.0 / f.grids[1][end - 2])
+    
+    # generate Vandermonde matrix 
+    mat = @SMatrix Float64[1.0 xdat[1] xdat[1] * xdat[1];
+                           1.0 xdat[2] xdat[2] * xdat[2];
+                           1.0 xdat[3] xdat[3] * xdat[3]]
+    
+    return inv(mat) * ydat
+end
+
+
+
+# call to Matsubara function on 1D grid 
+# performs extrapolaton using tail moments if extrp = true, else fallback to specified bc
 @inbounds function (f :: MatsubaraFunction{1, SD, DD, GT, Q})(
-    w    :: Float64,
-    x    :: Vararg{Int64, SD} 
+    w     :: Float64,
+    x     :: Vararg{Int64, SD} 
     ; 
-    bc   :: Float64 = 0.0,
-    tail :: NTuple{P, Float64} = ()
-    )    :: Q where{SD, DD, P, GT <: AbstractGrid, Q <: Number}
+    bc    :: Float64 = 0.0,
+    extrp :: Bool    = false 
+    )     :: Q where{SD, DD, GT <: AbstractGrid, Q <: Number}
 
-    bv_dn = f.grids[1][1]
-    bv_up = f.grids[1][grids_shape(f, 1)]
+    ax = f.grids[1][1] <= w <= f.grids[1][end]
 
-    if w < bv_dn 
-        val = bc
-
-        for n in eachindex(tail)
-            val += tail[n] * (bv_dn / w)^n * (f.data[1, x...] - bc)
-        end
-            
-        return val
-
-    elseif w > bv_up 
-        val = bc
-
-        for n in eachindex(tail)
-            val += tail[n] * (bv_up / w)^n * (f.data[end, x...] - bc)
-        end
-            
-        return val
-         
-    else
+    if ax 
         p = Param(w, f.grids[1]) 
         return p.wgts[1] * f.data[p.idxs[1], x...] + p.wgts[2] * f.data[p.idxs[2], x...]
-    end 
+    else 
+        if extrp  
+            moments = tail_moments(f, x...)
+            return moments[1] + (moments[2] + moments[3] / w) / w
+        else 
+            return bc 
+        end 
+    end
 end
 
 # call to Matsubara function on 2D grid
@@ -253,8 +264,8 @@ end
     bc :: Float64 = 0.0
     )  :: Q where{SD, DD, GT <: AbstractGrid, Q <: Number}
 
-    ax1 = f.grids[1][1] <= w[1] <= f.grids[1][grids_shape(f, 1)]
-    ax2 = f.grids[2][1] <= w[2] <= f.grids[2][grids_shape(f, 2)]
+    ax1 = f.grids[1][1] <= w[1] <= f.grids[1][end]
+    ax2 = f.grids[2][1] <= w[2] <= f.grids[2][end]
 
     if ax1 && ax2
         p1 = Param(w[1], f.grids[1])
@@ -277,9 +288,9 @@ end
     bc :: Float64 = 0.0
     )  :: Q where{SD, DD, GT <: AbstractGrid, Q <: Number}
 
-    ax1 = f.grids[1][1] <= w[1] <= f.grids[1][grids_shape(f, 1)]
-    ax2 = f.grids[2][1] <= w[2] <= f.grids[2][grids_shape(f, 2)]
-    ax3 = f.grids[3][1] <= w[3] <= f.grids[3][grids_shape(f, 3)]
+    ax1 = f.grids[1][1] <= w[1] <= f.grids[1][end]
+    ax2 = f.grids[2][1] <= w[2] <= f.grids[2][end]
+    ax3 = f.grids[3][1] <= w[3] <= f.grids[3][end]
 
     if ax1 && ax2 && ax3
         p1 = Param(w[1], f.grids[1])
@@ -346,20 +357,11 @@ end
     x :: Vararg{Int64, SD}
     ) :: Complex{Q} where {SD, DD, Q <: Real}
 
-    # read data
-    ydat = SVector{3, Q}(f.data[end, x...], f.data[end - 1, x...], f.data[end - 2, x...])
-    xdat = SVector{3, Float64}(1.0 / f.grids[1][end], 1.0 / f.grids[1][end - 1], 1.0 / f.grids[1][end - 2])
-
-    # generate Vandermonde matrix 
-    mat = @SMatrix Float64[1.0 xdat[1] xdat[1] * xdat[1];
-                           1.0 xdat[2] xdat[2] * xdat[2];
-                           1.0 xdat[3] xdat[3] * xdat[3]]
-
-    # compute fitting coefficients 
-    coeff = inv(mat) * ydat
-    α0    = coeff[1]
-    α1    = im * coeff[2]
-    α2    = -coeff[3]
+    # compute tail moments 
+    moments = tail_moments(f, x...)
+    α0      = moments[1]
+    α1      = im * moments[2]
+    α2      = -moments[3]
 
     # compute the Matsubara sum using quadratic asymptotic model
     T   = f.grids[1].T
@@ -380,20 +382,11 @@ end
     x :: Vararg{Int64, SD}
     ) :: Complex{Q} where {SD, DD, Q <: Real}
 
-    # read data
-    ydat = SVector{3, Complex{Q}}(f.data[end, x...], f.data[end - 1, x...], f.data[end - 2, x...])
-    xdat = SVector{3, Float64}(1.0 / f.grids[1][end], 1.0 / f.grids[1][end - 1], 1.0 / f.grids[1][end - 2])
-
-    # generate Vandermonde matrix 
-    mat = @SMatrix Float64[1.0 xdat[1] xdat[1] * xdat[1];
-                           1.0 xdat[2] xdat[2] * xdat[2];
-                           1.0 xdat[3] xdat[3] * xdat[3]]
-
-    # compute fitting coefficients 
-    coeff = inv(mat) * ydat
-    α0    = coeff[1]
-    α1    = im * coeff[2]
-    α2    = -coeff[3]
+    # compute tail moments 
+    moments = tail_moments(f, x...)
+    α0      = moments[1]
+    α1      = im * moments[2]
+    α2      = -moments[3]
 
     # compute the Matsubara sum using quadratic asymptotic model
     T   = f.grids[1].T

@@ -1,12 +1,10 @@
 using Test
 using MatsubaraFunctions 
 
+# check whether MatsubaraFunctions correctly evaluate on their associated linear grids
 @testset "Linear" begin 
-    fg = MatsubaraGrid(1.0, 10, Fermion)
-    bg = MatsubaraGrid(1.0, 10, Boson)
-
-    nf = length(fg)
-    nb = length(bg)
+    fg = MatsubaraGrid(1.0, 10, Fermion); nf = length(fg)
+    bg = MatsubaraGrid(1.0, 10, Boson);   nb = length(bg)
 
     f1D = MatsubaraFunction((fg,), (10, 10), rand(nf, 10, 10))
     f2D = MatsubaraFunction((bg, fg), (10, 10), rand(nb, nf, 10, 10))
@@ -25,18 +23,16 @@ using MatsubaraFunctions
         w2D   = bg[idx2D[1]], fg[idx2D[2]]
         w3D   = bg[idx3D[1]], fg[idx3D[2]], fg[idx3D[3]]
 
-        @test isapprox(f1D(w1D, x...), f1D[idx1D...])
-        @test isapprox(f2D(w2D, x...), f2D[idx2D...])
-        @test isapprox(f3D(w3D, x...), f3D[idx3D...])
+        @test isapprox(f1D(w1D, x...), f1D[idx1D...], atol = 1e-14, rtol = 0.0)
+        @test isapprox(f2D(w2D, x...), f2D[idx2D...], atol = 1e-14, rtol = 0.0)
+        @test isapprox(f3D(w3D, x...), f3D[idx3D...], atol = 1e-14, rtol = 0.0)
     end 
 end
 
+# check whether MatsubaraFunctions correctly evaluate on their associated coarse grids
 @testset "Coarse" begin 
-    fg = MatsubaraGrid(1.0, 10, 2.0, Fermion)
-    bg = MatsubaraGrid(1.0, 10, 2.0, Boson)
-
-    nf = length(fg)
-    nb = length(bg)
+    fg = MatsubaraGrid(1.0, 10, 2.0, Fermion); nf = length(fg)
+    bg = MatsubaraGrid(1.0, 10, 2.0, Boson);   nb = length(bg)
 
     f1D = MatsubaraFunction((fg,), (10, 10), rand(nf, 10, 10))
     f2D = MatsubaraFunction((bg, fg), (10, 10), rand(nb, nf, 10, 10))
@@ -55,12 +51,37 @@ end
         w2D   = bg[idx2D[1]], fg[idx2D[2]]
         w3D   = bg[idx3D[1]], fg[idx3D[2]], fg[idx3D[3]]
 
-        @test isapprox(f1D(w1D, x...), f1D[idx1D...])
-        @test isapprox(f2D(w2D, x...), f2D[idx2D...])
-        @test isapprox(f3D(w3D, x...), f3D[idx3D...])
+        @test isapprox(f1D(w1D, x...), f1D[idx1D...], atol = 1e-14, rtol = 0.0)
+        @test isapprox(f2D(w2D, x...), f2D[idx2D...], atol = 1e-14, rtol = 0.0)
+        @test isapprox(f3D(w3D, x...), f3D[idx3D...], atol = 1e-14, rtol = 0.0)
     end 
 end
 
+# check whether extrapolation routines work as expected
+@testset "Extrapolation" begin 
+    T  = 0.5
+    ξ  = 0.5
+    fg = MatsubaraGrid(T, 512, Fermion)
+    f1 = MatsubaraFunction((fg,), (1,));
+    f2 = MatsubaraFunction((fg,), (1,));
+    f3 = MatsubaraFunction((fg,), (1,));
+    f4 = MatsubaraFunction((fg,), (1,), Float64);
+
+    for v in 1 : length(fg)
+        f1[v, 1] = 1.0 / (im * fg[v])
+        f2[v, 1] = 1.0 / (im * fg[v] - ξ)
+        f3[v, 1] = 1.0 / (im * fg[v] - ξ) / (im * fg[v] - ξ)
+        f4[v, 1] = 1.0 / fg[v]
+    end 
+
+    w = 2.0 * fg[end]
+    @test isapprox(f1(w, 1; extrp = true), 1.0 / (im * w); atol = 1e-10, rtol = 0.0)
+    @test isapprox(f2(w, 1; extrp = true), 1.0 / (im * w) - ξ / w / w; atol = 1e-10, rtol = 0.0)
+    @test isapprox(f3(w, 1; extrp = true), -1.0 / w / w; atol = 1e-10, rtol = 0.0)
+    @test isapprox(f4(w, 1; extrp = true), 1.0 / w; atol = 1e-10, rtol = 0.0)
+end
+
+# check whether summation routines work as expected
 @testset "Summation" begin 
     T  = 0.5
     ξ  = 0.5
@@ -80,7 +101,6 @@ end
     end 
 
     ρ(x, T) = 1.0 / (exp(x / T) + 1.0)
-
     @test isapprox(sum(f1, 1), ρ(0.0, T); atol = 1e-4, rtol = 0.0)
     @test isapprox(sum(f2, 1), ρ(ξ, T); atol = 1e-4, rtol = 0.0)
     @test isapprox(sum(f3, 1), 1.0 - ρ(ξ, T); atol = 1e-4, rtol = 0.0)
