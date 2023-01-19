@@ -211,8 +211,8 @@ end
 
 
 
-# compute tail moments in quadratic approximation 
-@inline @inbounds function tail_moments(
+# compute tail moments in quadratic approximation from upper bound of 1D MatsubaraFunction
+@inline @inbounds function upper_tail_moments(
     f :: MatsubaraFunction{1, SD, DD, GT, Q},
     x :: Vararg{Int64, SD} 
     ) :: SVector{3, Q} where {SD, DD, GT <: AbstractGrid, Q <: Number}
@@ -229,27 +229,50 @@ end
     return inv(mat) * ydat
 end
 
+# compute tail moments in quadratic approximation from lower bound of 1D MatsubaraFunction
+@inline @inbounds function lower_tail_moments(
+    f :: MatsubaraFunction{1, SD, DD, GT, Q},
+    x :: Vararg{Int64, SD} 
+    ) :: SVector{3, Q} where {SD, DD, GT <: AbstractGrid, Q <: Number}
+
+    # read data
+    ydat = SVector{3, Q}(f.data[1, x...], f.data[2, x...], f.data[3, x...])
+    xdat = SVector{3, Float64}(1.0 / f.grids[1][1], 1.0 / f.grids[1][2], 1.0 / f.grids[1][3])
+    
+    # generate Vandermonde matrix 
+    mat = @SMatrix Float64[1.0 xdat[1] xdat[1] * xdat[1];
+                           1.0 xdat[2] xdat[2] * xdat[2];
+                           1.0 xdat[3] xdat[3] * xdat[3]]
+    
+    return inv(mat) * ydat
+end
+
 
 
 # call to Matsubara function on 1D grid 
-# performs extrapolaton using tail moments if extrp = true, else fallback to specified bc
+# performs extrapolaton using tail moments if extrp = true (default), else fallback to specified bc
 @inbounds function (f :: MatsubaraFunction{1, SD, DD, GT, Q})(
     w     :: Float64,
     x     :: Vararg{Int64, SD} 
     ; 
     bc    :: Float64 = 0.0,
-    extrp :: Bool    = false 
+    extrp :: Bool    = true
     )     :: Q where{SD, DD, GT <: AbstractGrid, Q <: Number}
 
     ax = f.grids[1][1] <= w <= f.grids[1][end]
 
-    if ax 
+    if ax
         p = Param(w, f.grids[1]) 
         return p.wgts[1] * f.data[p.idxs[1], x...] + p.wgts[2] * f.data[p.idxs[2], x...]
     else 
-        if extrp  
-            moments = tail_moments(f, x...)
-            return moments[1] + (moments[2] + moments[3] / w) / w
+        if extrp
+            if sign(w) < 0.0 
+                moments = lower_tail_moments(f, x...)
+                return moments[1] + (moments[2] + moments[3] / w) / w
+            else 
+                moments = upper_tail_moments(f, x...)
+                return moments[1] + (moments[2] + moments[3] / w) / w
+            end
         else 
             return bc 
         end 
@@ -358,10 +381,13 @@ end
     ) :: Complex{Q} where {SD, DD, Q <: Real}
 
     # compute tail moments 
-    moments = tail_moments(f, x...)
-    α0      = moments[1]
-    α1      = im * moments[2]
-    α2      = -moments[3]
+    upper_moments = upper_tail_moments(f, x...)
+    lower_moments = lower_tail_moments(f, x...)
+
+    # compute expansion coefficients
+    α0 = +0.5 * (upper_moments[1] + lower_moments[1])
+    α1 = +0.5 * (upper_moments[2] + lower_moments[2]) * im
+    α2 = -0.5 * (upper_moments[3] + lower_moments[3])
 
     # compute the Matsubara sum using quadratic asymptotic model
     T   = f.grids[1].T
@@ -383,10 +409,13 @@ end
     ) :: Complex{Q} where {SD, DD, Q <: Real}
 
     # compute tail moments 
-    moments = tail_moments(f, x...)
-    α0      = moments[1]
-    α1      = im * moments[2]
-    α2      = -moments[3]
+    upper_moments = upper_tail_moments(f, x...)
+    lower_moments = lower_tail_moments(f, x...)
+
+    # compute expansion coefficients
+    α0 = +0.5 * (upper_moments[1] + lower_moments[1])
+    α1 = +0.5 * (upper_moments[2] + lower_moments[2]) * im
+    α2 = -0.5 * (upper_moments[3] + lower_moments[3])
 
     # compute the Matsubara sum using quadratic asymptotic model
     T   = f.grids[1].T

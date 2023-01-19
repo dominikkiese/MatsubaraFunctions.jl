@@ -16,74 +16,76 @@ struct MatsubaraGrid{GT <: AbstractGrid}
         return new{GT}(T, data, type)
     end
 
-    # convenience constructor for linear fermionic grid 
+    # convenience constructor for linear fermionic grid (total no. frequencies generated is 2 * N)
     function MatsubaraGrid(
-        T    :: Float64,
-        N    :: Int64,
-             :: Type{Fermion}
-        ; 
-        plus :: Bool = false
-        )    :: MatsubaraGrid{Linear}
+        T :: Float64,
+        N :: Int64,
+          :: Type{Fermion}
+        ) :: MatsubaraGrid{Linear}
 
-        grid = Float64[pi * T * (2 * n + 1) for n in 0 : N]
-
-        if plus
-            return MatsubaraGrid(T, grid, :Fermion, Linear)
-        else
-            return MatsubaraGrid(T, vcat(-reverse(grid), grid), :Fermion, Linear)
-        end
+        grid = Float64[pi * T * (2 * n + 1) for n in 0 : N - 1]
+        return MatsubaraGrid(T, vcat(-reverse(grid), grid), :Fermion, Linear)
     end
 
-    # convenience constructor for coarse fermionic grid 
+    # convenience constructor for coarse fermionic grid (total no. frequencies generated is 2 * N)
+    # lb is the integer after which only every δth frequency is considered
     function MatsubaraGrid(
-        T    :: Float64,
-        N    :: Int64,
-        z    :: Float64,
-             :: Type{Fermion}
-        ; 
-        plus :: Bool = false
-        )    :: MatsubaraGrid{Coarse}
+        T  :: Float64,
+        N  :: Int64,
+        lb :: Int64,
+        δ  :: Int64,
+           :: Type{Fermion}
+        )  :: MatsubaraGrid{Coarse}
 
-        grid = Float64[pi * T * (2 * round(Int64, z * sinh(n / z)) + 1) for n in 0 : N]
+        grid   = Vector{Float64}(undef, N)
+        offset = δ - 1
 
-        if plus
-            return MatsubaraGrid(T, grid, :Fermion, Coarse)
-        else
-            return MatsubaraGrid(T, vcat(-reverse(grid), grid), :Fermion, Coarse)
+        for n in 1 : N
+            if n <= lb
+                grid[n] = pi * T * (2 * (n - 1) + 1)
+            else 
+                grid[n] = pi * T * (2 * (n - 1 + offset) + 1)
+                offset  = offset + δ - 1
+            end 
         end
+
+        return MatsubaraGrid(T, vcat(-reverse(grid), grid), :Fermion, Coarse)
     end
 
-    # convenience constructor for linear bosonic grid 
+    # convenience constructor for linear bosonic grid (total no. frequencies generated is 2 * N - 1)
     function MatsubaraGrid(
-        T    :: Float64,
-        N    :: Int64,
-             :: Type{Boson}
-        ; 
-        plus :: Bool = false
-        )    :: MatsubaraGrid{Linear}
+        T :: Float64,
+        N :: Int64,
+          :: Type{Boson}
+        ) :: MatsubaraGrid{Linear}
 
-        if plus
-            return MatsubaraGrid(T, Float64[2.0 * pi * T * n for n in 0 : N], :Boson, Linear)
-        else
-            return MatsubaraGrid(T, Float64[2.0 * pi * T * n for n in -N : N], :Boson, Linear)
-        end
+        grid = Float64[2.0 * pi * T * n for n in 0 : N - 1]
+        return MatsubaraGrid(T, vcat(-reverse(grid[2 : end]), grid), :Boson, Linear)
     end
 
-    # convenience constructor for coarse bosonic grid 
+    # convenience constructor for coarse bosonic grid (total no. frequencies generated is 2 * N - 1)
+    # lb is the integer after which only every δth frequency is considered
     function MatsubaraGrid(
-        T    :: Float64,
-        N    :: Int64,
-        z    :: Float64,
-             :: Type{Boson}
-        ; 
-        plus :: Bool = false
-        )    :: MatsubaraGrid{Coarse}
+        T  :: Float64,
+        N  :: Int64,
+        lb :: Int64,
+        δ  :: Int64,
+           :: Type{Boson}
+        )  :: MatsubaraGrid{Coarse}
 
-        if plus
-            return MatsubaraGrid(T, Float64[2.0 * pi * T * round(Int64, z * sinh(n / z)) for n in 0 : N], :Boson, Coarse)
-        else
-            return MatsubaraGrid(T, Float64[2.0 * pi * T * round(Int64, z * sinh(n / z)) for n in -N : N], :Boson, Coarse)
+        grid   = Vector{Float64}(undef, N)
+        offset = δ - 1
+
+        for n in 1 : N
+            if n <= lb
+                grid[n] = 2.0 * pi * T * (n - 1)
+            else 
+                grid[n] = 2.0 * pi * T * (n - 1 + offset)
+                offset  = offset + δ - 1
+            end 
         end
+
+        return MatsubaraGrid(T, vcat(-reverse(grid[2 : end]), grid), :Boson, Coarse)
     end
 end
 
@@ -137,8 +139,8 @@ function Base.iterate(
     state :: Int64
     )     :: Union{Nothing, Tuple{Float64, Int64}} where {GT <: AbstractGrid}
 
-    if state <= length(grid)
-        return grid[state], state + 1 
+    if state < length(grid)
+        return grid[state + 1], state + 1 
     else 
         return nothing 
     end

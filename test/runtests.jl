@@ -6,6 +6,9 @@ using MatsubaraFunctions
     fg = MatsubaraGrid(1.0, 10, Fermion); nf = length(fg)
     bg = MatsubaraGrid(1.0, 10, Boson);   nb = length(bg)
 
+    @test isapprox(fg.data, Float64[v for v in fg], atol = 1e-14, rtol = 0.0)
+    @test isapprox(bg.data, Float64[w for w in bg], atol = 1e-14, rtol = 0.0)
+
     f1D = MatsubaraFunction((fg,), (10, 10), rand(nf, 10, 10))
     f2D = MatsubaraFunction((bg, fg), (10, 10), rand(nb, nf, 10, 10))
     f3D = MatsubaraFunction((bg, fg, fg), (10, 10), rand(nb, nf, nf, 10, 10))
@@ -31,8 +34,11 @@ end
 
 # check whether MatsubaraFunctions correctly evaluate on their associated coarse grids
 @testset "Coarse" begin 
-    fg = MatsubaraGrid(1.0, 10, 2.0, Fermion); nf = length(fg)
-    bg = MatsubaraGrid(1.0, 10, 2.0, Boson);   nb = length(bg)
+    fg = MatsubaraGrid(1.0, 10, 5, 5, Fermion); nf = length(fg)
+    bg = MatsubaraGrid(1.0, 10, 5, 5, Boson);   nb = length(bg)
+
+    @test isapprox(fg.data, Float64[v for v in fg], atol = 1e-14, rtol = 0.0)
+    @test isapprox(bg.data, Float64[w for w in bg], atol = 1e-14, rtol = 0.0)
 
     f1D = MatsubaraFunction((fg,), (10, 10), rand(nf, 10, 10))
     f2D = MatsubaraFunction((bg, fg), (10, 10), rand(nb, nf, 10, 10))
@@ -101,9 +107,9 @@ end
     end 
 
     ρ(x, T) = 1.0 / (exp(x / T) + 1.0)
-    @test isapprox(sum(f1, 1), ρ(0.0, T); atol = 1e-4, rtol = 0.0)
-    @test isapprox(sum(f2, 1), ρ(ξ, T); atol = 1e-4, rtol = 0.0)
-    @test isapprox(sum(f3, 1), 1.0 - ρ(ξ, T); atol = 1e-4, rtol = 0.0)
-    @test isapprox(sum(f4, 1), ρ(ξ, T) * (ρ(ξ, T) - 1.0) / T; atol = 1e-4, rtol = 0.0)
-    @test isapprox(sum(f5, 1), im * ρ(0.0, T); atol = 1e-4, rtol = 0.0)
+    @test isapprox(sum(f1, 1), ρ(0.0, T); atol = 1e-6, rtol = 0.0)
+    @test isapprox(sum(f2, 1), ρ(ξ, T); atol = 1e-6, rtol = 0.0)
+    @test isapprox(sum(f3, 1), 1.0 - ρ(ξ, T); atol = 1e-6, rtol = 0.0)
+    @test isapprox(sum(f4, 1), ρ(ξ, T) * (ρ(ξ, T) - 1.0) / T; atol = 1e-6, rtol = 0.0)
+    @test isapprox(sum(f5, 1), im * ρ(0.0, T); atol = 1e-6, rtol = 0.0)
 end
