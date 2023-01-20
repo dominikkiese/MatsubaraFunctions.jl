@@ -392,7 +392,7 @@ end
     # compute the Matsubara sum using quadratic asymptotic model
     T   = f.grids[1].T
     num = grids_shape(f, 1)
-    val = -T * (num * α0 - sum_me(f, x...)) + 0.5 * (α1 - 0.5 * α2 / T)
+    val = -T * (num * α0 - sum_me(f, x...)) - 0.5 * (α1 + 0.5 * α2 / T)
     sum = 0.0
 
     @turbo for w in 1 : num
@@ -420,7 +420,7 @@ end
     # compute the Matsubara sum using quadratic asymptotic model
     T   = f.grids[1].T
     num = grids_shape(f, 1)
-    val = -T * (num * α0 - sum_me(f, x...)) + 0.5 * (α1 - 0.5 * α2 / T)
+    val = -T * (num * α0 - sum_me(f, x...)) - 0.5 * (α1 + 0.5 * α2 / T)
     
     sum_re = 0.0; α2_re = real(α2)
     sum_im = 0.0; α2_im = imag(α2)

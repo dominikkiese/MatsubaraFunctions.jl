@@ -107,9 +107,15 @@ end
     end 
 
     ρ(x, T) = 1.0 / (exp(x / T) + 1.0)
-    @test isapprox(sum(f1, 1), ρ(0.0, T); atol = 1e-6, rtol = 0.0)
-    @test isapprox(sum(f2, 1), ρ(ξ, T); atol = 1e-6, rtol = 0.0)
-    @test isapprox(sum(f3, 1), 1.0 - ρ(ξ, T); atol = 1e-6, rtol = 0.0)
-    @test isapprox(sum(f4, 1), ρ(ξ, T) * (ρ(ξ, T) - 1.0) / T; atol = 1e-6, rtol = 0.0)
-    @test isapprox(sum(f5, 1), im * ρ(0.0, T); atol = 1e-6, rtol = 0.0)
+    ρ10     = ρ(+0, T) - 1.0
+    ρ1p     = ρ(+ξ, T) - 1.0
+    ρ1m     = ρ(-ξ, T) - 1.0
+    ρ2      = ρ(ξ, T) * (ρ(ξ, T) - 1.0) / T
+    ρ1r     = im * (ρ(0.0, T) - 1.0)
+
+    @test isapprox(sum(f1, 1), ρ10; atol = 1e-6, rtol = 0.0)
+    @test isapprox(sum(f2, 1), ρ1p; atol = 1e-6, rtol = 0.0)
+    @test isapprox(sum(f3, 1), ρ1m; atol = 1e-6, rtol = 0.0)
+    @test isapprox(sum(f4, 1),  ρ2; atol = 1e-6, rtol = 0.0)
+    @test isapprox(sum(f5, 1), ρ1r; atol = 1e-6, rtol = 0.0)
 end
