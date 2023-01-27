@@ -32,6 +32,8 @@ module MatsubaraFunctions
         grids_shape,
         shape, 
         data_shape,
+        absmax,
+        argmax,
         add,
         add!, 
         subtract,

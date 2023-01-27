@@ -59,6 +59,17 @@ struct MatsubaraFunction{GD, SD, DD, GT <: AbstractGrid, Q <: Number}
     end
 
     function MatsubaraFunction(
+        grids  :: NTuple{GD, MatsubaraGrid{GT}},
+        shape  :: Int64,
+               :: Type{Q}
+        ;
+        checks :: Bool = true
+        )      :: MatsubaraFunction{GD, 1, GD + 1, GT, Q} where {GD, GT <: AbstractGrid, Q <: Number}
+
+        return MatsubaraFunction(grids, (shape,), Q; checks)
+    end
+
+    function MatsubaraFunction(
         grid   :: MatsubaraGrid{GT},
         shape  :: Int64,
                :: Type{Q}
@@ -66,7 +77,7 @@ struct MatsubaraFunction{GD, SD, DD, GT <: AbstractGrid, Q <: Number}
         checks :: Bool = true
         )      :: MatsubaraFunction{1, 1, 2, GT, Q} where {GT <: AbstractGrid, Q <: Number}
 
-        return MatsubaraFunction(grid, (shape,), Q; checks)
+        return MatsubaraFunction((grid,), (shape,), Q; checks)
     end
 
     # fallback methods if Q is not provided
@@ -88,6 +99,16 @@ struct MatsubaraFunction{GD, SD, DD, GT <: AbstractGrid, Q <: Number}
         )      :: MatsubaraFunction{1, SD, 1 + SD, GT, ComplexF64} where {SD, GT <: AbstractGrid}
 
         return MatsubaraFunction(grid, shape, ComplexF64; checks)
+    end
+
+    function MatsubaraFunction(
+        grids  :: NTuple{GD, MatsubaraGrid{GT}},
+        shape  :: Int64,
+        ;
+        checks :: Bool = true
+        )      :: MatsubaraFunction{GD, 1, GD + 1, GT, ComplexF64} where {GD, GT <: AbstractGrid}
+
+        return MatsubaraFunction(grids, shape, ComplexF64; checks)
     end
 
     function MatsubaraFunction(
@@ -131,6 +152,20 @@ function data_shape(
     ) :: NTuple{DD, Int64} where {GD, SD, DD, GT <: AbstractGrid, Q <: Number}
 
     return size(f.data)
+end
+
+function absmax(
+    f :: MatsubaraFunction{GD, SD, DD, GT, Q}
+    ) :: Float64 where {GD, SD, DD, GT <: AbstractGrid, Q <: Number}
+
+    return maximum(abs.(f.data))
+end
+
+function argmax(
+    f :: MatsubaraFunction{GD, SD, DD, GT, Q}
+    ) :: Float64 where {GD, SD, DD, GT <: AbstractGrid, Q <: Number}
+
+    return argmax(abs.(f.data))
 end
 
 
