@@ -24,7 +24,7 @@ struct MatsubaraFunction{GD, SD, DD, GT <: AbstractGrid, Q <: Number}
             
             # check grids
             for g in grids
-                @assert isapprox(g.T, grids[1].T) "Grids must be defined for the same temperature"
+                @assert isapprox(temperature(g), temperature(grids[1])) "Grids must be defined for the same temperature"
                 @assert issorted(g) "Grids must be sorted"
             end
         end
@@ -32,7 +32,7 @@ struct MatsubaraFunction{GD, SD, DD, GT <: AbstractGrid, Q <: Number}
         return new{GD, SD, DD, GT, Q}(grids, shape, data)
     end
 
-    # convenience constructor
+    # convenience constructors
     function MatsubaraFunction(
         grids  :: NTuple{GD, MatsubaraGrid{GT}},
         shape  :: NTuple{SD, Int64},
@@ -47,7 +47,29 @@ struct MatsubaraFunction{GD, SD, DD, GT <: AbstractGrid, Q <: Number}
         return MatsubaraFunction(grids, shape, data; checks)
     end
 
-    # fallback method if Type{Q} is not provided
+    function MatsubaraFunction(
+        grid   :: MatsubaraGrid{GT},
+        shape  :: NTuple{SD, Int64},
+               :: Type{Q}
+        ;
+        checks :: Bool = true
+        )      :: MatsubaraFunction{1, SD, 1 + SD, GT, Q} where {SD, GT <: AbstractGrid, Q <: Number}
+
+        return MatsubaraFunction((grid,), shape, Q; checks)
+    end
+
+    function MatsubaraFunction(
+        grid   :: MatsubaraGrid{GT},
+        shape  :: Int64,
+               :: Type{Q}
+        ;
+        checks :: Bool = true
+        )      :: MatsubaraFunction{1, 1, 2, GT, Q} where {GT <: AbstractGrid, Q <: Number}
+
+        return MatsubaraFunction(grid, (shape,), Q; checks)
+    end
+
+    # fallback methods if Q is not provided
     function MatsubaraFunction(
         grids  :: NTuple{GD, MatsubaraGrid{GT}},
         shape  :: NTuple{SD, Int64}
@@ -56,6 +78,26 @@ struct MatsubaraFunction{GD, SD, DD, GT <: AbstractGrid, Q <: Number}
         )      :: MatsubaraFunction{GD, SD, GD + SD, GT, ComplexF64} where {GD, SD, GT <: AbstractGrid}
 
         return MatsubaraFunction(grids, shape, ComplexF64; checks)
+    end
+
+    function MatsubaraFunction(
+        grid   :: MatsubaraGrid{GT},
+        shape  :: NTuple{SD, Int64},
+        ;
+        checks :: Bool = true
+        )      :: MatsubaraFunction{1, SD, 1 + SD, GT, ComplexF64} where {SD, GT <: AbstractGrid}
+
+        return MatsubaraFunction(grid, shape, ComplexF64; checks)
+    end
+
+    function MatsubaraFunction(
+        grid   :: MatsubaraGrid{GT},
+        shape  :: Int64,
+        ;
+        checks :: Bool = true
+        )      :: MatsubaraFunction{1, 1, 2, GT, ComplexF64} where {GT <: AbstractGrid}
+
+        return MatsubaraFunction(grid, shape, ComplexF64; checks)
     end
 end
 
@@ -93,7 +135,7 @@ end
 
 
 
-# basic addition
+# basic operations
 function add(
     f1     :: MatsubaraFunction{GD, SD, DD, GT, Q}, 
     f2     :: MatsubaraFunction{GD, SD, DD, GT, Q}
@@ -128,7 +170,6 @@ function add!(
     return nothing 
 end
 
-# basic subtraction
 function subtract(
     f1     :: MatsubaraFunction{GD, SD, DD, GT, Q}, 
     f2     :: MatsubaraFunction{GD, SD, DD, GT, Q}
@@ -163,7 +204,6 @@ function subtract!(
     return nothing 
 end
 
-# basic multiplication with scalar 
 function mult(
     f      :: MatsubaraFunction{GD, SD, DD, GT, Q},
     val    :: Qp
@@ -171,6 +211,7 @@ function mult(
     checks :: Bool = true
     )      :: MatsubaraFunction{GD, SD, DD, GT, Q} where {GD, SD, DD, GT <: AbstractGrid, Q <: Number, Qp <: Number}
 
+    # type promotion checked by Base.Array 
     return MatsubaraFunction(f.grids, f.shape, val .* f.data; checks)
 end
 
@@ -179,7 +220,37 @@ function mult!(
     val :: Qp
     )   :: Nothing where {GD, SD, DD, GT <: AbstractGrid, Q <: Number, Qp <: Number}
 
+    # type promotion checked by Base.Array 
     f.data .*= val 
+
+    return nothing
+end
+ 
+function set!(
+    f   :: MatsubaraFunction{GD, SD, DD, GT, Q},
+    val :: Qp,
+    )   :: Nothing where {GD, SD, DD, GT <: AbstractGrid, Q <: Number, Qp <: Number}
+
+    # type promotion checked by Base.Array 
+    f.data .= val
+
+    return nothing
+end
+
+function set!(
+    f1     :: MatsubaraFunction{GD, SD, DD, GT, Q},
+    f2     :: MatsubaraFunction{GD, SD, DD, GT, Q},
+    ; 
+    checks :: Bool = true
+    )      :: Nothing where {GD, SD, DD, GT <: AbstractGrid, Q <: Number}
+
+    if checks
+        for i in 1 : GD 
+            @assert isapprox(f1.grids[i].data, f2.grids[i].data) "Grids must be equal for overwrite" 
+        end
+    end 
+
+    f1.data .= f2.data
 
     return nothing
 end
@@ -390,7 +461,7 @@ end
     α2 = -0.5 * (upper_moments[3] + lower_moments[3])
 
     # compute the Matsubara sum using quadratic asymptotic model
-    T   = f.grids[1].T
+    T   = temperature(f.grids[1])
     num = grids_shape(f, 1)
     val = -T * (num * α0 - sum_me(f, x...)) - 0.5 * (α1 + 0.5 * α2 / T)
     sum = 0.0
@@ -418,7 +489,7 @@ end
     α2 = -0.5 * (upper_moments[3] + lower_moments[3])
 
     # compute the Matsubara sum using quadratic asymptotic model
-    T   = f.grids[1].T
+    T   = temperature(f.grids[1])
     num = grids_shape(f, 1)
     val = -T * (num * α0 - sum_me(f, x...)) - 0.5 * (α1 + 0.5 * α2 / T)
     

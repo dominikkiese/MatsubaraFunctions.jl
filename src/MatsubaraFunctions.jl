@@ -24,6 +24,8 @@ module MatsubaraFunctions
 
         # matsubara.jl
         MatsubaraGrid, 
+        temperature,
+        type,
 
         # function.jl
         MatsubaraFunction, 
@@ -36,6 +38,7 @@ module MatsubaraFunctions
         subtract!, 
         mult,
         mult!,
+        set!,
         upper_tail_moments,
         lower_tail_moments,
         sum_me,

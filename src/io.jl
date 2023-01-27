@@ -4,8 +4,8 @@ function save_matsubara_grid!(
     g :: MatsubaraGrid{GT}
     ) :: Nothing where {GT <: AbstractGrid}
 
-    attributes(h)[l * "/T"]    = g.T
-    attributes(h)[l * "/type"] = "$(g.type)"
+    attributes(h)[l * "/T"]    = temperature(g)
+    attributes(h)[l * "/type"] = "$(type(g))"
     attributes(h)[l * "/GT"]   = "$(GT)"
     h[l * "/data"]             = g.data
 

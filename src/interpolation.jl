@@ -13,7 +13,7 @@ struct Param
 
     # convenience constructor for linear grid
     # we assume that in(val, grid) has been checked and evaluates to true
-    function Param(
+    @inline @inbounds function Param(
         val  :: Float64, 
         grid :: MatsubaraGrid{Linear}
         )    :: Param
@@ -35,7 +35,7 @@ struct Param
 
     # convenience constructor for coarse grid
     # we assume that in(val, grid) has been checked and evaluates to true
-    function Param(
+    @inline @inbounds function Param(
         val  :: Float64, 
         grid :: MatsubaraGrid{Coarse}
         )    :: Param

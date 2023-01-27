@@ -25,8 +25,8 @@ function get_timers() :: Nothing
 
     # interpolation on coarse grid
     @timeit to "Coarse interpolation" begin
-        fg = MatsubaraGrid(1.0, 64, 2.0, Fermion); nf = length(fg)
-        bg = MatsubaraGrid(1.0, 64, 2.0, Boson);   nb = length(bg)
+        fg = MatsubaraGrid(1.0, 64, 32, 4, Fermion); nf = length(fg)
+        bg = MatsubaraGrid(1.0, 64, 32, 4, Boson);   nb = length(bg)
 
         f1D = MatsubaraFunction((fg,), (10, 10), rand(nf, 10, 10))
         f2D = MatsubaraFunction((bg, fg), (10, 10), rand(nb, nf, 10, 10))
@@ -55,8 +55,9 @@ function get_timers() :: Nothing
         end 
 
         for n in 1 : 100
-            @timeit to "-> tail moments"  tail_moments(f, 1)
-            @timeit to "-> extrapolation" f(w, 1; extrp = true)
+            @timeit to "-> upper tail moments"  upper_tail_moments(f, 1)
+            @timeit to "-> lower tail moments"  lower_tail_moments(f, 1)
+            @timeit to "-> extrapolation"       f(w, 1; extrp = true)
         end 
     end
 

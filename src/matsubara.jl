@@ -91,6 +91,23 @@ end
 
 
 
+# getter functions 
+function temperature(
+    grid :: MatsubaraGrid{GT}
+    )    :: Float64 where {GT <: AbstractGrid}
+
+    return grid.T 
+end 
+
+function type(
+    grid :: MatsubaraGrid{GT}
+    )    :: Symbol where {GT <: AbstractGrid}
+
+    return grid.type 
+end
+
+
+
 # make Matsubara grid indexable
 function Base.:lastindex(
     grid :: MatsubaraGrid{GT}

@@ -1,6 +1,20 @@
 using Test
 using MatsubaraFunctions 
 
+# check constructors 
+@testset "Constructors" begin 
+    fg = MatsubaraGrid(1.0, 10, Fermion)
+
+    @test typeof(MatsubaraFunction((fg, fg), (2, 2), Float64)) == MatsubaraFunction{2, 2, 4, Linear, Float64}
+    @test typeof(MatsubaraFunction((fg, fg), (2, 2))) == MatsubaraFunction{2, 2, 4, Linear, ComplexF64}
+
+    @test typeof(MatsubaraFunction(fg, (2, 2), Float64)) == MatsubaraFunction{1, 2, 3, Linear, Float64}
+    @test typeof(MatsubaraFunction(fg, (2, 2))) == MatsubaraFunction{1, 2, 3, Linear, ComplexF64}
+
+    @test typeof(MatsubaraFunction(fg, 2, Float64)) == MatsubaraFunction{1, 1, 2, Linear, Float64}
+    @test typeof(MatsubaraFunction(fg, 2)) == MatsubaraFunction{1, 1, 2, Linear, ComplexF64}
+end
+
 # check whether MatsubaraFunctions correctly evaluate on their associated linear grids
 @testset "Linear" begin 
     fg = MatsubaraGrid(1.0, 10, Fermion); nf = length(fg)
