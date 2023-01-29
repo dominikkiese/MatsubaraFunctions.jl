@@ -490,6 +490,9 @@ end
     upper_moments = upper_tail_moments(f, x...)
     lower_moments = lower_tail_moments(f, x...)
 
+    # check self-consistency 
+    @assert norm(upper_moments .- lower_moments) / norm(upper_moments) < 1e-2 "Tail fits are inconsistent! Try more frequencies or check prerequisites."
+
     # compute expansion coefficients
     α0 = +0.5 * (upper_moments[1] + lower_moments[1])
     α1 = +0.5 * (upper_moments[2] + lower_moments[2]) * im
@@ -517,6 +520,9 @@ end
     # compute tail moments 
     upper_moments = upper_tail_moments(f, x...)
     lower_moments = lower_tail_moments(f, x...)
+
+    # check self-consistency 
+    @assert norm(upper_moments .- lower_moments) / norm(upper_moments) < 1e-2 "Tail fits are inconsistent! Try more frequencies or check prerequisites."
 
     # compute expansion coefficients
     α0 = +0.5 * (upper_moments[1] + lower_moments[1])

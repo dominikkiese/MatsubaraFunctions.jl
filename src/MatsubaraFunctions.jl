@@ -3,6 +3,7 @@ module MatsubaraFunctions
     using Test 
     using HDF5
     using LoopVectorization
+    using LinearAlgebra
     using StaticArrays
     using TimerOutputs
 
