@@ -480,7 +480,7 @@ end
     return sum_re + im * sum_im
 end
 
-# compute Matsubara sum over Matsubara function on 1D grid for real-valued data
+# compute i * Matsubara sum over Matsubara function on 1D grid for real-valued data  
 @inbounds function Base.:sum(
     f :: MatsubaraFunction{1, SD, DD, Linear, Q},
     x :: Vararg{Int64, SD}

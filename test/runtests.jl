@@ -125,7 +125,7 @@ end
     ρ1p     = ρ(+ξ, T) - 1.0
     ρ1m     = ρ(-ξ, T) - 1.0
     ρ2      = ρ(ξ, T) * (ρ(ξ, T) - 1.0) / T
-    ρ1r     = im * (ρ(0.0, T) - 1.0)
+    ρ1r     = im * ρ10
 
     @test isapprox(sum(f1, 1), ρ10; atol = 1e-6, rtol = 0.0)
     @test isapprox(sum(f2, 1), ρ1p; atol = 1e-6, rtol = 0.0)
