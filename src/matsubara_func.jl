@@ -3,7 +3,7 @@ struct MatsubaraFunction{GD, SD, DD, GT <: AbstractGrid, Q <: Number}
     shape :: NTuple{SD, Int64}          
     data  :: Array{Q, DD}
 
-    # safe constructor
+    # basic / safe constructor
     function MatsubaraFunction(
         grids  :: NTuple{GD, MatsubaraGrid{GT}}, 
         shape  :: NTuple{SD, Int64}, 
@@ -16,7 +16,7 @@ struct MatsubaraFunction{GD, SD, DD, GT <: AbstractGrid, Q <: Number}
         if Q <: Integer || Q <: Complex{Int} error("Integer data type not supported") end
 
         # throw warning for GD > 3
-        if GD > 3 @warn "Matsubara function not callable on hybercubic grids" end
+        if GD > 3 @warn "MatsubaraFunction not callable on hybercubic grids" end
         
         if checks
             # check dimensions
@@ -25,7 +25,7 @@ struct MatsubaraFunction{GD, SD, DD, GT <: AbstractGrid, Q <: Number}
             # check grids
             for g in grids
                 @assert isapprox(temperature(g), temperature(grids[1])) "Grids must be defined for the same temperature"
-                @assert issorted(g) "Grids must be sorted"
+                @assert issorted(Float64[value(w) for w in g]) "Grids must be sorted"
             end
         end
 
@@ -166,6 +166,22 @@ function argmax(
     ) :: Float64 where {GD, SD, DD, GT <: AbstractGrid, Q <: Number}
 
     return argmax(abs.(f.data))
+end
+
+function info(
+    f :: MatsubaraFunction{GD, SD, DD, GT, Q}
+    ) :: Nothing where {GD, SD, DD, GT <: AbstractGrid, Q <: Number}
+
+    println("MatsubaraFunction properties")
+    println("----------------------------")
+    println("Temperature     : $(temperature(f.grids[1]))")
+    println("Grid dimension  : $(GD)")
+    println("Grid type       : $(GT)")
+    println("Shape dimension : $(SD)")
+    println("Data dimension  : $(DD)")
+    println("Data type       : $(Q)")
+
+    return nothing
 end
 
 
@@ -318,14 +334,14 @@ end
 
 
 # compute tail moments in quadratic approximation from upper bound of 1D MatsubaraFunction
-@inline @inbounds function upper_tail_moments(
+function upper_tail_moments(
     f :: MatsubaraFunction{1, SD, DD, GT, Q},
     x :: Vararg{Int64, SD} 
     ) :: SVector{3, Q} where {SD, DD, GT <: AbstractGrid, Q <: Number}
 
     # read data
     ydat = SVector{3, Q}(f.data[end, x...], f.data[end - 1, x...], f.data[end - 2, x...])
-    xdat = SVector{3, Float64}(1.0 / f.grids[1][end], 1.0 / f.grids[1][end - 1], 1.0 / f.grids[1][end - 2])
+    xdat = SVector{3, Float64}(1.0 / value(f.grids[1][end]), 1.0 / value(f.grids[1][end - 1]), 1.0 / value(f.grids[1][end - 2]))
     
     # generate Vandermonde matrix 
     mat = @SMatrix Float64[1.0 xdat[1] xdat[1] * xdat[1];
@@ -336,14 +352,14 @@ end
 end
 
 # compute tail moments in quadratic approximation from lower bound of 1D MatsubaraFunction
-@inline @inbounds function lower_tail_moments(
+function lower_tail_moments(
     f :: MatsubaraFunction{1, SD, DD, GT, Q},
     x :: Vararg{Int64, SD} 
     ) :: SVector{3, Q} where {SD, DD, GT <: AbstractGrid, Q <: Number}
 
     # read data
     ydat = SVector{3, Q}(f.data[1, x...], f.data[2, x...], f.data[3, x...])
-    xdat = SVector{3, Float64}(1.0 / f.grids[1][1], 1.0 / f.grids[1][2], 1.0 / f.grids[1][3])
+    xdat = SVector{3, Float64}(1.0 / value(f.grids[1][1]), 1.0 / value(f.grids[1][2]), 1.0 / value(f.grids[1][3]))
     
     # generate Vandermonde matrix 
     mat = @SMatrix Float64[1.0 xdat[1] xdat[1] * xdat[1];
@@ -355,9 +371,29 @@ end
 
 
 
-# call to Matsubara function on 1D grid 
+# call to MatsubaraFunction with MatsubaraFrequencies
+function (f :: MatsubaraFunction{GD, SD, DD, GT, Q})(
+    w :: NTuple{GD, MatsubaraFrequency},
+    x :: Vararg{Int64, SD} 
+    ) :: Q where{GD, SD, DD, GT <: AbstractGrid, Q <: Number}
+
+    idxs = ntuple(i -> f.grids[i](w[i]), GD)
+    return f[idxs..., x ...]
+end
+
+function (f :: MatsubaraFunction{1, SD, DD, GT, Q})(
+    w :: MatsubaraFrequency,
+    x :: Vararg{Int64, SD} 
+    ) :: Q where{SD, DD, GT <: AbstractGrid, Q <: Number}
+
+    return f((w,), x...)
+end
+
+
+
+# call to MatsubaraFunction on 1D grid with Float64
 # performs extrapolaton using tail moments if extrp = true (default), else fallback to specified bc
-@inbounds function (f :: MatsubaraFunction{1, SD, DD, GT, Q})(
+function (f :: MatsubaraFunction{1, SD, DD, GT, Q})(
     w     :: Float64,
     x     :: Vararg{Int64, SD} 
     ; 
@@ -365,7 +401,7 @@ end
     extrp :: Bool    = true
     )     :: Q where{SD, DD, GT <: AbstractGrid, Q <: Number}
 
-    ax = f.grids[1][1] <= w <= f.grids[1][end]
+    ax = is_inbounds(w, f.grids[1])
 
     if ax
         p = Param(w, f.grids[1]) 
@@ -385,16 +421,16 @@ end
     end
 end
 
-# call to Matsubara function on 2D grid
-@inbounds function (f :: MatsubaraFunction{2, SD, DD, GT, Q})(
+# call to MatsubaraFunction on 2D grid with Float64
+function (f :: MatsubaraFunction{2, SD, DD, GT, Q})(
     w  :: NTuple{2, Float64},
     x  :: Vararg{Int64, SD} 
     ; 
     bc :: Float64 = 0.0
     )  :: Q where{SD, DD, GT <: AbstractGrid, Q <: Number}
 
-    ax1 = f.grids[1][1] <= w[1] <= f.grids[1][end]
-    ax2 = f.grids[2][1] <= w[2] <= f.grids[2][end]
+    ax1 = is_inbounds(w[1], f.grids[1])
+    ax2 = is_inbounds(w[2], f.grids[2])
 
     if ax1 && ax2
         p1 = Param(w[1], f.grids[1])
@@ -409,17 +445,17 @@ end
     end 
 end
 
-# call to Matsubara function on 3D grid
-@inbounds function (f :: MatsubaraFunction{3, SD, DD, GT, Q})(
+# call to MatsubaraFunction on 3D grid with Float64
+function (f :: MatsubaraFunction{3, SD, DD, GT, Q})(
     w  :: NTuple{3, Float64},
     x  :: Vararg{Int64, SD} 
     ; 
     bc :: Float64 = 0.0
     )  :: Q where{SD, DD, GT <: AbstractGrid, Q <: Number}
 
-    ax1 = f.grids[1][1] <= w[1] <= f.grids[1][end]
-    ax2 = f.grids[2][1] <= w[2] <= f.grids[2][end]
-    ax3 = f.grids[3][1] <= w[3] <= f.grids[3][end]
+    ax1 = is_inbounds(w[1], f.grids[1])
+    ax2 = is_inbounds(w[2], f.grids[2])
+    ax3 = is_inbounds(w[3], f.grids[3])
 
     if ax1 && ax2 && ax3
         p1 = Param(w[1], f.grids[1])
@@ -441,50 +477,13 @@ end
 
 
 
-# sum data of Matsubara function on 1D grid for real-valued data
-@inline @inbounds function sum_me(
-    f :: MatsubaraFunction{1, SD, DD, GT, Q},
-    x :: Vararg{Int64, SD} 
-    ) :: Q where{SD, DD, GT <: AbstractGrid, Q <: Real}
-
-    slice = @view f.data[:, x...]
-    sum   = 0.0
-
-    @turbo for idx in eachindex(slice)
-        sum += slice[idx]
-    end 
-
-    return sum
-end
-
-# sum data of Matsubara function on 1D grid for complex-valued data
-@inline @inbounds function sum_me(
-    f :: MatsubaraFunction{1, SD, DD, GT, Complex{Q}},
-    x :: Vararg{Int64, SD} 
-    ) :: Complex{Q} where{SD, DD, GT <: AbstractGrid, Q <: Real}
-
-    slice  = reinterpret(Q, @view f.data[:, x...])
-    vw_re  = @view slice[1 : 2 : end - 1]
-    vw_im  = @view slice[2 : 2 : end]
-    sum_re = 0.0
-    sum_im = 0.0
-
-    @turbo for idx in eachindex(vw_re)
-        sum_re += vw_re[idx]
-    end 
-
-    @turbo for idx in eachindex(vw_im)
-        sum_im += vw_im[idx]
-    end 
-
-    return sum_re + im * sum_im
-end
-
-# compute i * Matsubara sum over Matsubara function on 1D grid for real-valued data  
-@inbounds function Base.:sum(
+# compute Matsubara sum for MatsubaraFunction on 1D grid
+# Note: for real valued data the return value is complex (im * sum), 
+#       i.e. we cannot generally infer it from Q -> dynamic dispatch
+function sum_me(
     f :: MatsubaraFunction{1, SD, DD, Linear, Q},
     x :: Vararg{Int64, SD}
-    ) :: Complex{Q} where {SD, DD, Q <: Real}
+    ) where {SD, DD, Q <: Number}
 
     # compute tail moments 
     upper_moments = upper_tail_moments(f, x...)
@@ -501,47 +500,11 @@ end
     # compute the Matsubara sum using quadratic asymptotic model
     T   = temperature(f.grids[1])
     num = grids_shape(f, 1)
-    val = -T * (num * α0 - sum_me(f, x...)) - 0.5 * (α1 + 0.5 * α2 / T)
-    sum = 0.0
+    val = -T * (num * α0 - sum(@view f.data[:, x...])) - 0.5 * (α1 + 0.5 * α2 / T)
 
-    @turbo for w in 1 : num
-        sum += T * α2 / f.grids[1].data[w] / f.grids[1].data[w]
+    for w in 1 : num
+        val += T * α2 / value(f.grids[1][w]) / value(f.grids[1][w])
     end
 
-    return val + sum
-end
-
-# compute Matsubara sum over Matsubara function on 1D grid for complex-valued data
-@inbounds function Base.:sum(
-    f :: MatsubaraFunction{1, SD, DD, Linear, Complex{Q}},
-    x :: Vararg{Int64, SD}
-    ) :: Complex{Q} where {SD, DD, Q <: Real}
-
-    # compute tail moments 
-    upper_moments = upper_tail_moments(f, x...)
-    lower_moments = lower_tail_moments(f, x...)
-
-    # check self-consistency 
-    @assert norm(upper_moments .- lower_moments) / norm(upper_moments) < 1e-2 "Tail fits are inconsistent! Try more frequencies or check prerequisites."
-
-    # compute expansion coefficients
-    α0 = +0.5 * (upper_moments[1] + lower_moments[1])
-    α1 = +0.5 * (upper_moments[2] + lower_moments[2]) * im
-    α2 = -0.5 * (upper_moments[3] + lower_moments[3])
-
-    # compute the Matsubara sum using quadratic asymptotic model
-    T   = temperature(f.grids[1])
-    num = grids_shape(f, 1)
-    val = -T * (num * α0 - sum_me(f, x...)) - 0.5 * (α1 + 0.5 * α2 / T)
-    
-    sum_re = 0.0; α2_re = real(α2)
-    sum_im = 0.0; α2_im = imag(α2)
-
-    @turbo for w in 1 : num
-        val     = T / f.grids[1].data[w] / f.grids[1].data[w]
-        sum_re += α2_re * val
-        sum_im += α2_im * val
-    end
-
-    return val + sum_re + im * sum_im
+    return val
 end

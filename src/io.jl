@@ -7,7 +7,11 @@ function save_matsubara_grid!(
     attributes(h)[l * "/T"]    = temperature(g)
     attributes(h)[l * "/type"] = "$(type(g))"
     attributes(h)[l * "/GT"]   = "$(GT)"
-    h[l * "/data"]             = g.data
+
+    for i in 1 : length(g)
+        h[l * "/frequency/$i/val"] = value(g[i])
+        h[l * "/frequency/$i/idx"] = index(g[i])
+    end
 
     return nothing 
 end 
@@ -20,7 +24,13 @@ function load_matsubara_grid(
     T    = read_attribute(h, l * "/T")
     type = read_attribute(h, l * "/type")
     GT   = read_attribute(h, l * "/GT")
-    data = read(h, l * "/data")
+    data = Vector{MatsubaraFrequency}(undef, length(keys(h[l * "/frequency"])))
+
+    for i in eachindex(data)
+        val     = read(h, l * "/frequency/$i/val")
+        idx     = read(h, l * "/frequency/$i/idx")
+        data[i] = MatsubaraFrequency(T, val, idx, Symbol(type))
+    end
 
     return MatsubaraGrid(T, data, Symbol(type), eval(Meta.parse(GT)))
 end

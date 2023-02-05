@@ -1,18 +1,16 @@
 module MatsubaraFunctions
 
-    using Test 
-    using HDF5
-    using LoopVectorization
-    using LinearAlgebra
+    using LinearAlgebra 
     using StaticArrays
-    using TimerOutputs
+    using HDF5
+    using Test 
 
     include("types.jl")
-    include("matsubara.jl")
+    include("matsubara_freq.jl")
+    include("matsubara_grid.jl")
     include("interpolation.jl")
-    include("function.jl")
+    include("matsubara_func.jl")
     include("io.jl")
-    include("timers.jl")
 
     export
         # types.jl 
@@ -23,12 +21,20 @@ module MatsubaraFunctions
         Linear,
         Coarse,
 
-        # matsubara.jl
-        MatsubaraGrid, 
+        # matsubara_freq.jl 
+        MatsubaraFrequency,
         temperature,
+        value, 
+        index,
         type,
 
-        # function.jl
+        # matsubara_grid.jl
+        MatsubaraGrid, 
+        index_range,
+        is_inbounds,
+        info,
+
+        # matsubara_func.jl
         MatsubaraFunction, 
         grids_shape,
         shape, 
@@ -45,14 +51,10 @@ module MatsubaraFunctions
         upper_tail_moments,
         lower_tail_moments,
         sum_me,
-        sum,
 
         # io.jl
         save_matsubara_grid!, 
         load_matsubara_grid, 
         save_matsubara_function!, 
-        load_matsubara_function,
-
-        # timers.jl 
-        get_timers
+        load_matsubara_function
 end
