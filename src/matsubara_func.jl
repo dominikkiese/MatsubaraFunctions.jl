@@ -196,7 +196,7 @@ function add(
 
     if checks
         for i in 1 : GD 
-            @assert isapprox(f1.grids[i].data, f2.grids[i].data) "Grids must be equal for addition" 
+            @assert isapprox(Float64[value(v) for v in f1.grids[i]], Float64[value(v) for v in f2.grids[i]]) "Grids must be equal for addition" 
         end
     end
 
@@ -212,7 +212,7 @@ function add!(
 
     if checks
         for i in 1 : GD 
-            @assert isapprox(f1.grids[i].data, f2.grids[i].data) "Grids must be equal for addition" 
+            @assert isapprox(Float64[value(v) for v in f1.grids[i]], Float64[value(v) for v in f2.grids[i]]) "Grids must be equal for addition" 
         end 
     end
 
@@ -230,7 +230,7 @@ function subtract(
 
     if checks
         for i in 1 : GD 
-            @assert isapprox(f1.grids[i].data, f2.grids[i].data) "Grids must be equal for subtraction" 
+            @assert isapprox(Float64[value(v) for v in f1.grids[i]], Float64[value(v) for v in f2.grids[i]]) "Grids must be equal for subtraction" 
         end 
     end
 
@@ -246,7 +246,7 @@ function subtract!(
 
     if checks
         for i in 1 : GD 
-            @assert isapprox(f1.grids[i].data, f2.grids[i].data) "Grids must be equal for subtraction" 
+            @assert isapprox(Float64[value(v) for v in f1.grids[i]], Float64[value(v) for v in f2.grids[i]]) "Grids must be equal for subtraction" 
         end
     end 
 
@@ -297,7 +297,7 @@ function set!(
 
     if checks
         for i in 1 : GD 
-            @assert isapprox(f1.grids[i].data, f2.grids[i].data) "Grids must be equal for overwrite" 
+            @assert isapprox(Float64[value(v) for v in f1.grids[i]], Float64[value(v) for v in f2.grids[i]]) "Grids must be equal for overwrite" 
         end
     end 
 
