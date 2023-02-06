@@ -405,7 +405,7 @@ function (f :: MatsubaraFunction{1, SD, DD, GT, Q})(
 
     if ax
         p = Param(w, f.grids[1]) 
-        return p.wgts[1] * f.data[p.idxs[1], x...] + p.wgts[2] * f.data[p.idxs[2], x...]
+        return p.wgts[1] * f[p.idxs[1], x...] + p.wgts[2] * f[p.idxs[2], x...]
     else 
         if extrp
             if sign(w) < 0.0 
@@ -436,10 +436,10 @@ function (f :: MatsubaraFunction{2, SD, DD, GT, Q})(
         p1 = Param(w[1], f.grids[1])
         p2 = Param(w[2], f.grids[2])
 
-        return p1.wgts[1] * p2.wgts[1] * f.data[p1.idxs[1], p2.idxs[1], x...] + 
-               p1.wgts[1] * p2.wgts[2] * f.data[p1.idxs[1], p2.idxs[2], x...] + 
-               p1.wgts[2] * p2.wgts[1] * f.data[p1.idxs[2], p2.idxs[1], x...] + 
-               p1.wgts[2] * p2.wgts[2] * f.data[p1.idxs[2], p2.idxs[2], x...]         
+        return p1.wgts[1] * p2.wgts[1] * f[p1.idxs[1], p2.idxs[1], x...] + 
+               p1.wgts[1] * p2.wgts[2] * f[p1.idxs[1], p2.idxs[2], x...] + 
+               p1.wgts[2] * p2.wgts[1] * f[p1.idxs[2], p2.idxs[1], x...] + 
+               p1.wgts[2] * p2.wgts[2] * f[p1.idxs[2], p2.idxs[2], x...]         
     else 
         return bc 
     end 
@@ -462,14 +462,14 @@ function (f :: MatsubaraFunction{3, SD, DD, GT, Q})(
         p2 = Param(w[2], f.grids[2])
         p3 = Param(w[3], f.grids[3])
 
-        return p1.wgts[1] * p2.wgts[1] * p3.wgts[1] * f.data[p1.idxs[1], p2.idxs[1], p3.idxs[1], x...] + 
-               p1.wgts[1] * p2.wgts[1] * p3.wgts[2] * f.data[p1.idxs[1], p2.idxs[1], p3.idxs[2], x...] + 
-               p1.wgts[1] * p2.wgts[2] * p3.wgts[1] * f.data[p1.idxs[1], p2.idxs[2], p3.idxs[1], x...] + 
-               p1.wgts[1] * p2.wgts[2] * p3.wgts[2] * f.data[p1.idxs[1], p2.idxs[2], p3.idxs[2], x...] + 
-               p1.wgts[2] * p2.wgts[1] * p3.wgts[1] * f.data[p1.idxs[2], p2.idxs[1], p3.idxs[1], x...] + 
-               p1.wgts[2] * p2.wgts[1] * p3.wgts[2] * f.data[p1.idxs[2], p2.idxs[1], p3.idxs[2], x...] + 
-               p1.wgts[2] * p2.wgts[2] * p3.wgts[1] * f.data[p1.idxs[2], p2.idxs[2], p3.idxs[1], x...] + 
-               p1.wgts[2] * p2.wgts[2] * p3.wgts[2] * f.data[p1.idxs[2], p2.idxs[2], p3.idxs[2], x...]  
+        return p1.wgts[1] * p2.wgts[1] * p3.wgts[1] * f[p1.idxs[1], p2.idxs[1], p3.idxs[1], x...] + 
+               p1.wgts[1] * p2.wgts[1] * p3.wgts[2] * f[p1.idxs[1], p2.idxs[1], p3.idxs[2], x...] + 
+               p1.wgts[1] * p2.wgts[2] * p3.wgts[1] * f[p1.idxs[1], p2.idxs[2], p3.idxs[1], x...] + 
+               p1.wgts[1] * p2.wgts[2] * p3.wgts[2] * f[p1.idxs[1], p2.idxs[2], p3.idxs[2], x...] + 
+               p1.wgts[2] * p2.wgts[1] * p3.wgts[1] * f[p1.idxs[2], p2.idxs[1], p3.idxs[1], x...] + 
+               p1.wgts[2] * p2.wgts[1] * p3.wgts[2] * f[p1.idxs[2], p2.idxs[1], p3.idxs[2], x...] + 
+               p1.wgts[2] * p2.wgts[2] * p3.wgts[1] * f[p1.idxs[2], p2.idxs[2], p3.idxs[1], x...] + 
+               p1.wgts[2] * p2.wgts[2] * p3.wgts[2] * f[p1.idxs[2], p2.idxs[2], p3.idxs[2], x...]  
     else 
         return bc 
     end 

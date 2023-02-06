@@ -205,7 +205,7 @@ function (f :: MatsubaraGrid{Linear})(
     ) :: Int64
 
     @assert type(w) == type(f) "Particle type must be equal between frequency and grid"
-    @assert isapprox(temperature(w), temperature(f)) "Temprature must be equal between frequency and grid"
+    @assert isapprox(temperature(w), temperature(f)) "Temperature must be equal between frequency and grid"
 
     if is_inbounds(w, f)
         return index(w) - index(f[1]) + 1
@@ -221,7 +221,7 @@ function (f :: MatsubaraGrid{Coarse})(
     ) :: Int64
 
     @assert type(w) == type(f) "Particle type must be equal between frequency and grid"
-    @assert isapprox(temperature(w), temperature(f)) "Temprature must be equal between frequency and grid"
+    @assert isapprox(temperature(w), temperature(f)) "Temperature must be equal between frequency and grid"
 
     if is_inbounds(w, f)
         for i in 1 : length(f)
