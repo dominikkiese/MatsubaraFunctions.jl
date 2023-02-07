@@ -198,7 +198,7 @@ end
 
 
 
-# make linear Matsubara grid callable with MatsubaraFrequency
+# make linear MatsubaraGrid callable with MatsubaraFrequency
 # returns index to data array corresponding to this frequency if in grid
 function (f :: MatsubaraGrid{Linear})(
     w :: MatsubaraFrequency
@@ -214,7 +214,7 @@ function (f :: MatsubaraGrid{Linear})(
     end 
 end
 
-# make coarse Matsubara grid callable with MatsubaraFrequency
+# make coarse MatsubaraGrid callable with MatsubaraFrequency
 # returns index to data array corresponding to this frequency if in grid
 function (f :: MatsubaraGrid{Coarse})(
     w :: MatsubaraFrequency
@@ -236,7 +236,7 @@ function (f :: MatsubaraGrid{Coarse})(
     end 
 end
 
-# make linear Matsubara grid callable with Float64
+# make linear MatsubaraGrid callable with Float64
 # returns index to data array corresponding to closest frequency if in grid
 function (f :: MatsubaraGrid{Linear})(
     w :: Float64
@@ -251,7 +251,7 @@ function (f :: MatsubaraGrid{Linear})(
     end 
 end
 
-# make coarse Matsubara grid callable with Float64
+# make coarse MatsubaraGrid callable with Float64
 # returns index to data array corresponding to closest frequency if in grid
 function (f :: MatsubaraGrid{Coarse})(
     w :: Float64
