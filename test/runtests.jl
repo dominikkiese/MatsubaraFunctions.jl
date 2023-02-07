@@ -29,10 +29,10 @@ end
     wFermion_c = MatsubaraGrid(T, 100, 25, 4, Fermion)
     wBoson_c   = MatsubaraGrid(T, 100, 25, 4, Boson)
 
-    @test isapprox(length(wFermion_l), 200)
-    @test isapprox(length(wBoson_l), 199)
-    @test isapprox(length(wFermion_c), 200)
-    @test isapprox(length(wBoson_c), 199)
+    @test length(wFermion_l) == 200
+    @test length(wBoson_l) == 199
+    @test length(wFermion_c) == 200
+    @test length(wBoson_c) == 199
 
     @test isapprox(Float64[value(w) for w in wFermion_l.data], Float64[value(w) for w in wFermion_l])
     @test isapprox(Float64[value(w) for w in wBoson_l.data], Float64[value(w) for w in wBoson_l])
@@ -108,9 +108,9 @@ end
         w2D   = bg[idx2D[1]], fg[idx2D[2]]
         w3D   = bg[idx3D[1]], fg[idx3D[2]], fg[idx3D[3]]
 
-        @test isapprox(f1D(w1D, x...), f1D[idx1D...], atol = 1e-14, rtol = 0.0)
-        @test isapprox(f2D(w2D, x...), f2D[idx2D...], atol = 1e-14, rtol = 0.0)
-        @test isapprox(f3D(w3D, x...), f3D[idx3D...], atol = 1e-14, rtol = 0.0)
+        @test isapprox(f1D(w1D, x...), f1D[idx1D...])
+        @test isapprox(f2D(w2D, x...), f2D[idx2D...])
+        @test isapprox(f3D(w3D, x...), f3D[idx3D...])
     end 
 end
 
@@ -136,9 +136,9 @@ end
         w2D   = bg[idx2D[1]], fg[idx2D[2]]
         w3D   = bg[idx3D[1]], fg[idx3D[2]], fg[idx3D[3]]
 
-        @test isapprox(f1D(w1D, x...), f1D[idx1D...], atol = 1e-14, rtol = 0.0)
-        @test isapprox(f2D(w2D, x...), f2D[idx2D...], atol = 1e-14, rtol = 0.0)
-        @test isapprox(f3D(w3D, x...), f3D[idx3D...], atol = 1e-14, rtol = 0.0)
+        @test isapprox(f1D(w1D, x...), f1D[idx1D...])
+        @test isapprox(f2D(w2D, x...), f2D[idx2D...])
+        @test isapprox(f3D(w3D, x...), f3D[idx3D...])
     end 
 end
 
