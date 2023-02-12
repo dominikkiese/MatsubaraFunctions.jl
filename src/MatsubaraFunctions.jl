@@ -2,26 +2,22 @@ module MatsubaraFunctions
 
     using LinearAlgebra 
     using StaticArrays
+    using MPI
     using HDF5
     using Test 
 
-    include("types.jl")
     include("matsubara_freq.jl")
     include("matsubara_grid.jl")
     include("interpolation.jl")
     include("matsubara_func.jl")
+    include("mpi_helpers.jl")
     include("io.jl")
 
     export
-        # types.jl 
+        # matsubara_freq.jl 
         AbstractParticle,
         Fermion,
         Boson,
-        AbstractGrid,
-        Linear,
-        Coarse,
-
-        # matsubara_freq.jl 
         MatsubaraFrequency,
         temperature,
         value, 
@@ -51,6 +47,13 @@ module MatsubaraFunctions
         upper_tail_moments,
         lower_tail_moments,
         sum_me,
+
+        # mpi_helpers.jl 
+        mpi_split,
+        mpi_allreduce!,
+        mpi_ismain,
+        mpi_println,
+        mpi_info,
 
         # io.jl
         save_matsubara_grid!, 

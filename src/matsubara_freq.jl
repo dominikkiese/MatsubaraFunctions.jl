@@ -1,3 +1,8 @@
+# define particle types for dispatch
+abstract type AbstractParticle end 
+struct Fermion <: AbstractParticle end 
+struct Boson   <: AbstractParticle end
+
 # Note: we do not allow MatsubaraFrequency to be dispatched on the particle type 
 #       to allow for mixed grids in the construction of MatsubaraFunctions
 struct MatsubaraFrequency 
@@ -12,8 +17,9 @@ struct MatsubaraFrequency
         val  :: Float64, 
         idx  :: Int64, 
         type :: Symbol 
-        )    :: MatsubaraFrequency 
-
+        )    :: MatsubaraFrequency
+        
+        @assert type == :Fermion || type == :Boson "MatsubaraFrequency type must be Fermion or Boson"
         return new(T, val, idx, type)
     end 
 
@@ -40,7 +46,7 @@ end
 
 
 
-# getter functions 
+# getter functions
 function temperature(
     w :: MatsubaraFrequency
     ) :: Float64 
@@ -77,17 +83,10 @@ function Base.:+(
     w2 :: MatsubaraFrequency
     )  :: MatsubaraFrequency 
 
-    @assert isapprox(temperature(w1), temperature(w2)) "Temperatures must be equal for addition"
-
-    if type(w1) == :Fermion && type(w2) == :Fermion 
-        return MatsubaraFrequency(temperature(w1), index(w1) + index(w2) + 1, Boson)
-    elseif type(w1) == :Fermion && type(w2) == :Boson
-        return MatsubaraFrequency(temperature(w1), index(w1) + index(w2), Fermion)
-    elseif type(w1) == :Boson && type(w2) == :Fermion 
-        return MatsubaraFrequency(temperature(w1), index(w1) + index(w2), Fermion)
-    elseif type(w1) == :Boson && type(w2) == :Boson
-        return MatsubaraFrequency(temperature(w1), index(w1) + index(w2), Boson)
-    end 
+    @assert temperature(w1) ≈ temperature(w2) "Temperatures must be equal for addition"
+    shift = (type(w1) == :Fermion && type(w2) == :Fermion)
+    ptype = (type(w1) == type(w2) ? Boson : Fermion)
+    return MatsubaraFrequency(temperature(w1), index(w1) + index(w2) + shift, ptype)
 end
 
 function Base.:-(
@@ -95,15 +94,8 @@ function Base.:-(
     w2 :: MatsubaraFrequency
     )  :: MatsubaraFrequency 
 
-    @assert isapprox(temperature(w1), temperature(w2)) "Temperatures must be equal for subtraction"
-
-    if type(w1) == :Fermion && type(w2) == :Fermion 
-        return MatsubaraFrequency(temperature(w1), index(w1) - index(w2), Boson)
-    elseif type(w1) == :Fermion && type(w2) == :Boson
-        return MatsubaraFrequency(temperature(w1), index(w1) - index(w2), Fermion)
-    elseif type(w1) == :Boson && type(w2) == :Fermion 
-        return MatsubaraFrequency(temperature(w1), index(w1) - index(w2) - 1, Fermion)
-    elseif type(w1) == :Boson && type(w2) == :Boson
-        return MatsubaraFrequency(temperature(w1), index(w1) - index(w2), Boson)
-    end 
+    @assert temperature(w1) ≈ temperature(w2) "Temperatures must be equal for subtraction"
+    shift = (type(w1) == :Boson && type(w2) == :Fermion)
+    ptype = (type(w1) == type(w2) ? Boson : Fermion)
+    return MatsubaraFrequency(temperature(w1), index(w1) - index(w2) - shift, ptype)
 end

@@ -1,8 +1,8 @@
 function save_matsubara_grid!(
     h :: HDF5.File,
     l :: String,
-    g :: MatsubaraGrid{GT}
-    ) :: Nothing where {GT <: AbstractGrid}
+    g :: MatsubaraGrid
+    ) :: Nothing
 
     # create new group
     grp = create_group(h, l)
@@ -10,7 +10,6 @@ function save_matsubara_grid!(
     # add metadata
     attributes(grp)["T"]    = temperature(g)
     attributes(grp)["type"] = "$(type(g))"
-    attributes(grp)["GT"]   = "$(GT)"
 
     # add data
     for i in 1 : length(g)
@@ -29,7 +28,6 @@ function load_matsubara_grid(
     # read the metadata
     T    = read_attribute(h[l], "T")
     type = read_attribute(h[l], "type")
-    GT   = read_attribute(h[l], "GT")
     data = Vector{MatsubaraFrequency}(undef, length(keys(h[l * "/frequency"])))
 
     # read the data
@@ -39,14 +37,14 @@ function load_matsubara_grid(
         data[i] = MatsubaraFrequency(T, val, idx, Symbol(type))
     end
 
-    return MatsubaraGrid(T, data, Symbol(type), eval(Meta.parse(GT)))
+    return MatsubaraGrid(T, data, Symbol(type))
 end
 
 function save_matsubara_function!(
     h :: HDF5.File,
     l :: String,
-    f :: MatsubaraFunction{Dg, Ds, Dt, GT, Q}
-    ) :: Nothing where {Dg, Ds, Dt, GT <: AbstractGrid, Q <: Number}
+    f :: MatsubaraFunction{Dg, Ds, Dt, Q}
+    ) :: Nothing where {Dg, Ds, Dt, Q <: Number}
 
     # create new group
     grp = create_group(h, l)
