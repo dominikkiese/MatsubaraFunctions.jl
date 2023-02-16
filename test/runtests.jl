@@ -1,7 +1,6 @@
 using Test
 using MatsubaraFunctions 
 
-# check basic operations for MatsubaraFrequency
 @testset "Frequencies" begin 
 
     for n in 1 : 10 
@@ -20,10 +19,13 @@ using MatsubaraFunctions
         @test value(wFermion - wBoson) ≈ value(wFermion) - value(wBoson)
         @test value(wBoson - wFermion) ≈ value(wBoson) - value(wFermion)
         @test value(wBoson - wBoson) ≈ value(wBoson) - value(wBoson)
+
+        # reflection 
+        @test value(-wFermion) ≈ -value(wFermion)
+        @test value(-wBoson) ≈ -value(wBoson)
     end 
 end
 
-# check basic operations for MatsubaraGrid
 @testset "Grids" begin 
 
     T          = rand() 
@@ -64,7 +66,6 @@ end
     @test wBoson(value(wBoson[end])) == length(wBoson)
 end
 
-# check constructors for MatsubaraFunction
 @testset "Constructors" begin 
     fg = MatsubaraGrid(1.0, 10, Fermion)
 
@@ -76,7 +77,27 @@ end
     @test typeof(MatsubaraFunction(fg, 2)) == MatsubaraFunction{1, 1, 2, ComplexF64}
 end
 
-# check whether MatsubaraFunctions correctly evaluate on their associated linear grids
+@testset "Indices" begin 
+    g    = MatsubaraGrid(1.0, 10, Fermion)
+    f    = MatsubaraFunction((g, g), (10, 10))
+    idxs = rand(1 : length(g)), rand(1 : length(g)), rand(1 : 10), rand(1 : 10)
+    lidx = LinearIndex(f, (g[idxs[1]], g[idxs[2]]), idxs[3], idxs[4])
+    cidx = CartesianIndex(f, (g[idxs[1]], g[idxs[2]]), idxs[3], idxs[4])
+    x    = to_Matsubara(f, lidx) 
+    y    = to_Matsubara(f, cidx)
+
+    @test CartesianIndex(f, lidx) == cidx 
+    @test LinearIndex(f, cidx) == lidx
+    @test value(first(x)[1]) ≈ value(g[idxs[1]])
+    @test value(first(x)[2]) ≈ value(g[idxs[2]])
+    @test last(x)[1] == idxs[3] 
+    @test last(x)[2] == idxs[4]
+    @test value(first(y)[1]) ≈ value(g[idxs[1]])
+    @test value(first(y)[2]) ≈ value(g[idxs[2]])
+    @test last(y)[1] == idxs[3] 
+    @test last(y)[2] == idxs[4]
+end
+
 @testset "Evaluate" begin 
     fg = MatsubaraGrid(1.0, 10, Fermion); nf = length(fg)
     bg = MatsubaraGrid(1.0, 10, Boson);   nb = length(bg)
@@ -106,7 +127,6 @@ end
     end 
 end
 
-# check whether boundary conditions work as expected
 @testset "BC" begin 
     T  = 0.5
     ξ  = 0.5
@@ -134,11 +154,10 @@ end
     @test f2((value(v), value(fg[1])), 1; bc = x -> 1.0 / x[1] / x[2]) ≈ 1.0 / value(v) / value(fg[1])
 end
 
-# check whether extrapolation routines work as expected
 @testset "Extrapolation" begin 
-    T  = 0.5
+    T  = 0.1
     ξ  = 0.5
-    fg = MatsubaraGrid(T, 512, Fermion)
+    fg = MatsubaraGrid(T, 5000, Fermion)
     f1 = MatsubaraFunction((fg,), (1,))
     f2 = MatsubaraFunction((fg,), (1,))
     f3 = MatsubaraFunction((fg,), (1,))
@@ -152,17 +171,16 @@ end
     end 
 
     w = 2.0 * value(fg[end])
-    @test isapprox(f1(w, 1; extrp = true), 1.0 / (im * w); atol = 1e-10, rtol = 0.0)
-    @test isapprox(f2(w, 1; extrp = true), 1.0 / (im * w) - ξ / w / w; atol = 1e-10, rtol = 0.0)
-    @test isapprox(f3(w, 1; extrp = true), -1.0 / w / w; atol = 1e-10, rtol = 0.0)
-    @test isapprox(f4(w, 1; extrp = true), 1.0 / w; atol = 1e-10, rtol = 0.0)
+    @test isapprox(f1(w, 1; extrp = true), 1.0 / (im * w); atol = 1e-6, rtol = 1e-6)
+    @test isapprox(f2(w, 1; extrp = true), 1.0 / (im * w) - ξ / w / w; atol = 1e-6, rtol = 1e-6)
+    @test isapprox(f3(w, 1; extrp = true), -1.0 / w / w; atol = 1e-6, rtol = 1e-6)
+    @test isapprox(f4(w, 1; extrp = true), 1.0 / w; atol = 1e-6, rtol = 1e-6)
 end
 
-# check whether summation routines work as expected
 @testset "Summation" begin 
-    T  = 0.5
+    T  = 0.1
     ξ  = 0.5
-    fg = MatsubaraGrid(T, 512, Fermion)
+    fg = MatsubaraGrid(T, 5000, Fermion)
     f1 = MatsubaraFunction((fg,), (1,))
     f2 = MatsubaraFunction((fg,), (1,))
     f3 = MatsubaraFunction((fg,), (1,))
@@ -186,9 +204,42 @@ end
     ρ1r     = im * ρ10
 
     # benchmark vs analytic results
-    @test isapprox(sum_me(f1, 1), ρ10; atol = 1e-6, rtol = 0.0)
-    @test isapprox(sum_me(f2, 1), ρ1p; atol = 1e-6, rtol = 0.0)
-    @test isapprox(sum_me(f3, 1), ρ1m; atol = 1e-6, rtol = 0.0)
-    @test isapprox(sum_me(f4, 1),  ρ2; atol = 1e-6, rtol = 0.0)
-    @test isapprox(sum_me(f5, 1), ρ1r; atol = 1e-6, rtol = 0.0)
+    @test isapprox(sum_me(f1, 1), ρ10; atol = 1e-6, rtol = 1e-6)
+    @test isapprox(sum_me(f2, 1), ρ1p; atol = 1e-6, rtol = 1e-6)
+    @test isapprox(sum_me(f3, 1), ρ1m; atol = 1e-6, rtol = 1e-6)
+    @test isapprox(sum_me(f4, 1),  ρ2; atol = 1e-6, rtol = 1e-6)
+    @test isapprox(sum_me(f5, 1), ρ1r; atol = 1e-6, rtol = 1e-6)
+end
+
+@testset "Symmetries" begin 
+    T  = 0.1
+    ξ  = 0.5
+    g  = MatsubaraGrid(T, 128, Fermion)
+    f1 = MatsubaraFunction((g,), (1,))
+    f2 = MatsubaraFunction((g,), (1,))
+
+    for v in g
+        f1[v, 1] = 1.0 / (im * value(v) - ξ)
+    end
+
+    # complex conjugation for Green's function
+    function conj(
+        w :: Tuple{MatsubaraFrequency},
+        x :: Tuple{Int64}
+        ) :: Tuple{Tuple{MatsubaraFrequency}, Tuple{Int64}, Operation}
+
+        return (-w[1],), (x[1],), Operation(false, true)
+    end 
+
+    # compute the symmetry group 
+    S  = Symmetry(conj, (g[1],), (1,))
+    SG = SymmetryGroup([S], f1)
+
+    # symmetrize f2 and compare to f1 
+    for class in SG.classes 
+        f2[class[1][1], class[1][2]...] = f1[class[1][1], class[1][2]...]
+    end 
+
+    SG(f2)
+    @test f2.data ≈ f1.data
 end

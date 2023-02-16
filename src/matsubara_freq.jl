@@ -99,3 +99,11 @@ function Base.:-(
     ptype = (type(w1) == type(w2) ? Boson : Fermion)
     return MatsubaraFrequency(temperature(w1), index(w1) - index(w2) - shift, ptype)
 end
+
+function Base.:-(
+    w :: MatsubaraFrequency, 
+    ) :: MatsubaraFrequency 
+
+    T = temperature(w); n = index(w)
+    return type(w) == :Fermion ? MatsubaraFrequency(T, -n - 1, Fermion) : MatsubaraFrequency(T, -n, Boson)
+end

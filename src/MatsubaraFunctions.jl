@@ -5,11 +5,10 @@ module MatsubaraFunctions
     using MPI
     using HDF5
     using Test 
-
+    
     include("matsubara_freq.jl")
     include("matsubara_grid.jl")
-    include("interpolation.jl")
-    include("matsubara_func.jl")
+    include("matsubara_func/matsubara_func.jl")
     include("mpi_helpers.jl")
     include("io.jl")
 
@@ -44,9 +43,16 @@ module MatsubaraFunctions
         mult,
         mult!,
         set!,
+        LinearIndex,
+        to_Matsubara,
         upper_tail_moments,
         lower_tail_moments,
         sum_me,
+        Operation,
+        sgn,
+        con,
+        Symmetry,
+        SymmetryGroup,
 
         # mpi_helpers.jl 
         mpi_split,
