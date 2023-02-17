@@ -2,7 +2,6 @@ using Test
 using MatsubaraFunctions 
 
 @testset "Frequencies" begin 
-
     for n in 1 : 10 
         T        = rand()
         wFermion = MatsubaraFrequency(T, rand(-100 : 100), Fermion)
@@ -27,8 +26,7 @@ using MatsubaraFunctions
 end
 
 @testset "Grids" begin 
-
-    T          = rand() 
+    T        = rand() 
     wFermion = MatsubaraGrid(T, 100, Fermion)
     wBoson   = MatsubaraGrid(T, 100, Boson)
 
@@ -132,8 +130,8 @@ end
     ξ  = 0.5
     v  = MatsubaraFrequency(T, 1000, Fermion)
     fg = MatsubaraGrid(T, 512, Fermion)
-    f1 = MatsubaraFunction((fg,), (1,))
-    f2 = MatsubaraFunction((fg, fg), (1,))
+    f1 = MatsubaraFunction(fg, 1)
+    f2 = MatsubaraFunction((fg, fg), 1)
 
     # default bc
     @test f1(v, 1) ≈ 0.0
@@ -158,16 +156,16 @@ end
     T  = 0.1
     ξ  = 0.5
     fg = MatsubaraGrid(T, 5000, Fermion)
-    f1 = MatsubaraFunction((fg,), (1,))
-    f2 = MatsubaraFunction((fg,), (1,))
-    f3 = MatsubaraFunction((fg,), (1,))
-    f4 = MatsubaraFunction((fg,), (1,), Float64)
+    f1 = MatsubaraFunction(fg, 1)
+    f2 = MatsubaraFunction(fg, 1)
+    f3 = MatsubaraFunction(fg, 1)
+    f4 = MatsubaraFunction(fg, 1, Float64)
 
-    for v in 1 : length(fg)
-        f1[v, 1] = 1.0 / (im * value(fg[v]))
-        f2[v, 1] = 1.0 / (im * value(fg[v]) - ξ)
-        f3[v, 1] = 1.0 / (im * value(fg[v]) - ξ) / (im * value(fg[v]) - ξ)
-        f4[v, 1] = 1.0 / value(fg[v])
+    for v in fg
+        f1[v, 1] = 1.0 / (im * value(v))
+        f2[v, 1] = 1.0 / (im * value(v) - ξ)
+        f3[v, 1] = 1.0 / (im * value(v) - ξ) / (im * value(v) - ξ)
+        f4[v, 1] = 1.0 / value(v)
     end 
 
     w = 2.0 * value(fg[end])
@@ -181,18 +179,18 @@ end
     T  = 0.1
     ξ  = 0.5
     fg = MatsubaraGrid(T, 5000, Fermion)
-    f1 = MatsubaraFunction((fg,), (1,))
-    f2 = MatsubaraFunction((fg,), (1,))
-    f3 = MatsubaraFunction((fg,), (1,))
-    f4 = MatsubaraFunction((fg,), (1,))
-    f5 = MatsubaraFunction((fg,), (1,), Float64)
+    f1 = MatsubaraFunction(fg, 1)
+    f2 = MatsubaraFunction(fg, 1)
+    f3 = MatsubaraFunction(fg, 1)
+    f4 = MatsubaraFunction(fg, 1)
+    f5 = MatsubaraFunction(fg, 1, Float64)
 
-    for v in 1 : length(fg)
-        f1[v, 1] = 1.0 / (im * value(fg[v]))
-        f2[v, 1] = 1.0 / (im * value(fg[v]) - ξ)
-        f3[v, 1] = 1.0 / (im * value(fg[v]) + ξ)
-        f4[v, 1] = 1.0 / (im * value(fg[v]) - ξ) / (im * value(fg[v]) - ξ)
-        f5[v, 1] = 1.0 / value(fg[v])
+    for v in fg
+        f1[v, 1] = 1.0 / (im * value(v))
+        f2[v, 1] = 1.0 / (im * value(v) - ξ)
+        f3[v, 1] = 1.0 / (im * value(v) + ξ)
+        f4[v, 1] = 1.0 / (im * value(v) - ξ) / (im * value(v) - ξ)
+        f5[v, 1] = 1.0 / value(v)
     end 
 
     # compute analytic results
@@ -215,8 +213,8 @@ end
     T  = 0.1
     ξ  = 0.5
     g  = MatsubaraGrid(T, 128, Fermion)
-    f1 = MatsubaraFunction((g,), (1,))
-    f2 = MatsubaraFunction((g,), (1,))
+    f1 = MatsubaraFunction(g, 1)
+    f2 = MatsubaraFunction(g, 1)
 
     for v in g
         f1[v, 1] = 1.0 / (im * value(v) - ξ)

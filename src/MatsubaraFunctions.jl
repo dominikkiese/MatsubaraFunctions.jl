@@ -6,8 +6,8 @@ module MatsubaraFunctions
     using HDF5
     using Test 
     
-    include("matsubara_freq.jl")
-    include("matsubara_grid.jl")
+    include("matsubara_freq/matsubara_freq.jl")
+    include("matsubara_grid/matsubara_grid.jl")
     include("matsubara_func/matsubara_func.jl")
     include("mpi_helpers.jl")
     include("io.jl")

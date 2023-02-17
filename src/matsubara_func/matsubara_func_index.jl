@@ -113,7 +113,7 @@ function Base.:getindex(
     cidx :: CartesianIndex{DD},
     )    :: Q where {GD, SD, DD, Q <: Number}
 
-     # bounds check perfomed by Base
+    # bounds check perfomed by Base
     return f.data[cidx]
 end
 
