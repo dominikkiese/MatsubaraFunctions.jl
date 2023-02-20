@@ -139,7 +139,7 @@ println(f(vp, 1; extrp = true))                  # polynomial extrapolation in 1
 
 # Advanced Usage: Matsubara Sums 
 
-For `MatsubaraFunction` objects $G_{i_1 ... i_n}(i\omega)$ defined on 1D grids, we export the function `sum_me`, which computes the series $\Sigma_m G_{i_1 ... i_n}(i\omega^{m})$ for $m \in \mathbb{Z}$ using tail fits of $G$ together with analytic formulas for summations of the form $\Sigma_m \frac{1}{(i\omega^m)^\alpha}$ with $\alpha \in \mathbb{N}$. This, however, requires $G$ to be representable by a Laurent series in an elongated annulus about the imaginary axis.
+For `MatsubaraFunction` objects $G_{i_1 ... i_n}(i\omega)$ defined on 1D grids, we export the function `sum_me`, which computes the series $\Sigma_m G_{i_1 ... i_n}(i\omega^{m}) e^{i\omega^m 0^+}$ for $m \in \mathbb{Z}$ using tail fits of $G$ together with analytic formulas for summations of the form $\Sigma_m \frac{1}{(i\omega^m)^\alpha}e^{i\omega^m 0^+}$ with $\alpha \in \mathbb{N}$. This, however, requires $G$ to be representable by a Laurent series in an elongated annulus about the imaginary axis.
 
 ```julia
 ξ = 0.5
@@ -156,6 +156,75 @@ end
 ρ(x, T) = 1.0 / (exp(x / T) + 1.0)
 println(abs(sum_me(f1_complex, 1) - (ρ(+ξ, T) - 1.0)))
 ```
+
+# Advanced Usage: Automated Symmetry Reduction
+
+In many cases, the numerical effort of computing functions in the Matsubara domain can be drastically reduced by the use of symmetries. For one-particle Green's functions $G_{i_1 i_2}(i\omega)$, for example, hermicity of the Hamiltonian dictates that $G_{i_1 i_2}(i\omega) = G^{\star}_{i_2 i_1}(-i\omega)$, relating positive and negative Matsubara frequencies. We offer an automated way to compute the set of irreducible (i.e. unrelatable by symmetries) `MatsubaraFunction` components, as is illustrated in the following example
+
+```julia
+ξ = 0.5
+T = 1.0
+N = 128
+g = MatsubaraGrid(T, N, Fermion)
+f = MatsubaraFunction(g, 1)
+
+for v in g
+    f[v, 1] = 1.0 / (im * value(v) - ξ)
+end 
+
+# complex conjugation acting on Green's function
+function conj(
+    w :: Tuple{MatsubaraFrequency},
+    x :: Tuple{Int64}
+    ) :: Tuple{Tuple{MatsubaraFrequency}, Tuple{Int64}, Operation}
+
+    return (-w[1],), (x[1],), Operation(false, true)
+end 
+
+# compute the symmetry group 
+SG = SymmetryGroup([Symmetry(conj, (g[1],), (1,))], f)
+
+# symmetrize and compare to f
+ftest = deepcopy(f)
+
+for class in SG.classes 
+    ftest[class[1][1], class[1][2]...] = f[class[1][1], class[1][2]...]
+end 
+
+SG(ftest)
+println(maximum(abs.(ftest.data .- f.data)))
+```
+
+# Advanced Usage: MPI Helpers
+
+To simplify the parallelization of algorithms involving `MatsubaraFunction` instances, we export some useful methods based on the MPI.jl wrapper
+
+```julia
+using MatsubaraFunctions 
+using MPI 
+
+MPI.Init()
+mpi_info()
+mpi_println("I print on main.")
+ismain = mpi_ismain() # ismain = true if rank is 0
+
+T = 1.0
+N = 128
+g = MatsubaraGrid(T, N, Fermion)
+f = MatsubaraFunction(g, 1)
+
+# simple loop parallelization for UnitRange
+for vidx in mpi_split(1 : length(g))
+  comm = MPI.COMM_WORLD 
+  println("My rank is $(MPI.Comm_rank(comm)): $(vidx)")
+end
+
+# simple (+) allreduce
+mpi_allreduce!(f)
+```
+
+
+
 
 
 
