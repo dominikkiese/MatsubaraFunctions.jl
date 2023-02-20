@@ -58,7 +58,7 @@ for v in g
 end
 ```
 
-and can be evaluated using either a `MatsubaraFrequency` or real valued number. As long as the input argument is in bounds, this will return the corresponding linear index of the grid in the former case and the linear index of the closest frequency in the latter case 
+and can be evaluated using either a `MatsubaraFrequency` or `Float64`. As long as the input argument is in bounds, this will return the corresponding linear index of the grid in the former case and the linear index of the closest frequency in the latter case 
 
 ```julia
 T   = 1.0
@@ -110,7 +110,7 @@ info(f4_real)
 println()
 ```
 
-There are two possible ways to access the data of a `MatsubaraFunction`, using either the bracket `[]` or the parenthesis `()` operator. The former can be used together with a set of linear indices or with a combination of `MatsubaraFrequency` objects and linear indices. It will return the value of the function exactly for the given arguments. The latter allows to substitute real numbers for the frequency arguments, in which case a multilinear interpolation is performed. In addition, `()` is well defined even for out of bounds access, providing the user with the option to provide a boundary condition or (for 1D grids) use polynomial extrapolation.
+There are two possible ways to access the data of a `MatsubaraFunction`, using either the bracket `[]` or the parenthesis `()` operator. The former can be used together with a set of linear indices or with a combination of `MatsubaraFrequency` objects and linear indices. It will return the value of the function exactly for the given arguments. The latter allows to substitute `Float64` for the frequency arguments, in which case a multilinear interpolation is performed. In addition, `()` is well defined even for out of bounds access, providing the user with the option to provide a boundary condition or (for 1D grids) use polynomial extrapolation.
 
 ```julia
 ξ = 0.5
@@ -135,6 +135,24 @@ println(f(vp, 1; bc = x -> 1.0))                 # custom boundary condition x -
 println(f(vp, 1; bc = x -> 1.0 / im / value(x))) # custom boundary condition x -> 1.0 / im / value(x)
 println(f(value(vp), 1; bc = x -> 1.0 / im / x)) # custom boundary condition x -> 1.0 / im / x
 println(f(vp, 1; extrp = true))                  # polynomial extrapolation in 1D 
+```
+
+`MatsubaraGrid` and `MatsubaraFunction` objects can be saved in HDF5 file format as
+
+```julia
+using MatsubaraFunctions 
+using HDF5
+
+file = h5open("test.h5", "w")
+T    = 1.0
+N    = 128
+g    = MatsubaraGrid(T, N, Fermion)
+f    = MatsubaraFunction(g, 1)
+
+save_matsubara_grid!(file, "grid", g) 
+save_matsubara_function!(file, "func", f)
+gp = load_matsubara_grid(file, "grid")
+fp = load_matsubara_function(file, "func")
 ```
 
 # Advanced Usage: Matsubara Sums 
