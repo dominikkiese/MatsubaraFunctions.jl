@@ -17,13 +17,9 @@ struct Operation
     Operation() :: Operation = Operation(false, false)
 end
 
-
-
 # getter functions 
 sgn(op :: Operation) :: Bool = op.sgn
 con(op :: Operation) :: Bool = op.con
-
-
 
 # basic operations 
 function Base.:*(
@@ -48,24 +44,11 @@ end
 # MatsubaraFrequency arguments and shape indices and returns a new set 
 # of MatsubaraFrequency and shape indices together with an operation 
 struct Symmetry{GD, SD}
-    f :: Function 
-
-    # convenience constructor (checks if prerequisites are fulfilled)
-    function Symmetry(
-        f :: Function,
-        w :: NTuple{GD, MatsubaraFrequency},
-        x :: NTuple{SD, Int64}
-        ) :: Symmetry{GD, SD} where {GD, SD}
-
-        @assert typeof(f(w, x)) == Tuple{NTuple{GD, MatsubaraFrequency}, NTuple{SD, Int64}, Operation}
-        return new{GD, SD}(f)
-    end
+    f :: FunctionWrappers.FunctionWrapper{Tuple{NTuple{GD, MatsubaraFrequency}, NTuple{SD, Int64}, Operation}, Tuple{NTuple{GD, MatsubaraFrequency}, NTuple{SD, Int64}}}
 end
 
-
-
 # make Symmetry callable
-function (S :: Symmetry)(
+function (S :: Symmetry{GD, SD})(
     w :: NTuple{GD, MatsubaraFrequency},
     x :: NTuple{SD, Int64}
     ) :: Tuple{NTuple{GD, MatsubaraFrequency}, NTuple{SD, Int64}, Operation} where {GD, SD}
@@ -164,8 +147,6 @@ struct SymmetryGroup{GD, SD}
         return SymmetryGroup(symmetries, classes)
     end 
 end
-
-
 
 # make SymmetryGroup callable with MatsubaraFunction. This will iterate 
 # over all symmetry classes and symmetrize the data array of the MatsubaraFunction

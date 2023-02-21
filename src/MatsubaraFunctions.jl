@@ -2,9 +2,9 @@ module MatsubaraFunctions
 
     using LinearAlgebra 
     using StaticArrays
+    using FunctionWrappers
     using MPI
-    using HDF5
-    using Test 
+    using HDF5 
     
     include("matsubara_freq/matsubara_freq.jl")
     include("matsubara_grid/matsubara_grid.jl")

@@ -230,8 +230,7 @@ end
     end 
 
     # compute the symmetry group 
-    S  = Symmetry(conj, (g[1],), (1,))
-    SG = SymmetryGroup([S], f1)
+    SG = SymmetryGroup([Symmetry{1, 1}(conj)], f1)
 
     # symmetrize f2 and compare to f1 
     for class in SG.classes 
