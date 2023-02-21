@@ -200,7 +200,7 @@ function conj(
 end 
 
 # compute the symmetry group 
-SG = SymmetryGroup([Symmetry(conj, (g[1],), (1,))], f)
+SG = SymmetryGroup([Symmetry{1, 1}(conj)], f)
 
 # symmetrize and compare to f
 ftest = deepcopy(f)
@@ -215,7 +215,8 @@ println(maximum(abs.(ftest.data .- f.data)))
 
 # Advanced Usage: MPI Helpers
 
-To simplify the parallelization of algorithms involving `MatsubaraFunction` instances, we export some useful methods based on the MPI.jl wrapper
+To simplify the parallelization of algorithms involving `MatsubaraFunction` instances, we export some useful methods based on the MPI.jl wrapper. For further information on how 
+to set up MPI with Julia see https://github.com/JuliaParallel/MPI.jl.
 
 ```julia
 using MatsubaraFunctions 
