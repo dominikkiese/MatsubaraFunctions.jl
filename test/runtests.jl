@@ -183,14 +183,12 @@ end
     f2 = MatsubaraFunction(fg, 1)
     f3 = MatsubaraFunction(fg, 1)
     f4 = MatsubaraFunction(fg, 1)
-    f5 = MatsubaraFunction(fg, 1, Float64)
 
     for v in fg
         f1[v, 1] = 1.0 / (im * value(v))
         f2[v, 1] = 1.0 / (im * value(v) - ξ)
         f3[v, 1] = 1.0 / (im * value(v) + ξ)
         f4[v, 1] = 1.0 / (im * value(v) - ξ) / (im * value(v) - ξ)
-        f5[v, 1] = 1.0 / value(v)
     end 
 
     # compute analytic results
@@ -199,14 +197,12 @@ end
     ρ1p     = ρ(+ξ, T) - 1.0
     ρ1m     = ρ(-ξ, T) - 1.0
     ρ2      = ρ(ξ, T) * (ρ(ξ, T) - 1.0) / T
-    ρ1r     = im * ρ10
 
     # benchmark vs analytic results
     @test isapprox(sum_me(f1, 1), ρ10; atol = 1e-6, rtol = 1e-6)
     @test isapprox(sum_me(f2, 1), ρ1p; atol = 1e-6, rtol = 1e-6)
     @test isapprox(sum_me(f3, 1), ρ1m; atol = 1e-6, rtol = 1e-6)
     @test isapprox(sum_me(f4, 1),  ρ2; atol = 1e-6, rtol = 1e-6)
-    @test isapprox(sum_me(f5, 1), ρ1r; atol = 1e-6, rtol = 1e-6)
 end
 
 @testset "Symmetries" begin 
@@ -215,6 +211,7 @@ end
     g  = MatsubaraGrid(T, 128, Fermion)
     f1 = MatsubaraFunction(g, 1)
     f2 = MatsubaraFunction(g, 1)
+    f3 = MatsubaraFunction(g, 1)
 
     for v in g
         f1[v, 1] = 1.0 / (im * value(v) - ξ)
@@ -224,19 +221,32 @@ end
     function conj(
         w :: Tuple{MatsubaraFrequency},
         x :: Tuple{Int64}
-        ) :: Tuple{Tuple{MatsubaraFrequency}, Tuple{Int64}, Operation}
+        ) :: Tuple{Tuple{MatsubaraFrequency}, Tuple{Int64}, MatsubaraOperation}
 
-        return (-w[1],), (x[1],), Operation(false, true)
+        return (-w[1],), (x[1],), MatsubaraOperation(false, true)
     end 
 
     # compute the symmetry group 
-    SG = SymmetryGroup([Symmetry{1, 1}(conj)], f1)
+    SG = MatsubaraSymmetryGroup([MatsubaraSymmetry{1, 1}(conj)], f1)
 
     # symmetrize f2 and compare to f1 
     for class in SG.classes 
-        f2[class[1][1], class[1][2]...] = f1[class[1][1], class[1][2]...]
+        f2[class[1][1]] = f1[class[1][1]]
     end 
 
     SG(f2)
     @test f2.data ≈ f1.data
+
+    # symmetrize f3 and compare to f1 using MatsubaraInitFunction
+    function init(
+        w :: Tuple{MatsubaraFrequency},
+        x :: Tuple{Int64}
+        ) :: ComplexF64
+
+        return f1[w, x...]
+    end 
+
+    InitFunc = MatsubaraInitFunction{1, 1, ComplexF64}(init)
+    SG(f3, InitFunc)
+    @test f3.data ≈ f1.data
 end

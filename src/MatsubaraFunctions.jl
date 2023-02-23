@@ -9,7 +9,6 @@ module MatsubaraFunctions
     include("matsubara_freq/matsubara_freq.jl")
     include("matsubara_grid/matsubara_grid.jl")
     include("matsubara_func/matsubara_func.jl")
-    include("mpi_helpers.jl")
     include("io.jl")
 
     export
@@ -36,6 +35,11 @@ module MatsubaraFunctions
         data_shape,
         absmax,
         argmax,
+        mpi_split,
+        mpi_allreduce!,
+        mpi_ismain,
+        mpi_println,
+        mpi_info,
         add,
         add!, 
         subtract,
@@ -48,18 +52,12 @@ module MatsubaraFunctions
         upper_tail_moments,
         lower_tail_moments,
         sum_me,
-        Operation,
+        MatsubaraOperation,
         sgn,
         con,
-        Symmetry,
-        SymmetryGroup,
-
-        # mpi_helpers.jl 
-        mpi_split,
-        mpi_allreduce!,
-        mpi_ismain,
-        mpi_println,
-        mpi_info,
+        MatsubaraSymmetry,
+        MatsubaraSymmetryGroup,
+        MatsubaraInitFunction,
 
         # io.jl
         save_matsubara_grid!, 

@@ -24,6 +24,17 @@ end
 
 
 
+"""
+    function add(
+        f1     :: MatsubaraFunction{GD, SD, DD, Q}, 
+        f2     :: MatsubaraFunction{GD, SD, DD, Q}
+        ;
+        checks :: Bool = true
+        )      :: MatsubaraFunction{GD, SD, DD, Q} where {GD, SD, DD, Q <: Number}
+
+Addition of two MatsubaraFunction, returns new MatsubaraFunction. Safety measures can be disabled
+with checks = false if needed for performance (discouraged).
+"""
 function add(
     f1     :: MatsubaraFunction{GD, SD, DD, Q}, 
     f2     :: MatsubaraFunction{GD, SD, DD, Q}
@@ -35,6 +46,17 @@ function add(
     return MatsubaraFunction(f1.grids, f1.shape, f1.data .+ f2.data; checks)
 end
 
+"""
+    function add!(
+        f1     :: MatsubaraFunction{GD, SD, DD, Q}, 
+        f2     :: MatsubaraFunction{GD, SD, DD, Q}
+        ;
+        checks :: Bool = true
+        )      :: Nothing where {GD, SD, DD, Q <: Number}
+
+Inplace addition of two MatsubaraFunction (f1 += f2). Safety measures can be disabled
+with checks = false if needed for performance (discouraged).
+"""
 function add!(
     f1     :: MatsubaraFunction{GD, SD, DD, Q}, 
     f2     :: MatsubaraFunction{GD, SD, DD, Q}
@@ -50,6 +72,17 @@ end
 
 
 
+"""
+    function subtract(
+        f1     :: MatsubaraFunction{GD, SD, DD, Q}, 
+        f2     :: MatsubaraFunction{GD, SD, DD, Q}
+        ;
+        checks :: Bool = true
+        )      :: MatsubaraFunction{GD, SD, DD, Q} where {GD, SD, DD, Q <: Number}
+
+Subtraction of two MatsubaraFunction, returns new MatsubaraFunction. Safety measures can be disabled
+with checks = false if needed for performance (discouraged).
+"""
 function subtract(
     f1     :: MatsubaraFunction{GD, SD, DD, Q}, 
     f2     :: MatsubaraFunction{GD, SD, DD, Q}
@@ -61,6 +94,17 @@ function subtract(
     return MatsubaraFunction(f1.grids, f1.shape, f1.data .- f2.data; checks)
 end
 
+"""
+    function subtract!(
+        f1     :: MatsubaraFunction{GD, SD, DD, Q}, 
+        f2     :: MatsubaraFunction{GD, SD, DD, Q}
+        ;
+        checks :: Bool = true
+        )      :: Nothing where {GD, SD, DD, Q <: Number}
+
+Inplace subtraction of two MatsubaraFunction (f1 -= f2). Safety measures can be disabled
+with checks = false if needed for performance (discouraged).
+"""
 function subtract!(
     f1     :: MatsubaraFunction{GD, SD, DD, Q}, 
     f2     :: MatsubaraFunction{GD, SD, DD, Q}
@@ -76,6 +120,17 @@ end
 
 
 
+"""
+    function mult(
+        f      :: MatsubaraFunction{GD, SD, DD, Q},
+        val    :: Qp
+        ;
+        checks :: Bool = true
+        )      :: MatsubaraFunction{GD, SD, DD, Q} where {GD, SD, DD, Q <: Number, Qp <: Number}
+
+Multiplication of MatsubaraFunction with scalar, returns new MatsubaraFunction. Safety measures can be disabled
+with checks = false if needed for performance (discouraged).
+"""
 function mult(
     f      :: MatsubaraFunction{GD, SD, DD, Q},
     val    :: Qp
@@ -87,6 +142,14 @@ function mult(
     return MatsubaraFunction(f.grids, f.shape, val .* f.data; checks)
 end
 
+"""
+    function mult!(
+        f   :: MatsubaraFunction{GD, SD, DD, Q},
+        val :: Qp
+        )   :: Nothing where {GD, SD, DD, Q <: Number, Qp <: Number}
+
+Inplace multiplication of MatsubaraFunction with scalar (f1 *= val)
+"""
 function mult!(
     f   :: MatsubaraFunction{GD, SD, DD, Q},
     val :: Qp
@@ -100,6 +163,14 @@ end
  
 
 
+"""
+    function set!(
+        f   :: MatsubaraFunction{GD, SD, DD, Q},
+        val :: Qp,
+        )   :: Nothing where {GD, SD, DD, Q <: Number, Qp <: Number}
+
+Initialize MatsubaraFunction with val
+"""
 function set!(
     f   :: MatsubaraFunction{GD, SD, DD, Q},
     val :: Qp,
@@ -111,6 +182,17 @@ function set!(
     return nothing
 end
 
+"""
+    function set!(
+        f1     :: MatsubaraFunction{GD, SD, DD, Q},
+        f2     :: MatsubaraFunction{GD, SD, DD, Q},
+        ; 
+        checks :: Bool = true
+        )      :: Nothing where {GD, SD, DD, Q <: Number}
+
+Initialize MatsubaraFunction with another MatsubaraFunction (f1 = f2). Safety measures can be disabled
+with checks = false if needed for performance (discouraged).
+"""
 function set!(
     f1     :: MatsubaraFunction{GD, SD, DD, Q},
     f2     :: MatsubaraFunction{GD, SD, DD, Q},

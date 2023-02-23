@@ -30,6 +30,15 @@ end
 
 
 # LinearIndex from MatsubaraFrequency and sites
+"""
+    function LinearIndex(
+        f :: MatsubaraFunction{GD, SD, DD, Q},
+        w :: NTuple{GD, MatsubaraFrequency},
+        x :: Vararg{Int64, SD} 
+        ) :: Int64 where {GD, SD, DD, Q <: Number}
+
+Returns linear index for access to f.data
+"""
 function LinearIndex(
     f :: MatsubaraFunction{GD, SD, DD, Q},
     w :: NTuple{GD, MatsubaraFrequency},
@@ -43,6 +52,14 @@ function LinearIndex(
 end
 
 # LinearIndex from CartesianIndex
+"""
+    function LinearIndex(
+        f    :: MatsubaraFunction{GD, SD, DD, Q},
+        cidx :: CartesianIndex{DD}
+        )    :: Int64 where {GD, SD, DD, Q <: Number}
+
+Returns linear index for access to f.data
+"""
 function LinearIndex(
     f    :: MatsubaraFunction{GD, SD, DD, Q},
     cidx :: CartesianIndex{DD}
@@ -53,6 +70,14 @@ function LinearIndex(
 end
 
 # LinearIndex from Vararg
+"""
+    function LinearIndex(
+        f :: MatsubaraFunction{GD, SD, DD, Q},
+        x :: Vararg{Int64, DD}
+        ) :: Int64 where {GD, SD, DD, Q <: Number}
+
+Returns linear index for access to f.data    
+"""
 function LinearIndex(
     f :: MatsubaraFunction{GD, SD, DD, Q},
     x :: Vararg{Int64, DD}
@@ -65,6 +90,14 @@ end
 
 
 # Conversion from CartesianIndex back to MatsubaraFrequency + sites
+"""
+    function to_Matsubara(
+        f    :: MatsubaraFunction{GD, SD, DD, Q},
+        cidx :: CartesianIndex{DD}
+        )    :: Tuple{NTuple{GD, MatsubaraFrequency}, NTuple{SD, Int64}} where {GD, SD, DD, Q <: Number}
+
+Returns coordinates in grids and index of tensor structure
+"""
 function to_Matsubara(
     f    :: MatsubaraFunction{GD, SD, DD, Q},
     cidx :: CartesianIndex{DD}
@@ -75,6 +108,14 @@ function to_Matsubara(
 end
 
 # Conversion from LinearIndex back to MatsubaraFrequency + sites
+"""
+    function to_Matsubara(
+        f   :: MatsubaraFunction{GD, SD, DD, Q},
+        idx :: Int64 
+        )   :: Tuple{NTuple{GD, MatsubaraFrequency}, NTuple{SD, Int64}} where {GD, SD, DD, Q <: Number}
+
+Returns coordinates in grids and index of tensor structure
+"""
 function to_Matsubara(
     f   :: MatsubaraFunction{GD, SD, DD, Q},
     idx :: Int64 

@@ -1,5 +1,32 @@
 # Note: we do not allow MatsubaraGrid to be dispatched on the particle type 
 #       to allow for mixed grids in the construction of MatsubaraFunctions
+"""
+    struct MatsubaraGrid
+
+MatsubaraGrid type with fields:
+* `T    :: Float64`                    : physical temperature
+* `data :: Vector{MatsubaraFrequency}` : list of MatsubaraFrequency objects
+* `type :: Symbol`                     : particle type
+
+Examples:
+```julia
+# construction
+T  = 1.0
+N  = 128
+g1 = MatsubaraGrid(T, N, Fermion) # no. frequencies is 2N
+g2 = MatsubaraGrid(T, N, Boson)   # no. frequencies is 2N - 1
+
+# MatsubaraGrid is iterable
+for v in g1
+    println(value(v)) 
+end
+
+# MatsubaraGrid can be indexed and is callable 
+idx = rand(1 : length(g1))
+@assert g1(g1[idx]) == idx         # returns linear index of MatsubaraFrequency in grid
+@assert g1(value(g1[idx])) == idx  # returns linear index of MatsubaraFrequency closest to Float64 in grid
+```
+"""
 struct MatsubaraGrid
     T     :: Float64 
     data  :: Vector{MatsubaraFrequency}
@@ -50,6 +77,13 @@ end
 
 
 # getter functions
+"""
+    function temperature(
+        grid :: MatsubaraGrid
+        )    :: Float64
+
+Returns grid.T
+"""
 function temperature(
     grid :: MatsubaraGrid
     )    :: Float64
@@ -57,6 +91,13 @@ function temperature(
     return grid.T 
 end 
 
+"""
+    function type(
+        grid :: MatsubaraGrid
+        )    :: Symbol
+
+Returns grid.type
+"""
 function type(
     grid :: MatsubaraGrid
     )    :: Symbol
@@ -71,6 +112,13 @@ function Base.:length(
     return length(grid.data)
 end
 
+"""
+    function index_range(
+        grid :: MatsubaraGrid
+        )    :: NTuple{2, Int64}
+
+Returns Matsubara indices of the first and last MatsubaraFrequency in grid
+"""
 function index_range(
     grid :: MatsubaraGrid
     )    :: NTuple{2, Int64}
@@ -78,6 +126,14 @@ function index_range(
     return index(grid.data[1]), index(grid.data[end])
 end
 
+"""
+    function is_inbounds(
+        w    :: MatsubaraFrequency,
+        grid :: MatsubaraGrid
+        )    :: Bool
+
+Checks if w is contained in grid
+"""
 function is_inbounds(
     w    :: MatsubaraFrequency,
     grid :: MatsubaraGrid
@@ -90,6 +146,14 @@ function is_inbounds(
     return idx_range[1] <= index(w) <= idx_range[2]
 end
 
+"""
+    function is_inbounds(
+        w    :: Float64,
+        grid :: MatsubaraGrid
+        )    :: Bool
+
+Checks if w lies within grid bounds
+"""
 function is_inbounds(
     w    :: Float64,
     grid :: MatsubaraGrid
@@ -98,6 +162,13 @@ function is_inbounds(
     return value(grid[1]) <= w <= value(grid[end])
 end
 
+"""
+    function info(
+        grid :: MatsubaraGrid
+        )    :: Nothing
+
+Prints grid properties
+"""
 function info(
     grid :: MatsubaraGrid
     )    :: Nothing

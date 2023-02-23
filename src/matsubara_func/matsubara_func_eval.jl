@@ -8,6 +8,15 @@
 
 # compute tail moments in quadratic approximation from upper bound of 1D MatsubaraFunction
 # Note: the distance between interpolation nodes is kept constant below T = 1
+"""
+    function upper_tail_moments(
+        f :: MatsubaraFunction{1, SD, DD, Q},
+        x :: Vararg{Int64, SD} 
+        ) :: SVector{3, Q} where {SD, DD, Q <: Number}
+
+Returns high frequency moments for quadratic model using upper grid bound. Note, that 
+the distance between interpolation nodes is kept constant below T = 1.
+"""
 function upper_tail_moments(
     f :: MatsubaraFunction{1, SD, DD, Q},
     x :: Vararg{Int64, SD} 
@@ -31,6 +40,15 @@ end
 
 # compute tail moments in quadratic approximation from lower bound of 1D MatsubaraFunction
 # Note: the distance between interpolation nodes is kept constant below T = 1
+"""
+    function lower_tail_moments(
+        f :: MatsubaraFunction{1, SD, DD, Q},
+        x :: Vararg{Int64, SD} 
+        ) :: SVector{3, Q} where {SD, DD, Q <: Number}
+
+Returns high frequency moments for quadratic model using lower grid bound. Note, that 
+the distance between interpolation nodes is kept constant below T = 1.
+"""
 function lower_tail_moments(
     f :: MatsubaraFunction{1, SD, DD, Q},
     x :: Vararg{Int64, SD} 
@@ -185,15 +203,22 @@ end
 
 
 
-# compute Matsubara sum for MatsubaraFunction on 1D grid
-# Note 1: only viable if f has Laurent series representation in the whole 
-#         complex plane for annulus around imaginary axis
-# Note 2: for real valued data the return value is complex (im * sum), 
-#         i.e. we cannot generally infer it from Q -> dynamic dispatch
+# compute Matsubara sum for complex-valued MatsubaraFunction on 1D grid
+# Note: only viable if f has Laurent series representation with
+#       respect to an annulus about the imaginary axis
+"""
+    function sum_me(
+        f :: MatsubaraFunction{1, SD, DD, Q},
+        x :: Vararg{Int64, SD}
+        ) :: Q where {SD, DD, Q <: Complex}  
+
+Computes the Matsubara sum (with regulator exp(-iw0+)) for a complex valued MatsubaraFunction on 1D grid. 
+This is only viable if f has a Laurent series representation with respect to an annulus about the imaginary axis.
+"""
 function sum_me(
     f :: MatsubaraFunction{1, SD, DD, Q},
     x :: Vararg{Int64, SD}
-    ) where {SD, DD, Q <: Number}
+    ) :: Q where {SD, DD, Q <: Complex}
 
     # compute tail moments 
     upper_moments = upper_tail_moments(f, x...)
