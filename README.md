@@ -194,23 +194,27 @@ end
 function conj(
     w :: Tuple{MatsubaraFrequency},
     x :: Tuple{Int64}
-    ) :: Tuple{Tuple{MatsubaraFrequency}, Tuple{Int64}, Operation}
+    ) :: Tuple{Tuple{MatsubaraFrequency}, Tuple{Int64}, MatsubaraOperation}
 
-    return (-w[1],), (x[1],), Operation(false, true)
+    return (-w[1],), (x[1],), MatsubaraOperation(false, true)
 end 
 
 # compute the symmetry group 
-SG = SymmetryGroup([Symmetry{1, 1}(conj)], f)
+SG = MatsubaraSymmetryGroup([MatsubaraSymmetry{1, 1}(conj)], f)
 
-# symmetrize and compare to f
-ftest = deepcopy(f)
+# obtain another Green's function by symmetrization
+function init(
+    w :: Tuple{MatsubaraFrequency},
+    x :: Tuple{Int64}
+    ) :: ComplexF64
 
-for class in SG.classes 
-    ftest[class[1][1], class[1][2]...] = f[class[1][1], class[1][2]...]
+    return f[w, x...]
 end 
 
-SG(ftest)
-println(maximum(abs.(ftest.data .- f.data)))
+InitFunc = MatsubaraInitFunction{1, 1, ComplexF64}(init)
+h        = MatsubaraFunction(g, 1)
+SG(h, InitFunc)
+@assert h == f
 ```
 
 # Advanced Usage: MPI Helpers
