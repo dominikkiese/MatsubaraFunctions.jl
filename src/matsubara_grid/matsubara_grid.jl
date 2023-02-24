@@ -1,5 +1,5 @@
-# Note: we do not allow MatsubaraGrid to be dispatched on the particle type 
-#       to allow for mixed grids in the construction of MatsubaraFunctions
+# we do not allow MatsubaraGrid to be dispatched on the particle type 
+# to allow for mixed grids in the construction of MatsubaraFunctions
 """
     struct MatsubaraGrid
 
@@ -76,7 +76,6 @@ end
 
 
 
-# getter functions
 """
     function temperature(
         grid :: MatsubaraGrid
@@ -134,7 +133,7 @@ end
 
 Checks if w is contained in grid
 """
-function is_inbounds(
+@inline function is_inbounds(
     w    :: MatsubaraFrequency,
     grid :: MatsubaraGrid
     )    :: Bool

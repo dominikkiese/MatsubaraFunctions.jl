@@ -148,7 +148,7 @@ end
         val :: Qp
         )   :: Nothing where {GD, SD, DD, Q <: Number, Qp <: Number}
 
-Inplace multiplication of MatsubaraFunction with scalar (f1 *= val)
+Inplace multiplication of MatsubaraFunction with scalar (f *= val)
 """
 function mult!(
     f   :: MatsubaraFunction{GD, SD, DD, Q},
@@ -204,4 +204,16 @@ function set!(
     f1.data .= f2.data
 
     return nothing
+end
+
+
+
+# value comparison
+function Base.:(==)(    
+    f1 :: MatsubaraFunction{GD, SD, DD, Q},
+    f2 :: MatsubaraFunction{GD, SD, DD, Q}
+    )  :: Bool where {GD, SD, DD, Q <: Number}
+
+    check_shape_grid!(f1, f2) 
+    return f1.data ≈ f2.data 
 end

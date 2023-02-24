@@ -1,3 +1,12 @@
+"""
+    function save_matsubara_grid!(
+        h :: HDF5.File,
+        l :: String,
+        g :: MatsubaraGrid
+        ) :: Nothing
+
+Save MatsubaraGrid g with label l to file h
+"""
 function save_matsubara_grid!(
     h :: HDF5.File,
     l :: String,
@@ -20,6 +29,14 @@ function save_matsubara_grid!(
     return nothing 
 end 
 
+"""
+    function load_matsubara_grid(
+        h :: HDF5.File,
+        l :: String
+        ) :: MatsubaraGrid
+
+Load MatsubaraGrid with label l from file h
+"""
 function load_matsubara_grid(
     h :: HDF5.File,
     l :: String
@@ -40,6 +57,15 @@ function load_matsubara_grid(
     return MatsubaraGrid(T, data, Symbol(type))
 end
 
+"""
+    function save_matsubara_function!(
+        h :: HDF5.File,
+        l :: String,
+        f :: MatsubaraFunction{Dg, Ds, Dt, Q}
+        ) :: Nothing where {Dg, Ds, Dt, Q <: Number} 
+
+Save MatsubaraFunction f with label l to file h   
+"""
 function save_matsubara_function!(
     h :: HDF5.File,
     l :: String,
@@ -62,6 +88,14 @@ function save_matsubara_function!(
     return nothing 
 end
 
+"""
+    function load_matsubara_function(
+        h :: HDF5.File,
+        l :: String
+        ) :: MatsubaraFunction
+
+Load MatsubaraFunction with label l from file h
+"""
 function load_matsubara_function(
     h :: HDF5.File,
     l :: String

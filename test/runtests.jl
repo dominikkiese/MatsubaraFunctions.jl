@@ -235,7 +235,7 @@ end
     end 
 
     SG(f2)
-    @test f2.data ≈ f1.data
+    @test f2 == f1
 
     # symmetrize f3 and compare to f1 using MatsubaraInitFunction
     function init(
@@ -248,5 +248,5 @@ end
 
     InitFunc = MatsubaraInitFunction{1, 1, ComplexF64}(init)
     SG(f3, InitFunc)
-    @test f3.data ≈ f1.data
+    @test f3 == f1
 end

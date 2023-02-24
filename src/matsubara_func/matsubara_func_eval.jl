@@ -88,6 +88,20 @@ end
 
 
 
+# wrappers for boundary conditions 
+struct BC{IP, OP <: Number}
+    f :: FunctionWrappers.FunctionWrapper{OP, Tuple{IP}}
+end 
+
+function (bc :: BC{IP, OP})(
+    x :: IP
+    ) :: OP where {IP, OP <: Number}
+
+    return bc.f(x)
+end
+
+
+
 # call to MatsubaraFunction with MatsubaraFrequency
 # Note: in contrast to the [] operator used for indexing with MatsubaraFrequency, 
 #       () has well-defined behavior for out of bounds access (constant bc or extrapolation)
@@ -103,7 +117,8 @@ end
         if GD == 1 && extrp 
             return extrapolate(f, value(w[1]), x...)
         else 
-            return bc(w) 
+            bc_t = BC{NTuple{GD, MatsubaraFrequency}, Q}(bc)
+            return bc_t(w) 
         end 
     end
 
@@ -174,7 +189,8 @@ end
         if GD == 1 && extrp 
             return extrapolate(f, w[1], x...)
         else 
-            return bc(w)
+            bc_t = BC{NTuple{GD, Float64}, Q}(bc)
+            return bc_t(w)
         end 
     end 
 

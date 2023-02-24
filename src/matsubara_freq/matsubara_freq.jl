@@ -1,4 +1,3 @@
-# define particle types for dispatch
 """
     abstract type AbstractParticle
 
@@ -20,8 +19,8 @@ Bosonic particle type, used for MatsubaraFrequency and MatsubaraGrid constructor
 """
 struct Boson <: AbstractParticle end
 
-# Note: we do not allow MatsubaraFrequency to be dispatched on the particle type 
-#       to allow for mixed grids in the construction of MatsubaraFunctions
+# we do not allow MatsubaraFrequency to be dispatched on the particle type 
+# to allow for mixed grids in the construction of MatsubaraFunctions
 """
     struct MatsubaraFrequency
 
@@ -86,7 +85,6 @@ end
 
 
 
-# getter functions
 """
     function temperature(
         w :: MatsubaraFrequency

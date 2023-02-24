@@ -23,8 +23,7 @@ struct MatsubaraOperation
     # convenience constructor for identity 
     MatsubaraOperation() :: MatsubaraOperation = MatsubaraOperation(false, false)
 end
-
-# getter functions 
+ 
 """
     sgn(op :: MatsubaraOperation) :: Bool
 
@@ -65,7 +64,7 @@ end
     struct MatsubaraSymmetry{GD, SD}
 
 MatsubaraSymmetry type with fields:
-* `f :: FunctionWrappers.FunctionWrapper{Tuple{NTuple{GD, MatsubaraFrequency}, NTuple{SD, Int64}, MatsubaraOperation}, Tuple{NTuple{GD, MatsubaraFrequency}, NTuple{SD, Int64}}}` 
+* `f :: FunctionWrappers.FunctionWrapper{Tuple{NTuple{GD, MatsubaraFrequency}, NTuple{SD, Int64}, MatsubaraOperation}, Tuple{NTuple{GD, MatsubaraFrequency}, NTuple{SD, Int64}}}` :
 MatsubaraSymmetry takes grid coordinates and tensor indices as input and returns a new set of coordinates and indices together with a MatsubaraOperation
 """
 struct MatsubaraSymmetry{GD, SD}
@@ -169,9 +168,9 @@ function init(
 end 
 
 InitFunc = MatsubaraInitFunction{1, 1, ComplexF64}(init)
-h = MatsubaraFunction(g, 1)
+h        = MatsubaraFunction(g, 1)
 SG(h, InitFunc)
-@assert h.data ≈ f.data
+@assert h == f
 ```
 """
 struct MatsubaraSymmetryGroup{GD, SD}

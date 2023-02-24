@@ -3,6 +3,14 @@ ENV["JULIA_EXCLUSIVE"]   = "0"
 ENV["UCX_ERROR_SIGNALS"] = "SIGILL,SIGBUS,SIGFPE"
 
 # mpi command for simple loop parallelization (main is busy) 
+"""
+    function mpi_split(
+        r :: UnitRange{Int64}
+        ) :: UnitRange{Int64}
+
+Splits UnitRange evenly among available MPI ranks (including main). 
+Can, for example, be used to parallelize loops.
+"""
 function mpi_split(
     r :: UnitRange{Int64}
     ) :: UnitRange{Int64}
@@ -39,6 +47,13 @@ function mpi_split(
 end
 
 # mpi command for simple inplace reduction 
+"""
+    function mpi_allreduce!(
+        f :: MatsubaraFunction{GD, SD, DD, Q}
+        ) :: Nothing where {GD, SD, DD, Q <: Number}
+
+Inplace MPI reduction (+) for MatsubaraFunction
+"""
 function mpi_allreduce!(
     f :: MatsubaraFunction{GD, SD, DD, Q}
     ) :: Nothing where {GD, SD, DD, Q <: Number}
@@ -49,9 +64,21 @@ function mpi_allreduce!(
 end
 
 # mpi command to check if root 
+"""
+    mpi_ismain() :: Bool
+
+Returns true for MPI rank 0
+"""
 mpi_ismain() :: Bool = MPI.Comm_rank(MPI.COMM_WORLD) == 0
 
 # mpi command to print from main 
+"""
+    function mpi_println(
+        s :: String
+        ) :: Nothing
+
+Print string s on MPI rank 0
+"""
 function mpi_println(
     s :: String
     ) :: Nothing
@@ -65,6 +92,11 @@ function mpi_println(
 end
 
 # mpi command to print available resources 
+"""
+    mpi_info() :: Nothing
+
+Print information about available resources
+"""
 function mpi_info() :: Nothing
     mpi_println("NOTE: Running in MPI environment with $(MPI.Comm_size(MPI.COMM_WORLD)) rank(s) and $(Threads.nthreads()) thread(s) per rank")
     return nothing 

@@ -174,7 +174,6 @@ end
 
 
 
-# getter functions 
 """
     function grids_shape(
         f :: MatsubaraFunction{GD, SD, DD, Q}
@@ -280,15 +279,15 @@ function absmax(
 end
 
 """
-    function argmax(
+    function Base.:argmax(
         f :: MatsubaraFunction{GD, SD, DD, Q}
-        ) :: Float64 where {GD, SD, DD, Q <: Number}
+        ) :: CartesianIndex{DD} where {GD, SD, DD, Q <: Number}
 
 Returns position of largest element of f.data (in absolute terms)
 """
-function argmax(
+function Base.:argmax(
     f :: MatsubaraFunction{GD, SD, DD, Q}
-    ) :: Float64 where {GD, SD, DD, Q <: Number}
+    ) :: CartesianIndex{DD} where {GD, SD, DD, Q <: Number}
 
     return argmax(abs.(f.data))
 end

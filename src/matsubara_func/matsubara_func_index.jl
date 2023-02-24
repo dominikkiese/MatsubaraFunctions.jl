@@ -29,7 +29,6 @@ end
 
 
 
-# LinearIndex from MatsubaraFrequency and sites
 """
     function LinearIndex(
         f :: MatsubaraFunction{GD, SD, DD, Q},
@@ -51,7 +50,6 @@ function LinearIndex(
     return LinearIndices(data_shape(f))[idxs..., x...]
 end
 
-# LinearIndex from CartesianIndex
 """
     function LinearIndex(
         f    :: MatsubaraFunction{GD, SD, DD, Q},
@@ -69,7 +67,6 @@ function LinearIndex(
     return LinearIndices(data_shape(f))[cidx]
 end
 
-# LinearIndex from Vararg
 """
     function LinearIndex(
         f :: MatsubaraFunction{GD, SD, DD, Q},
@@ -89,7 +86,6 @@ end
 
 
 
-# Conversion from CartesianIndex back to MatsubaraFrequency + sites
 """
     function to_Matsubara(
         f    :: MatsubaraFunction{GD, SD, DD, Q},
@@ -107,7 +103,6 @@ function to_Matsubara(
     return ntuple(i -> f.grids[i][cidx[i]], GD), ntuple(i -> cidx[GD + i], SD)
 end
 
-# Conversion from LinearIndex back to MatsubaraFrequency + sites
 """
     function to_Matsubara(
         f   :: MatsubaraFunction{GD, SD, DD, Q},
