@@ -225,7 +225,7 @@ function (SG :: MatsubaraSymmetryGroup{GD, SD})(
     f :: MatsubaraFunction{GD, SD, DD, Q}
     ) :: Nothing where {GD, SD, DD, Q <: Number}
 
-    Threads.@threads for class in SG.classes
+    for class in SG.classes
         ref = f[class[1][1]]
 
         for idx in 2 : length(class)
@@ -272,18 +272,18 @@ function (SG :: MatsubaraSymmetryGroup{GD, SD})(
     )            :: Nothing where {GD, SD, DD, Q <: Number}
 
     if mpi_parallel 
-        for clidx in 1 : mpi_split(1 : length(SG.classes))
+        for clidx in mpi_split(1 : length(SG.classes))
             w, x                       = to_Matsubara(f, SG.classes[clidx][1][1])
             ref                        = I(w, x)
             f[SG.classes[clidx][1][1]] = ref
     
-            Threads.@threads for idx in 2 : length(SG.classes[clidx])
+            for idx in 2 : length(SG.classes[clidx])
                 idx, op = SG.classes[clidx][idx]
                 f[idx]  = op(ref)
             end 
         end 
     else
-        Threads.@threads for class in SG.classes
+        for class in SG.classes
             w, x           = to_Matsubara(f, class[1][1])
             ref            = I(w, x)
             f[class[1][1]] = ref
