@@ -104,7 +104,9 @@ end
 
 # call to MatsubaraFunction with MatsubaraFrequency
 # Note: in contrast to the [] operator used for indexing with MatsubaraFrequency, 
-#       () has well-defined behavior for out of bounds access (constant bc or extrapolation)
+#       () has well-defined behavior for out of bounds access (bc or extrapolation)
+# Note: if extrp = true, we use polynomial extrapolation for 1D grids and 
+#       constant extrapolation for higher dimensional grids
 @inline function (f :: MatsubaraFunction{GD, SD, DD, Q})(
     w     :: NTuple{GD, MatsubaraFrequency},
     x     :: Vararg{Int64, SD} 
@@ -114,8 +116,13 @@ end
     )     :: Q where{GD, SD, DD, Q <: Number}
 
     if any(ntuple(i -> !is_inbounds(w[i], f.grids[i]), GD))
-        if GD == 1 && extrp 
-            return extrapolate(f, value(w[1]), x...)
+        if extrp 
+            if GD == 1
+                return extrapolate(f, value(w[1]), x...)
+            else 
+                idxs = ntuple(i -> max(1, min(grid_index(w[i], f.grids[i]), length(f.grids[i]))), GD)
+                return f[idxs..., x ...]
+            end 
         else 
             bc_t = BC{NTuple{GD, MatsubaraFrequency}, Q}(bc)
             return bc_t(w) 
@@ -177,6 +184,8 @@ struct Param
 end
 
 # call to MatsubaraFunction with Float64 (multilinear interpolation)
+# Note: if extrp = true, we use polynomial extrapolation for 1D grids and 
+#       constant extrapolation for higher dimensional grids
 @inline function (f :: MatsubaraFunction{GD, SD, DD, Q})(
     w     :: NTuple{GD, Float64},
     x     :: Vararg{Int64, SD} 
@@ -186,8 +195,21 @@ end
     )     :: Q where{GD, SD, DD, Q <: Number}
 
     if any(ntuple(i -> !is_inbounds(w[i], f.grids[i]), GD))
-        if GD == 1 && extrp 
-            return extrapolate(f, w[1], x...)
+        if extrp 
+            if GD == 1
+                return extrapolate(f, w[1], x...)
+            else 
+                p   = ntuple(i -> Param(max(value(f.grids[i][1]), min(w[i], value(f.grids[i][end]))), f.grids[i]), GD)
+                val = 0.0
+
+                for cidx in CartesianIndices(ntuple(i -> 2, GD))
+                    wgts  = ntuple(i -> p[i].wgts[cidx[i]], GD)
+                    idxs  = ntuple(i -> p[i].idxs[cidx[i]], GD)
+                    val  += prod(wgts) * f[idxs..., x...]
+                end
+
+                return val
+            end
         else 
             bc_t = BC{NTuple{GD, Float64}, Q}(bc)
             return bc_t(w)
