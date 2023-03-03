@@ -120,8 +120,7 @@ end
             if GD == 1
                 return extrapolate(f, value(w[1]), x...)
             else 
-                idxs = ntuple(i -> max(1, min(grid_index(w[i], f.grids[i]), length(f.grids[i]))), GD)
-                return f[idxs..., x ...]
+                return f[CartesianIndex_extrp(f, w, x...)]
             end 
         else 
             bc_t = BC{NTuple{GD, MatsubaraFrequency}, Q}(bc)
@@ -129,8 +128,7 @@ end
         end 
     end
 
-    idxs = ntuple(i -> grid_index(w[i], f.grids[i]), GD)
-    return f[idxs..., x ...]
+    return f[ntuple(i -> grid_index(w[i], f.grids[i]), GD)..., x ...]
 end
 
 function (f :: MatsubaraFunction{1, SD, DD, Q})(

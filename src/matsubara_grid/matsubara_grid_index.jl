@@ -42,6 +42,16 @@ function grid_index(
     return index(w) - index(grid[1]) + 1
 end
 
+# safer method for converting MatsubaraFrequency to grid index
+# (i.e. frequencies which are out of bounds will be reset to mesh boundaries)
+function grid_index_extrp(
+    w    :: MatsubaraFrequency,
+    grid :: MatsubaraGrid
+    )    :: Int64 
+
+    return max(1, min(grid_index(w, grid), length(grid)))
+end
+
 # make MatsubaraGrid callable with MatsubaraFrequency
 # returns index to data array corresponding to this frequency if in grid
 @inline function (f :: MatsubaraGrid)(

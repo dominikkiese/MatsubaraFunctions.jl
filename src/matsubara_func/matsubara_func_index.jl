@@ -13,7 +13,20 @@ function Base.CartesianIndex(
     x :: Vararg{Int64, SD} 
     ) :: CartesianIndex{DD} where {GD, SD, DD, Q <: Number}
 
+    # calling grid with frequency performs inbounds check
     idxs = ntuple(i -> f.grids[i](w[i]), GD)
+    return CartesianIndex(idxs..., x...)
+end
+
+# extrapolated CartesianIndex from MatsubaraFrequency and sites
+# (i.e. frequencies which are out of bounds will be reset to mesh boundaries)
+function CartesianIndex_extrp(
+    f :: MatsubaraFunction{GD, SD, DD, Q},
+    w :: NTuple{GD, MatsubaraFrequency},
+    x :: Vararg{Int64, SD} 
+    ) :: CartesianIndex{DD} where {GD, SD, DD, Q <: Number}
+
+    idxs = ntuple(i -> grid_index_extrp(w[i], f.grids[i]), GD)
     return CartesianIndex(idxs..., x...)
 end
 
@@ -44,6 +57,7 @@ function LinearIndex(
     x :: Vararg{Int64, SD} 
     ) :: Int64 where {GD, SD, DD, Q <: Number}
 
+    # calling grid with frequency performs inbounds check
     idxs = ntuple(i -> f.grids[i](w[i]), GD)
 
     # bounds check for x performed by Base
@@ -129,8 +143,8 @@ function Base.:getindex(
     x :: Vararg{Int64, SD} 
     ) :: Q where {GD, SD, DD, Q <: Number}
 
-    # bounds check perfomed by Base
-    return f.data[CartesianIndex(f, w, x...)]
+    # bounds check already performed by CartesianIndex
+    return @inbounds f.data[CartesianIndex(f, w, x...)]
 end
 
 function Base.:getindex(
@@ -139,8 +153,8 @@ function Base.:getindex(
     x :: Vararg{Int64, SD} 
     ) :: Q where {SD, DD, Q <: Number}
 
-    # bounds check perfomed by Base
-    return f.data[CartesianIndex(f, (w,), x...)]
+    # bounds check already performed by CartesianIndex
+    return @inbounds f.data[CartesianIndex(f, (w,), x...)]
 end
 
 # getindex from CartesianIndex
@@ -183,8 +197,8 @@ function Base.:setindex!(
     x   :: Vararg{Int64, SD} 
     )   :: Nothing where {GD, SD, DD, Q <: Number, Qp <: Number}
 
-    # bounds check performed by Base
-    f.data[CartesianIndex(f, w, x...)] = val
+    # bounds check already performed by CartesianIndex
+    @inbounds f.data[CartesianIndex(f, w, x...)] = val
 
     return nothing
 end
@@ -196,8 +210,8 @@ function Base.:setindex!(
     x   :: Vararg{Int64, SD} 
     )   :: Nothing where {SD, DD, Q <: Number, Qp <: Number}
 
-    # bounds check performed by Base
-    f.data[CartesianIndex(f, (w,), x...)] = val
+    # bounds check already performed by CartesianIndex
+    @inbounds f.data[CartesianIndex(f, (w,), x...)] = val
 
     return nothing
 end
