@@ -2,6 +2,15 @@
 ENV["JULIA_EXCLUSIVE"]   = "0"
 ENV["UCX_ERROR_SIGNALS"] = "SIGILL,SIGBUS,SIGFPE"
 
+# mpi command to obtain the communicator 
+mpi_comm() :: MPI.Comm = MPI.COMM_WORLD
+
+# mpi command to obtain current rank
+mpi_rank() :: Int64 = MPI.Comm_rank(mpi_comm())
+
+# mpi command to obtain current communicator size
+mpi_size() :: Int64 = MPI.Comm_size(mpi_comm())
+
 # mpi command for simple loop parallelization (main is busy) 
 """
     function mpi_split(
@@ -15,20 +24,15 @@ function mpi_split(
     r :: UnitRange{Int64}
     ) :: UnitRange{Int64}
 
-    comm     = MPI.COMM_WORLD 
-    mpi_size = MPI.Comm_size(comm)
-    mpi_rank = MPI.Comm_rank(comm)
-    r_length = length(r)
-
     # if there is only one rank return the full range 
-    if mpi_size == 1 
+    if mpi_size() == 1 
         return r
 
     # if there are more ranks than possible jobs, assign one job per 
     # available rank and leave the rest idle
-    elseif mpi_size >= r_length
-        if mpi_rank + 1 <= r_length
-            return r[mpi_rank + 1 : mpi_rank + 1]
+    elseif mpi_size() >= length(r)
+        if mpi_rank() + 1 <= length(r)
+            return r[mpi_rank() + 1 : mpi_rank() + 1]
         else 
             return 1 : 0 
         end 
@@ -36,12 +40,12 @@ function mpi_split(
     # if there are more jobs than ranks, split the jobs as evenly as 
     # possible among the ranks 
     else 
-        div, rem = divrem(r_length, mpi_size)
+        div, rem = divrem(length(r), mpi_size())
         
-        if mpi_rank + 1 <= rem 
-            return r[mpi_rank * (div + 1) + 1 : mpi_rank * (div + 1) + (div + 1)]
+        if mpi_rank() + 1 <= rem 
+            return r[mpi_rank() * (div + 1) + 1 : mpi_rank() * (div + 1) + (div + 1)]
         else
-            return r[end - (mpi_rank + 1 - rem) * div + 1 : end - (mpi_rank + 1 - rem) * div + div]
+            return r[end - (mpi_rank() + 1 - rem) * div + 1 : end - (mpi_rank() + 1 - rem) * div + div]
         end
     end
 end
@@ -58,7 +62,7 @@ function mpi_allreduce!(
     f :: MatsubaraFunction{GD, SD, DD, Q}
     ) :: Nothing where {GD, SD, DD, Q <: Number}
 
-    MPI.Allreduce!(f.data, +, MPI.COMM_WORLD)
+    MPI.Allreduce!(f.data, +, mpi_comm())
 
     return nothing
 end
@@ -69,7 +73,7 @@ end
 
 Returns true for MPI rank 0
 """
-mpi_ismain() :: Bool = MPI.Comm_rank(MPI.COMM_WORLD) == 0
+mpi_ismain() :: Bool = mpi_rank() == 0
 
 # mpi command to print from main 
 """
@@ -98,6 +102,6 @@ end
 Print information about available resources
 """
 function mpi_info() :: Nothing
-    mpi_println("NOTE: Running in MPI environment with $(MPI.Comm_size(MPI.COMM_WORLD)) rank(s) and $(Threads.nthreads()) thread(s) per rank")
+    mpi_println("NOTE: Running in MPI environment with $(mpi_size()) rank(s) and $(Threads.nthreads()) thread(s) per rank")
     return nothing 
 end
