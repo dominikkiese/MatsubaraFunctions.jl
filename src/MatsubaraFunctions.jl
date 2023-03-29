@@ -66,5 +66,7 @@ module MatsubaraFunctions
         save_matsubara_grid!, 
         load_matsubara_grid, 
         save_matsubara_function!, 
-        load_matsubara_function
+        load_matsubara_function,
+        save_matsubara_symmetry_group!,
+        load_matsubara_symmetry_group
 end
