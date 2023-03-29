@@ -133,17 +133,19 @@ function save_matsubara_symmetry_group!(
     # add metadata 
     attributes(grp)["num_classes"] = length(SG.classes)
 
-    for cl_idx in eachindex(SG.classes)
-        attributes(grp)["num_elements_class_$(cl_idx)"] = length(SG.classes[cl_idx])
-    end
-
     # add data 
     for cl_idx in eachindex(SG.classes)
-        for e_idx in eachindex(SG.classes[cl_idx])
-            grp["class_$(cl_idx)/element_$(e_idx)/idx"]    = first(SG.classes[cl_idx][e_idx])
-            grp["class_$(cl_idx)/element_$(e_idx)/op/sgn"] = last(SG.classes[cl_idx][e_idx]).sgn
-            grp["class_$(cl_idx)/element_$(e_idx)/op/con"] = last(SG.classes[cl_idx][e_idx]).con
-        end 
+        # convert class to matrix for fast write to disk
+        class = SG.classes[cl_idx]
+        mat   = Matrix{Int64}(undef, 3, length(class))
+
+        for e in eachindex(class)
+            mat[1, e] = class[e][1]
+            mat[2, e] = class[e][2].sgn 
+            mat[3, e] = class[e][2].con 
+        end
+
+        grp["class_$(cl_idx)"] = mat 
     end 
 
     return nothing 
@@ -163,23 +165,14 @@ function load_matsubara_symmetry_group(
     ) :: MatsubaraSymmetryGroup
 
     # read the metadata 
-    num_classes  = read_attribute(h[l], "num_classes")
-    num_elements = Int64[read_attribute(h[l], "num_elements_class_$(cl_idx)") for cl_idx in 1 : num_classes]
+    num_classes = read_attribute(h[l], "num_classes")
 
     # read the data 
     classes = Vector{Vector{Tuple{Int64, MatsubaraOperation}}}(undef, num_classes)
 
     for cl_idx in eachindex(classes)
-        class = Vector{Tuple{Int64, MatsubaraOperation}}(undef, num_elements[cl_idx])
-
-        for e_idx in eachindex(class)
-            idx          = read(h, l * "/class_$(cl_idx)/element_$(e_idx)/idx")
-            sgn          = read(h, l * "/class_$(cl_idx)/element_$(e_idx)/op/sgn")
-            con          = read(h, l * "/class_$(cl_idx)/element_$(e_idx)/op/con")
-            class[e_idx] = idx, MatsubaraOperation(sgn, con)
-        end 
-
-        classes[cl_idx] = class
+        mat             = read(h, l * "/class_$(cl_idx)")
+        classes[cl_idx] = Tuple{Int64, MatsubaraOperation}[(mat[1, i], MatsubaraOperation(Bool(mat[2, i]), Bool(mat[3, i]))) for i in 1 : size(mat, 2)]
     end 
 
     return MatsubaraSymmetryGroup(classes)
