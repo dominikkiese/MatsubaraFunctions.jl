@@ -118,20 +118,18 @@ function reduce(
             end 
 
         # if index is invalid, increment path length and keep going 
-        elseif path_length < 10 
+        elseif path_length < 5
             reduce(wp, xp, new_op, f, checked, symmetries, class, path_length + 1)
         end 
     end 
 end
 
-# a symmetry group is composed of a list of defining symmetries as well as 
-# a list containing collections of symmetry equivalent elements
+# here, a symmetry group is a list of collections of symmetry equivalent elements
 """
-    MatsubaraSymmetryGroup{GD, SD}
+    MatsubaraSymmetryGroup
 
 MatsubaraSymmetryGroup type with fields:
-* `symmetries :: Vector{MatsubaraSymmetry{GD, SD}}`                : list of symmetry operations
-* `classes    :: Vector{Vector{Tuple{Int64, MatsubaraOperation}}}` : list of symmetry classes
+* `classes :: Vector{Vector{Tuple{Int64, MatsubaraOperation}}}` : list of collections of symmetry equivalent elements
 
 Examples:
 ```julia
@@ -173,24 +171,22 @@ SG(h, InitFunc)
 @assert h == f
 ```
 """
-struct MatsubaraSymmetryGroup{GD, SD}
-    symmetries :: Vector{MatsubaraSymmetry{GD, SD}}
-    classes    :: Vector{Vector{Tuple{Int64, MatsubaraOperation}}}
+struct MatsubaraSymmetryGroup
+    classes :: Vector{Vector{Tuple{Int64, MatsubaraOperation}}}
 
     # basic constructor 
     function MatsubaraSymmetryGroup(
-        symmetries :: Vector{MatsubaraSymmetry{GD, SD}},
-        classes    :: Vector{Vector{Tuple{Int64, MatsubaraOperation}}}
-        )          :: MatsubaraSymmetryGroup{GD, SD} where {GD, SD}
+        classes :: Vector{Vector{Tuple{Int64, MatsubaraOperation}}}
+        )       :: MatsubaraSymmetryGroup
 
-        return new{GD, SD}(symmetries, classes)
+        return new(classes)
     end 
 
     # convenience constructor from MatsubaraFunction and list of symmetries 
     function MatsubaraSymmetryGroup(
         symmetries :: Vector{MatsubaraSymmetry{GD, SD}},
         f          :: MatsubaraFunction{GD, SD, DD, Q}
-        )          :: MatsubaraSymmetryGroup{GD, SD} where {GD, SD, DD, Q <: Number}
+        )          :: MatsubaraSymmetryGroup where {GD, SD, DD, Q <: Number}
 
         # array to check whether index has been sorted into a symmetry class already 
         checked  = Array{Bool, DD}(undef, data_shape(f))
@@ -215,13 +211,13 @@ struct MatsubaraSymmetryGroup{GD, SD}
             end 
         end
 
-        return MatsubaraSymmetryGroup(symmetries, classes)
+        return MatsubaraSymmetryGroup(classes)
     end 
 end
 
 # make MatsubaraSymmetryGroup callable with MatsubaraFunction. This will iterate 
 # over all symmetry classes and symmetrize the data array of the MatsubaraFunction
-function (SG :: MatsubaraSymmetryGroup{GD, SD})(
+function (SG :: MatsubaraSymmetryGroup)(
     f :: MatsubaraFunction{GD, SD, DD, Q}
     ) :: Nothing where {GD, SD, DD, Q <: Number}
 
@@ -264,7 +260,7 @@ end
 # make MatsubaraSymmetryGroup callable with MatsubaraFunction and MatsubaraInitFunction. This will iterate 
 # over all symmetry classes and symmetrize the data array of the MatsubaraFunction starting from an 
 # evaluation of the MatsubaraInitFunction
-function (SG :: MatsubaraSymmetryGroup{GD, SD})(
+function (SG :: MatsubaraSymmetryGroup)(
     f            :: MatsubaraFunction{GD, SD, DD, Q},
     I            :: MatsubaraInitFunction{GD, SD, Q}
     ;
@@ -273,27 +269,17 @@ function (SG :: MatsubaraSymmetryGroup{GD, SD})(
 
     if mpi_parallel 
         for clidx in mpi_split(1 : length(SG.classes))
-            w, x                       = to_Matsubara(f, SG.classes[clidx][1][1])
-            ref                        = I(w, x)
-            f[SG.classes[clidx][1][1]] = ref
-    
-            for idx in 2 : length(SG.classes[clidx])
-                idx, op = SG.classes[clidx][idx]
-                f[idx]  = op(ref)
-            end 
-        end 
+            lidx    = SG.classes[clidx][1][1]
+            f[lidx] = I(to_Matsubara(f, lidx)...)
+        end
     else
         for class in SG.classes
-            w, x           = to_Matsubara(f, class[1][1])
-            ref            = I(w, x)
-            f[class[1][1]] = ref
-
-            for idx in 2 : length(class)
-                idx, op = class[idx]
-                f[idx]  = op(ref)
-            end 
+            lidx    = class[1][1]
+            f[lidx] = I(to_Matsubara(f, lidx)...)
         end 
     end
+
+    SG(f)
 
     return nothing 
 end

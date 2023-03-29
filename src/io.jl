@@ -111,3 +111,76 @@ function load_matsubara_function(
     
     return MatsubaraFunction((grids...,), (shape...,), data)
 end
+
+"""
+function save_matsubara_symmetry_group!(
+    h  :: HDF5.File,
+    l  :: String,
+    SG :: MatsubaraSymmetryGroup
+    )  :: Nothing
+
+    Save MatsubaraSymmetryGroup SG with label l to file h 
+"""
+function save_matsubara_symmetry_group!(
+    h  :: HDF5.File,
+    l  :: String,
+    SG :: MatsubaraSymmetryGroup
+    )  :: Nothing
+
+    # create new group 
+    grp = create_group(h, l)
+
+    # add metadata 
+    attributes(grp)["num_classes"] = length(SG.classes)
+
+    for cl_idx in eachindex(SG.classes)
+        attributes(grp)["num_elements_class_$(cl_idx)"] = length(SG.classes[cl_idx])
+    end
+
+    # add data 
+    for cl_idx in eachindex(SG.classes)
+        for e_idx in eachindex(SG.classes[cl_idx])
+            grp["class_$(cl_idx)/element_$(e_idx)/idx"]    = first(SG.classes[cl_idx][e_idx])
+            grp["class_$(cl_idx)/element_$(e_idx)/op/sgn"] = last(SG.classes[cl_idx][e_idx]).sgn
+            grp["class_$(cl_idx)/element_$(e_idx)/op/con"] = last(SG.classes[cl_idx][e_idx]).con
+        end 
+    end 
+
+    return nothing 
+end
+
+"""
+function load_matsubara_symmetry_group(
+    h :: HDF5.File,
+    l :: String
+    ) :: MatsubaraSymmetryGroup
+
+Load MatsubaraSymmetryGroup with label l from file h
+"""
+function load_matsubara_symmetry_group(
+    h :: HDF5.File,
+    l :: String
+    ) :: MatsubaraSymmetryGroup
+
+    # read the metadata 
+    num_classes  = read_attribute(h[l], "num_classes")
+    num_elements = Int64[read_attribute(h[l], "num_elements_class_$(cl_idx)") for cl_idx in 1 : num_classes]
+
+    # read the data 
+    classes = Vector{Vector{Tuple{Int64, MatsubaraOperation}}}(undef, num_classes)
+
+    for cl_idx in eachindex(classes)
+        class = Vector{Tuple{Int64, MatsubaraOperation}}(undef, num_elements[cl_idx])
+
+        for e_idx in eachindex(class)
+            idx          = read(h, l * "/class_$(cl_idx)/element_$(e_idx)/idx")
+            sgn          = read(h, l * "/class_$(cl_idx)/element_$(e_idx)/op/sgn")
+            con          = read(h, l * "/class_$(cl_idx)/element_$(e_idx)/op/con")
+            class[e_idx] = idx, MatsubaraOperation(sgn, con)
+        end 
+
+        classes[cl_idx] = class
+    end 
+
+    return MatsubaraSymmetryGroup(classes)
+end
