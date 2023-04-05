@@ -43,6 +43,7 @@ module MatsubaraFunctions
         mpi_ismain,
         mpi_println,
         mpi_info,
+        mpi_barrier,
         add,
         add!, 
         subtract,

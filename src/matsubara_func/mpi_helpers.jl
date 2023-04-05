@@ -105,3 +105,14 @@ function mpi_info() :: Nothing
     mpi_println("NOTE: Running in MPI environment with $(mpi_size()) rank(s) and $(Threads.nthreads()) thread(s) per rank")
     return nothing 
 end
+
+# mpi command to place synchronization barrier 
+"""
+    mpi_barrier() :: Nothing 
+
+Place synchronization barrier for MPI ranks
+"""
+function mpi_barrier() :: Nothing 
+    MPI.Barrier(mpi_comm())
+    return nothing 
+end
