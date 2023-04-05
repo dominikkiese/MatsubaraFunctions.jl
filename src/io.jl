@@ -134,19 +134,24 @@ function save_matsubara_symmetry_group!(
     attributes(grp)["num_classes"] = length(SG.classes)
 
     # add data 
-    for cl_idx in eachindex(SG.classes)
-        # convert class to matrix for fast write to disk
-        class = SG.classes[cl_idx]
-        mat   = Matrix{Int64}(undef, 3, length(class))
+    num_in_classes        = Int64[length(class) for class in SG.classes]
+    grp["num_in_classes"] = num_in_classes
 
-        for e in eachindex(class)
-            mat[1, e] = class[e][1]
-            mat[2, e] = class[e][2].sgn 
-            mat[3, e] = class[e][2].con 
+    # convert classes to big matrix for fast write to disk
+    mat    = Matrix{Int64}(undef, 3, sum(num_in_classes))
+    offset = 0
+
+    for cl_idx in eachindex(SG.classes)
+        for e in eachindex(SG.classes[cl_idx])
+            mat[1, offset + e] = SG.classes[cl_idx][e][1]
+            mat[2, offset + e] = SG.classes[cl_idx][e][2].sgn 
+            mat[3, offset + e] = SG.classes[cl_idx][e][2].con 
         end
 
-        grp["class_$(cl_idx)"] = mat 
-    end 
+        offset += num_in_classes[cl_idx]
+    end
+
+    grp["classes"] = mat 
 
     return nothing 
 end
@@ -168,11 +173,19 @@ function load_matsubara_symmetry_group(
     num_classes = read_attribute(h[l], "num_classes")
 
     # read the data 
-    classes = Vector{Vector{Tuple{Int64, MatsubaraOperation}}}(undef, num_classes)
+    num_in_classes = read(h, l * "/num_in_classes")
+    mat            = read(h, l * "/classes")
+    classes        = Vector{Vector{Tuple{Int64, MatsubaraOperation}}}(undef, num_classes)
+    offset         = 0 
 
     for cl_idx in eachindex(classes)
-        mat             = read(h, l * "/class_$(cl_idx)")
-        classes[cl_idx] = Tuple{Int64, MatsubaraOperation}[(mat[1, i], MatsubaraOperation(Bool(mat[2, i]), Bool(mat[3, i]))) for i in 1 : size(mat, 2)]
+        class = Vector{Tuple{Int64, MatsubaraOperation}}(undef, num_in_classes[cl_idx])
+        
+        for e in eachindex(class)
+            class[e] = mat[1, offset + e], MatsubaraOperation(Bool(mat[2, offset + e]), Bool(mat[3, offset + e]))
+        end
+
+        classes[cl_idx] = class; offset += num_in_classes[cl_idx]
     end 
 
     return MatsubaraSymmetryGroup(classes)

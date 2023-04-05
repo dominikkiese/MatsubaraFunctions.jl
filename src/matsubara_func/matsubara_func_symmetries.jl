@@ -268,10 +268,14 @@ function (SG :: MatsubaraSymmetryGroup)(
     )            :: Nothing where {GD, SD, DD, Q <: Number}
 
     if mpi_parallel 
-        for clidx in mpi_split(1 : length(SG.classes))
+        set!(f, 0.0)
+
+        Threads.@threads for clidx in mpi_split(1 : length(SG.classes))
             lidx    = SG.classes[clidx][1][1]
             f[lidx] = I(to_Matsubara(f, lidx)...)
         end
+
+        mpi_allreduce!(f)
     else
         for class in SG.classes
             lidx    = class[1][1]
