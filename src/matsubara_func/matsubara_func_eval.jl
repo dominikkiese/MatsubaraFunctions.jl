@@ -10,79 +10,82 @@
 # Note: the distance between interpolation nodes is kept constant below T = 1
 """
     function upper_tail_moments(
-        f :: MatsubaraFunction{1, SD, DD, Q},
-        x :: Vararg{Int64, SD} 
-        ) :: SVector{3, Q} where {SD, DD, Q <: Number}
+        f  :: MatsubaraFunction{1, SD, DD, Q},
+        α0 :: Q,
+        x  :: Vararg{Int64, SD} 
+        )  :: Tuple{Q, Q} where {SD, DD, Q <: Number}
 
-Returns high frequency moments for quadratic model using upper grid bound. Note, that 
-the distance between interpolation nodes is kept constant below T = 1.
+Returns high frequency moments for quadratic model using upper grid bound. Here, α0 is the
+asymptotic limit for large positive frequencies. Note, that the distance between interpolation nodes 
+is kept constant below T = 1.
 """
 function upper_tail_moments(
-    f :: MatsubaraFunction{1, SD, DD, Q},
-    x :: Vararg{Int64, SD} 
-    ) :: SVector{3, Q} where {SD, DD, Q <: Number}
+    f  :: MatsubaraFunction{1, SD, DD, Q},
+    α0 :: Q,
+    x  :: Vararg{Int64, SD} 
+    )  :: Tuple{Q, Q} where {SD, DD, Q <: Number}
 
     # compute interpolation nodes
-    dist       = ceil(Int64, 1.0 / min(temperature(f.grids[1]), 1.0))
-    idx1, idx2 = grids_shape(f, 1) - dist, grids_shape(f, 1) - 2 * dist
+    dist = ceil(Int64, 1.0 / min(temperature(f.grids[1]), 1.0))
+    idx  = grids_shape(f, 1) - dist
+    @assert idx > ceil(Int64, 0.75 * grids_shape(f, 1)) "Grid is too small for extrapolation"
 
     # read data
-    ydat = SVector{3, Q}(f.data[end, x...], f.data[idx1, x...], f.data[idx2, x...])
-    xdat = SVector{3, Float64}(1.0 / value(f.grids[1][end]), 1.0 / value(f.grids[1][idx1]), 1.0 / value(f.grids[1][idx2]))
-    
-    # generate Vandermonde matrix 
-    mat = @SMatrix Float64[1.0 xdat[1] xdat[1] * xdat[1];
-                           1.0 xdat[2] xdat[2] * xdat[2];
-                           1.0 xdat[3] xdat[3] * xdat[3]]
-    
-    return inv(mat) * ydat
+    y1, y2     = f.data[end, x...] - α0, f.data[idx, x...] - α0
+    x1, x2     = 1.0 / value(f.grids[1][end]), 1.0 / value(f.grids[1][idx])
+    x1sq, x2sq = x1 * x1, x2 * x2
+    dtinv      = 1.0 / (x1 * x2sq - x2 * x1sq)
+
+    return dtinv * (x2sq * y1 - x1sq * y2), dtinv * (x1 * y2 - x2 * y1)
 end
 
 # compute tail moments in quadratic approximation from lower bound of 1D MatsubaraFunction
 # Note: the distance between interpolation nodes is kept constant below T = 1
 """
     function lower_tail_moments(
-        f :: MatsubaraFunction{1, SD, DD, Q},
-        x :: Vararg{Int64, SD} 
-        ) :: SVector{3, Q} where {SD, DD, Q <: Number}
+        f  :: MatsubaraFunction{1, SD, DD, Q},
+        α0 :: Q,
+        x  :: Vararg{Int64, SD} 
+        )  :: Tuple{Q, Q} where {SD, DD, Q <: Number}
 
-Returns high frequency moments for quadratic model using lower grid bound. Note, that 
-the distance between interpolation nodes is kept constant below T = 1.
+Returns high frequency moments for quadratic model using lower grid bound. Here, α0 is the
+asymptotic limit for large negative frequencies. Note, that the distance between interpolation nodes 
+is kept constant below T = 1.
 """
 function lower_tail_moments(
-    f :: MatsubaraFunction{1, SD, DD, Q},
-    x :: Vararg{Int64, SD} 
-    ) :: SVector{3, Q} where {SD, DD, Q <: Number}
+    f  :: MatsubaraFunction{1, SD, DD, Q},
+    α0 :: Q,
+    x  :: Vararg{Int64, SD} 
+    )  :: Tuple{Q, Q} where {SD, DD, Q <: Number}
 
     # compute interpolation nodes
-    dist       = ceil(Int64, 1.0 / min(temperature(f.grids[1]), 1.0))
-    idx1, idx2 = 1 + dist, 1 + 2 * dist
+    dist = ceil(Int64, 1.0 / min(temperature(f.grids[1]), 1.0))
+    idx  = 1 + dist
+    @assert idx < floor(Int64, 0.25 * grids_shape(f, 1)) "Grid is too small for extrapolation"
 
     # read data
-    ydat = SVector{3, Q}(f.data[1, x...], f.data[idx1, x...], f.data[idx2, x...])
-    xdat = SVector{3, Float64}(1.0 / value(f.grids[1][1]), 1.0 / value(f.grids[1][idx1]), 1.0 / value(f.grids[1][idx2]))
-    
-    # generate Vandermonde matrix 
-    mat = @SMatrix Float64[1.0 xdat[1] xdat[1] * xdat[1];
-                           1.0 xdat[2] xdat[2] * xdat[2];
-                           1.0 xdat[3] xdat[3] * xdat[3]]
-    
-    return inv(mat) * ydat
+    y1, y2     = f.data[1, x...] - α0, f.data[idx, x...] - α0
+    x1, x2     = 1.0 / value(f.grids[1][1]), 1.0 / value(f.grids[1][idx])
+    x1sq, x2sq = x1 * x1, x2 * x2
+    dtinv      = 1.0 / (x1 * x2sq - x2 * x1sq)
+
+    return dtinv * (x2sq * y1 - x1sq * y2), dtinv * (x1 * y2 - x2 * y1)
 end
 
 # extrapolate 1D Matsubara function using tail moments
 function extrapolate(
-    f :: MatsubaraFunction{1, SD, DD, Q},
-    w :: Float64,
-    x :: Vararg{Int64, SD} 
-    ) :: Q where {SD, DD, Q <: Number}
+    f  :: MatsubaraFunction{1, SD, DD, Q},
+    w  :: Float64,
+    α0 :: Q,
+    x  :: Vararg{Int64, SD} 
+    )  :: Q where {SD, DD, Q <: Number}
 
     if sign(w) < 0.0 
-        moments = lower_tail_moments(f, x...)
-        return moments[1] + (moments[2] + moments[3] / w) / w
+        moments = lower_tail_moments(f, α0, x...)
+        return α0 + (moments[1] + moments[2] / w) / w
     else 
-        moments = upper_tail_moments(f, x...)
-        return moments[1] + (moments[2] + moments[3] / w) / w
+        moments = upper_tail_moments(f, α0, x...)
+        return α0 + (moments[1] + moments[2] / w) / w
     end
 end
 
@@ -105,20 +108,21 @@ end
 # call to MatsubaraFunction with MatsubaraFrequency
 # Note: in contrast to the [] operator used for indexing with MatsubaraFrequency, 
 #       () has well-defined behavior for out of bounds access (bc or extrapolation)
-# Note: if extrp = true, we use polynomial extrapolation for 1D grids and 
-#       constant extrapolation for higher dimensional grids
+# Note: if extrp[1] = true, we use polynomial extrapolation for 1D grids and 
+#       constant extrapolation for higher dimensional grids. extrp[2] sets the value
+#       for the asymptotic limit in the 1D case, but it has no effect for higher dimensional grids
 @inline function (f :: MatsubaraFunction{GD, SD, DD, Q})(
     w     :: NTuple{GD, MatsubaraFrequency},
     x     :: Vararg{Int64, SD} 
     ; 
-    bc    :: Function = x -> 0.0,
-    extrp :: Bool     = false
+    bc    :: Function       = x -> 0.0,
+    extrp :: Tuple{Bool, Q} = (false, Q(0.0))
     )     :: Q where{GD, SD, DD, Q <: Number}
 
     if any(ntuple(i -> !is_inbounds(w[i], f.grids[i]), GD))
-        if extrp 
+        if extrp[1] 
             if GD == 1
-                return extrapolate(f, value(w[1]), x...)
+                return extrapolate(f, value(w[1]), extrp[2], x...)
             else 
                 return f[CartesianIndex_extrp(f, w, x...)]
             end 
@@ -135,8 +139,8 @@ function (f :: MatsubaraFunction{1, SD, DD, Q})(
     w     :: MatsubaraFrequency,
     x     :: Vararg{Int64, SD} 
     ; 
-    bc    :: Function = x -> 0.0,
-    extrp :: Bool     = false
+    bc    :: Function       = x -> 0.0,
+    extrp :: Tuple{Bool, Q} = (false, Q(0.0))
     )     :: Q where{SD, DD, Q <: Number}
 
     return f((w,), x...; bc = x -> bc(x[1]), extrp)
@@ -188,14 +192,14 @@ end
     w     :: NTuple{GD, Float64},
     x     :: Vararg{Int64, SD} 
     ; 
-    bc    :: Function = x -> 0.0,
-    extrp :: Bool     = false
+    bc    :: Function       = x -> 0.0,
+    extrp :: Tuple{Bool, Q} = (false, Q(0.0))
     )     :: Q where{GD, SD, DD, Q <: Number}
 
     if any(ntuple(i -> !is_inbounds(w[i], f.grids[i]), GD))
-        if extrp 
+        if extrp[1] 
             if GD == 1
-                return extrapolate(f, w[1], x...)
+                return extrapolate(f, w[1], extrp[2], x...)
             else 
                 p   = ntuple(i -> Param(max(value(f.grids[i][1]), min(w[i], value(f.grids[i][end]))), f.grids[i]), GD)
                 val = 0.0
@@ -230,8 +234,8 @@ function (f :: MatsubaraFunction{1, SD, DD, Q})(
     w     :: Float64,
     x     :: Vararg{Int64, SD} 
     ; 
-    bc    :: Function = x -> 0.0,
-    extrp :: Bool     = false
+    bc    :: Function       = x -> 0.0,
+    extrp :: Tuple{Bool, Q} = (false, Q(0.0))
     )     :: Q where{SD, DD, Q <: Number}
 
     return f((w,), x...; bc = x -> bc(x[1]), extrp)
@@ -244,33 +248,34 @@ end
 #       respect to an annulus about the imaginary axis
 """
     function sum_me(
-        f :: MatsubaraFunction{1, SD, DD, Q},
-        x :: Vararg{Int64, SD}
-        ) :: Q where {SD, DD, Q <: Complex}  
+        f  :: MatsubaraFunction{1, SD, DD, Q},
+        α0 :: Q,
+        x  :: Vararg{Int64, SD}
+        )  :: Q where {SD, DD, Q <: Complex}
 
-Computes the Matsubara sum (with regulator exp(-iw0+)) for a complex valued MatsubaraFunction on 1D grid. 
-This is only viable if f has a Laurent series representation with respect to an annulus about the imaginary axis.
+Computes the Matsubara sum (with regulator exp(-iw0+)) for a complex valued MatsubaraFunction on 1D grid. Here, α0 
+is the asymptotic limit for large frequencies. This is only viable if f has a Laurent series representation with respect 
+to an annulus about the imaginary axis.
 """
 function sum_me(
-    f :: MatsubaraFunction{1, SD, DD, Q},
-    x :: Vararg{Int64, SD}
-    ) :: Q where {SD, DD, Q <: Complex}
+    f  :: MatsubaraFunction{1, SD, DD, Q},
+    α0 :: Q,
+    x  :: Vararg{Int64, SD}
+    )  :: Q where {SD, DD, Q <: Complex}
 
     # compute tail moments 
-    upper_moments = upper_tail_moments(f, x...)
-    lower_moments = lower_tail_moments(f, x...)
+    upper_moments = upper_tail_moments(f, α0, x...)
+    lower_moments = lower_tail_moments(f, α0, x...)
 
     # check self-consistency 
-    Δ     = norm(upper_moments .- lower_moments)
-    scale = 1e-3 + max(norm(lower_moments), norm(upper_moments)) * 1e-2
-    err   = Δ / scale
-
-    @assert err <= 1.0 "Tail fits are inconsistent! Try more frequencies or check prerequisites"
+    diff1 = abs(upper_moments[1] - lower_moments[1])
+    diff2 = abs(upper_moments[2] - lower_moments[2])
+    @assert diff1 < 1e-2 "Tail fits are inconsistent (Δ = $diff1)! Try more frequencies or check prerequisites"
+    @assert diff2 < 1e-2 "Tail fits are inconsistent (Δ = $diff2)! Try more frequencies or check prerequisites"
 
     # compute expansion coefficients
-    α0 = +0.5 * (upper_moments[1] + lower_moments[1])
-    α1 = +0.5 * (upper_moments[2] + lower_moments[2]) * im
-    α2 = -0.5 * (upper_moments[3] + lower_moments[3])
+    α1 = +0.5 * (upper_moments[1] + lower_moments[1]) * im
+    α2 = -0.5 * (upper_moments[2] + lower_moments[2])
 
     # compute the Matsubara sum using quadratic asymptotic model
     T   = temperature(f.grids[1])

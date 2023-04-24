@@ -173,29 +173,30 @@ end
         end
     end 
     
-    w = fg[end] + fg[end] + fg[end]
+    w  = fg[end] + fg[end] + fg[end]
+    c0 = ComplexF64(0.0)
 
     # polynomial extrapolation for 1D grids with MatsubaraFrequency argument
-    @test isapprox(f1(w, 1; extrp = true), 1.0 / (im * value(w)); atol = 1e-6, rtol = 1e-6)
-    @test isapprox(f2(w, 1; extrp = true), 1.0 / (im * value(w)) - ξ / value(w) / value(w); atol = 1e-6, rtol = 1e-6)
-    @test isapprox(f3(w, 1; extrp = true), -1.0 / value(w) / value(w); atol = 1e-6, rtol = 1e-6)
-    @test isapprox(f4(w, 1; extrp = true), 1.0 / value(w); atol = 1e-6, rtol = 1e-6)
+    @test isapprox(f1(w, 1; extrp = (true, c0)), 1.0 / (im * value(w)); atol = 1e-6, rtol = 1e-6)
+    @test isapprox(f2(w, 1; extrp = (true, c0)), 1.0 / (im * value(w)) - ξ / value(w) / value(w); atol = 1e-6, rtol = 1e-6)
+    @test isapprox(f3(w, 1; extrp = (true, c0)), -1.0 / value(w) / value(w); atol = 1e-6, rtol = 1e-6)
+    @test isapprox(f4(w, 1; extrp = (true, 0.)), 1.0 / value(w); atol = 1e-6, rtol = 1e-6)
 
     # polynomial extrapolation for 1D grids with Float64 argument
-    @test isapprox(f1(value(w), 1; extrp = true), 1.0 / (im * value(w)); atol = 1e-6, rtol = 1e-6)
-    @test isapprox(f2(value(w), 1; extrp = true), 1.0 / (im * value(w)) - ξ / value(w) / value(w); atol = 1e-6, rtol = 1e-6)
-    @test isapprox(f3(value(w), 1; extrp = true), -1.0 / value(w) / value(w); atol = 1e-6, rtol = 1e-6)
-    @test isapprox(f4(value(w), 1; extrp = true), 1.0 / value(w); atol = 1e-6, rtol = 1e-6)
+    @test isapprox(f1(value(w), 1; extrp = (true, c0)), 1.0 / (im * value(w)); atol = 1e-6, rtol = 1e-6)
+    @test isapprox(f2(value(w), 1; extrp = (true, c0)), 1.0 / (im * value(w)) - ξ / value(w) / value(w); atol = 1e-6, rtol = 1e-6)
+    @test isapprox(f3(value(w), 1; extrp = (true, c0)), -1.0 / value(w) / value(w); atol = 1e-6, rtol = 1e-6)
+    @test isapprox(f4(value(w), 1; extrp = (true, 0.)), 1.0 / value(w); atol = 1e-6, rtol = 1e-6)
 
     # constant extrapolation for higher-dimensional grids with MatsubaraFrequency argument
-    @test f5((w, w), 1; extrp = true) ≈ 1.0 / (im * value(fg[end]) - ξ) / (im * value(fg[end]) - ξ)
-    @test f5((w, fg[1]), 1; extrp = true) ≈ 1.0 / (im * value(fg[end]) - ξ) / (im * value(fg[1]) - ξ)
-    @test f5((fg[1], w), 1; extrp = true) ≈ 1.0 / (im * value(fg[1]) - ξ) / (im * value(fg[end]) - ξ)
+    @test f5((w, w), 1; extrp = (true, c0)) ≈ 1.0 / (im * value(fg[end]) - ξ) / (im * value(fg[end]) - ξ)
+    @test f5((w, fg[1]), 1; extrp = (true, c0)) ≈ 1.0 / (im * value(fg[end]) - ξ) / (im * value(fg[1]) - ξ)
+    @test f5((fg[1], w), 1; extrp = (true, c0)) ≈ 1.0 / (im * value(fg[1]) - ξ) / (im * value(fg[end]) - ξ)
 
     # constant extrapolation for higher-dimensional grids with Float64 argument
-    @test f5((value(w), value(w)), 1; extrp = true) ≈ 1.0 / (im * value(fg[end]) - ξ) / (im * value(fg[end]) - ξ)
-    @test f5((value(w), value(fg[1])), 1; extrp = true) ≈ 1.0 / (im * value(fg[end]) - ξ) / (im * value(fg[1]) - ξ)
-    @test f5((value(fg[1]), value(w)), 1; extrp = true) ≈ 1.0 / (im * value(fg[1]) - ξ) / (im * value(fg[end]) - ξ)
+    @test f5((value(w), value(w)), 1; extrp = (true, c0)) ≈ 1.0 / (im * value(fg[end]) - ξ) / (im * value(fg[end]) - ξ)
+    @test f5((value(w), value(fg[1])), 1; extrp = (true, c0)) ≈ 1.0 / (im * value(fg[end]) - ξ) / (im * value(fg[1]) - ξ)
+    @test f5((value(fg[1]), value(w)), 1; extrp = (true, c0)) ≈ 1.0 / (im * value(fg[1]) - ξ) / (im * value(fg[end]) - ξ)
 end
 
 @testset "Summation" begin 
@@ -220,12 +221,13 @@ end
     ρ1p     = ρ(+ξ, T) - 1.0
     ρ1m     = ρ(-ξ, T) - 1.0
     ρ2      = ρ(ξ, T) * (ρ(ξ, T) - 1.0) / T
+    c0      = ComplexF64(0.0)
 
     # benchmark vs analytic results
-    @test isapprox(sum_me(f1, 1), ρ10; atol = 1e-6, rtol = 1e-6)
-    @test isapprox(sum_me(f2, 1), ρ1p; atol = 1e-6, rtol = 1e-6)
-    @test isapprox(sum_me(f3, 1), ρ1m; atol = 1e-6, rtol = 1e-6)
-    @test isapprox(sum_me(f4, 1),  ρ2; atol = 1e-6, rtol = 1e-6)
+    @test isapprox(sum_me(f1, c0, 1), ρ10; atol = 1e-6, rtol = 1e-6)
+    @test isapprox(sum_me(f2, c0, 1), ρ1p; atol = 1e-6, rtol = 1e-6)
+    @test isapprox(sum_me(f3, c0, 1), ρ1m; atol = 1e-6, rtol = 1e-6)
+    @test isapprox(sum_me(f4, c0, 1),  ρ2; atol = 1e-6, rtol = 1e-6)
 end
 
 @testset "Symmetries" begin 
