@@ -44,11 +44,11 @@ println(f(value(v), 1)) # slow data access, uses interpolation
 
 # fallback methods for out of bounds access
 vp = MatsubaraFrequency(T, 256, Fermion)
-println(f(vp, 1))                                # default x -> 0.0
-println(f(vp, 1; bc = x -> 1.0))                 # custom boundary condition x -> 1.0
-println(f(vp, 1; bc = x -> 1.0 / im / value(x))) # custom boundary condition x -> 1.0 / im / value(x)
-println(f(value(vp), 1; bc = x -> 1.0 / im / x)) # custom boundary condition x -> 1.0 / im / x
-println(f(vp, 1; extrp = true))                  # polynomial extrapolation (only for 1D grids)
+println(f(vp, 1))                                  # default x -> 0.0
+println(f(vp, 1; bc = x -> 1.0))                   # custom boundary condition x -> 1.0
+println(f(vp, 1; bc = x -> 1.0 / im / value(x)))   # custom boundary condition x -> 1.0 / im / value(x)
+println(f(value(vp), 1; bc = x -> 1.0 / im / x))   # custom boundary condition x -> 1.0 / im / x
+println(f(vp, 1; extrp = (true, ComplexF64(0.0)))) # polynomial extrapolation in 1D, constant term set to 0.0
 ```
 """
 struct MatsubaraFunction{GD, SD, DD, Q <: Number}
