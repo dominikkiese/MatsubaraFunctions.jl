@@ -91,27 +91,13 @@ end
 
 
 
-# wrappers for boundary conditions 
-struct BC{IP, OP <: Number}
-    f :: FunctionWrappers.FunctionWrapper{OP, Tuple{IP}}
-end 
-
-function (bc :: BC{IP, OP})(
-    x :: IP
-    ) :: OP where {IP, OP <: Number}
-
-    return bc.f(x)
-end
-
-
-
 # call to MatsubaraFunction with MatsubaraFrequency
 # Note: in contrast to the [] operator used for indexing with MatsubaraFrequency, 
 #       () has well-defined behavior for out of bounds access (bc or extrapolation)
 # Note: if extrp[1] = true, we use polynomial extrapolation for 1D grids and 
 #       constant extrapolation for higher dimensional grids. extrp[2] sets the value
 #       for the asymptotic limit in the 1D case, but it has no effect for higher dimensional grids
-@inline function (f :: MatsubaraFunction{GD, SD, DD, Q})(
+function (f :: MatsubaraFunction{GD, SD, DD, Q})(
     w     :: NTuple{GD, MatsubaraFrequency},
     x     :: Vararg{Int64, SD} 
     ; 
@@ -127,8 +113,7 @@ end
                 return f[CartesianIndex_extrp(f, w, x...)]
             end 
         else 
-            bc_t = BC{NTuple{GD, MatsubaraFrequency}, Q}(bc)
-            return bc_t(w) 
+            return bc(w) 
         end 
     end
 
@@ -188,7 +173,7 @@ end
 # call to MatsubaraFunction with Float64 (multilinear interpolation)
 # Note: if extrp = true, we use polynomial extrapolation for 1D grids and 
 #       constant extrapolation for higher dimensional grids
-@inline function (f :: MatsubaraFunction{GD, SD, DD, Q})(
+function (f :: MatsubaraFunction{GD, SD, DD, Q})(
     w     :: NTuple{GD, Float64},
     x     :: Vararg{Int64, SD} 
     ; 
@@ -213,8 +198,7 @@ end
                 return val
             end
         else 
-            bc_t = BC{NTuple{GD, Float64}, Q}(bc)
-            return bc_t(w)
+            return bc(w)
         end 
     end 
 
