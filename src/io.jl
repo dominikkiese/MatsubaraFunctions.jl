@@ -131,6 +131,7 @@ function save_matsubara_symmetry_group!(
     grp = create_group(h, l)
 
     # add metadata 
+    attributes(grp)["speedup"]     = speedup(SG)
     attributes(grp)["num_classes"] = length(SG.classes)
 
     # add data 
@@ -170,6 +171,7 @@ function load_matsubara_symmetry_group(
     ) :: MatsubaraSymmetryGroup
 
     # read the metadata 
+    speedup     = read_attribute(h[l], "speedup")
     num_classes = read_attribute(h[l], "num_classes")
 
     # read the data 
@@ -188,5 +190,5 @@ function load_matsubara_symmetry_group(
         classes[cl_idx] = class; offset += num_in_classes[cl_idx]
     end 
 
-    return MatsubaraSymmetryGroup(classes)
+    return MatsubaraSymmetryGroup(classes, speedup)
 end

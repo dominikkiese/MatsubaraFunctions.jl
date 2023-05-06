@@ -92,6 +92,8 @@ function reduce(
     symmetries  :: Vector{MatsubaraSymmetry{GD, SD}},
     class       :: Vector{Tuple{Int64, MatsubaraOperation}},
     path_length :: Int64
+    ;
+    max_length  :: Int64 = 0
     )           :: Nothing where {GD, SD, DD, Q <: Number}
 
     # loop over all symmetries 
@@ -114,12 +116,12 @@ function reduce(
 
                 # add to symmetry class and keep going 
                 push!(class, (idx, new_op))
-                reduce(wp, xp, new_op, f, checked, symmetries, class, 0)
+                reduce(wp, xp, new_op, f, checked, symmetries, class, 0; max_length)
             end 
 
         # if index is invalid, increment path length and keep going 
-        elseif path_length < 5
-            reduce(wp, xp, new_op, f, checked, symmetries, class, path_length + 1)
+        elseif path_length < max_length
+            reduce(wp, xp, new_op, f, checked, symmetries, class, path_length + 1; max_length)
         end 
     end 
 end
@@ -173,19 +175,23 @@ SG(h, InitFunc)
 """
 struct MatsubaraSymmetryGroup
     classes :: Vector{Vector{Tuple{Int64, MatsubaraOperation}}}
+    speedup :: Float64
 
     # basic constructor 
     function MatsubaraSymmetryGroup(
-        classes :: Vector{Vector{Tuple{Int64, MatsubaraOperation}}}
+        classes :: Vector{Vector{Tuple{Int64, MatsubaraOperation}}},
+        speedup :: Float64
         )       :: MatsubaraSymmetryGroup
 
-        return new(classes)
+        return new(classes, speedup)
     end 
 
     # convenience constructor from MatsubaraFunction and list of symmetries 
     function MatsubaraSymmetryGroup(
         symmetries :: Vector{MatsubaraSymmetry{GD, SD}},
         f          :: MatsubaraFunction{GD, SD, DD, Q}
+        ;
+        max_length :: Int64 = 0
         )          :: MatsubaraSymmetryGroup where {GD, SD, DD, Q <: Number}
 
         # array to check whether index has been sorted into a symmetry class already 
@@ -204,15 +210,20 @@ struct MatsubaraSymmetryGroup
                 class        = Tuple{Int64, MatsubaraOperation}[(idx, MatsubaraOperation())]
 
                 # apply all symmetries to current element
-                reduce(w, x, MatsubaraOperation(), f, checked, symmetries, class, 0)
+                reduce(w, x, MatsubaraOperation(), f, checked, symmetries, class, 0; max_length)
 
                 # add class to list 
                 push!(classes, class)
             end 
         end
 
-        return MatsubaraSymmetryGroup(classes)
+        return MatsubaraSymmetryGroup(classes, length(f.data) / length(classes))
     end 
+end
+
+# accessor for speedup 
+function speedup(SG :: MatsubaraSymmetryGroup) 
+    return SG.speedup 
 end
 
 # make MatsubaraSymmetryGroup callable with MatsubaraFunction. This will iterate 

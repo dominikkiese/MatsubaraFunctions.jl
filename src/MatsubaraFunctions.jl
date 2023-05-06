@@ -61,6 +61,7 @@ module MatsubaraFunctions
         con,
         MatsubaraSymmetry,
         MatsubaraSymmetryGroup,
+        speedup,
         MatsubaraInitFunction,
 
         # io.jl
