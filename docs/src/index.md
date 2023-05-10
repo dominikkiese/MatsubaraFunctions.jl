@@ -15,3 +15,7 @@ Boson
 ```@docs
 MatsubaraFrequency
 ```
+
+```@docs
+temperature
+```
