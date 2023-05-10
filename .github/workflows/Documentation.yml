@@ -6,11 +6,13 @@ on:
       - main
     tags: '*'
   pull_request:
+runs:
+  using: 'node16'
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: node16
+      - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@latest
         with:
           version: '1.5'
