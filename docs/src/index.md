@@ -1,5 +1,7 @@
 # MatsubaraFunctions.jl Documentation
 
+# Abstract Types 
+
 ```@docs
 AbstractParticle
 ```
@@ -12,10 +14,18 @@ Fermion
 Boson
 ```
 
+# Structs
+
 ```@docs
 MatsubaraFrequency
 ```
 
+# Functions
+
 ```@docs
 temperature
+```
+
+```@docs
+value
 ```
