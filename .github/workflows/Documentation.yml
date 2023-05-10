@@ -6,16 +6,17 @@ on:
       - main
     tags: '*'
   pull_request:
-runs:
-  using: 'node16'
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+        with:
+          node-version: '16'
       - uses: julia-actions/setup-julia@latest
         with:
           version: '1.5'
+          node-version: '16'
       - name: Install dependencies
         run: julia --project=docs/ -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'
       - name: Build and deploy
