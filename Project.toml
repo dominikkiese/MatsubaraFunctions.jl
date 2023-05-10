@@ -4,6 +4,7 @@ authors = ["Dominik Kiese <dkiese1308.physik@gmail.com>"]
 version = "0.1.0"
 
 [deps]
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 FunctionWrappers = "069b7b12-0de2-55c6-9aab-29f3d0a68a2e"
 HDF5 = "f67ccb44-e63f-5c2f-98bd-6dc0ccc4ba2f"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
