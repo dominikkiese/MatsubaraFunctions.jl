@@ -5,6 +5,7 @@ module MatsubaraFunctions
     using FunctionWrappers
     using MPI
     using HDF5 
+    using Documenter
     
     include("matsubara_freq/matsubara_freq.jl")
     include("matsubara_grid/matsubara_grid.jl")
