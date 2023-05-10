@@ -1,5 +1,5 @@
-![CI](https://github.com/dominikkiese/MatsubaraFunctions/actions/workflows/CI.yml/badge.svg)
-![Documentation](https://github.com/dominikkiese/MatsubaraFunctions/actions/workflows/Documentation.yml/badge.svg)
+[![CI](https://github.com/dominikkiese/MatsubaraFunctions.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/dominikkiese/MatsubaraFunctions.jl/actions/workflows/CI.yml)
+[![Documentation](https://github.com/dominikkiese/MatsubaraFunctions.jl/actions/workflows/Documentation.yml/badge.svg)](https://github.com/dominikkiese/MatsubaraFunctions.jl/actions/workflows/Documentation.yml)
 
 # MatsubaraFunctions.jl
 
