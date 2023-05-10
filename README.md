@@ -1,3 +1,6 @@
+![CI](https://github.com/dominikkiese/MatsubaraFunctions/actions/workflows/CI.yml/badge.svg)
+![Documentation](https://github.com/dominikkiese/MatsubaraFunctions/actions/workflows/Documentation.yml/badge.svg)
+
 # MatsubaraFunctions.jl
 
 This package aims at providing a convenient interface to rapidly prototype algorithms for multivariable Green's functions of the form $G_{i_1 ... i_n}(i\omega_1, ..., i\omega_m)$ where the $i_k$ denote lattice or orbital indices and the $\omega_l$ are Matsubara frequencies. The latter can either be of fermionic or bosonic type, that is $\omega^{n}_l = \frac{\pi}{\beta}(2n + 1)$ or $\omega^{n}_l = \frac{2\pi n}{\beta}$ where $n \in \mathbb{Z}$. Here, $\beta = 1/ T$ is the inverse temperature.
