@@ -1,6 +1,7 @@
 push!(LOAD_PATH, "../src/")
-using MatsubaraFunctions
 import Pkg; Pkg.add("Documenter")
+
+using MatsubaraFunctions
 using Documenter
 
 makedocs(sitename = "MatsubaraFunctions.jl", 
