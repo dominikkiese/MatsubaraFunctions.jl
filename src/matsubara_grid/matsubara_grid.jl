@@ -7,25 +7,6 @@ MatsubaraGrid type with fields:
 * `T    :: Float64`                    : physical temperature
 * `data :: Vector{MatsubaraFrequency}` : list of MatsubaraFrequency objects
 * `type :: Symbol`                     : particle type
-
-Examples:
-```julia
-# construction
-T  = 1.0
-N  = 128
-g1 = MatsubaraGrid(T, N, Fermion) # no. frequencies is 2N
-g2 = MatsubaraGrid(T, N, Boson)   # no. frequencies is 2N - 1
-
-# MatsubaraGrid is iterable
-for v in g1
-    println(value(v)) 
-end
-
-# MatsubaraGrid can be indexed and is callable 
-idx = rand(1 : length(g1))
-@assert g1(g1[idx]) == idx         # returns linear index of MatsubaraFrequency in grid
-@assert g1(value(g1[idx])) == idx  # returns linear index of MatsubaraFrequency closest to Float64 in grid
-```
 """
 struct MatsubaraGrid
     T     :: Float64 
@@ -81,7 +62,7 @@ end
         grid :: MatsubaraGrid
         )    :: Float64
 
-Returns grid.T
+Returns `grid.T`
 """
 function temperature(
     grid :: MatsubaraGrid
@@ -95,7 +76,7 @@ end
         grid :: MatsubaraGrid
         )    :: Symbol
 
-Returns grid.type
+Returns `grid.type`
 """
 function type(
     grid :: MatsubaraGrid
@@ -131,7 +112,7 @@ end
         grid :: MatsubaraGrid
         )    :: Bool
 
-Checks if w is contained in grid
+Checks if `w` is contained in grid
 """
 @inline function is_inbounds(
     w    :: MatsubaraFrequency,
@@ -151,7 +132,7 @@ end
         grid :: MatsubaraGrid
         )    :: Bool
 
-Checks if w lies within grid bounds
+Checks if `w` lies within grid bounds
 """
 function is_inbounds(
     w    :: Float64,
@@ -166,7 +147,7 @@ end
         grid :: MatsubaraGrid
         )    :: Nothing
 
-Prints grid properties
+Prints summary of grid properties
 """
 function info(
     grid :: MatsubaraGrid

@@ -35,7 +35,7 @@ idx = rand(1 : length(g))
 
 `MatsubaraGrid` objects can be saved in HDF5 file format as
 
-``julia
+```julia
 using MatsubaraFunctions 
 using HDF5
 
