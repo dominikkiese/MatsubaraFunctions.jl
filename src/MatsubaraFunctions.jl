@@ -10,7 +10,6 @@ module MatsubaraFunctions
     include("matsubara_freq/matsubara_freq.jl")
     include("matsubara_grid/matsubara_grid.jl")
     include("matsubara_func/matsubara_func.jl")
-    include("io.jl")
 
     export
         # matsubara_freq.jl 
@@ -28,6 +27,8 @@ module MatsubaraFunctions
         index_range,
         is_inbounds,
         info,
+        save_matsubara_grid!, 
+        load_matsubara_grid,
 
         # matsubara_func.jl
         MatsubaraFunction, 
@@ -64,10 +65,6 @@ module MatsubaraFunctions
         MatsubaraSymmetryGroup,
         speedup,
         MatsubaraInitFunction,
-
-        # io.jl
-        save_matsubara_grid!, 
-        load_matsubara_grid, 
         save_matsubara_function!, 
         load_matsubara_function,
         save_matsubara_symmetry_group!,

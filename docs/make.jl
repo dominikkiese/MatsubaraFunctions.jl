@@ -10,7 +10,6 @@ makedocs(sitename = "MatsubaraFunctions.jl",
             "Home"               => "index.md", 
             "MatsubaraFrequency" => "matsubara_freq.md",
             "MatsubaraGrid"      => "matsubara_grid.md",
-            "MatsubaraFunction"  => "matsubara_func.md",
-            "IO"                 => "io.md"])
+            "MatsubaraFunction"  => "matsubara_func.md"])
 
 deploydocs(; repo = "github.com/dominikkiese/MatsubaraFunctions.jl",)
