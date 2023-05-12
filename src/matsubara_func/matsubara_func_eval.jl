@@ -139,7 +139,7 @@ struct Param
     idxs :: NTuple{2, Int64}
     wgts :: NTuple{2, Float64}
 
-    # basic constructor
+    # default constructor
     function Param(
         idxs :: NTuple{2, Int64}, 
         wgts :: NTuple{2, Float64}

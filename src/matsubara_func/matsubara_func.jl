@@ -56,7 +56,7 @@ struct MatsubaraFunction{GD, SD, DD, Q <: Number}
     shape :: NTuple{SD, Int64}          
     data  :: Array{Q, DD}
 
-    # basic constructor
+    # default constructor
     function MatsubaraFunction(
         grids  :: NTuple{GD, MatsubaraGrid}, 
         shape  :: NTuple{SD, Int64}, 

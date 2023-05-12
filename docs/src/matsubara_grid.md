@@ -58,7 +58,15 @@ MatsubaraGrid
 # Functions
 
 ```@docs
+temperature
+```
+
+```@docs
 index_range
+```
+
+```@docs
+type
 ```
 
 ```@docs

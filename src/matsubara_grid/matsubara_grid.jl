@@ -32,7 +32,7 @@ struct MatsubaraGrid
     data  :: Vector{MatsubaraFrequency}
     type  :: Symbol          
 
-    # basic constructor 
+    # default constructor 
     function MatsubaraGrid(
         T      :: Float64,
         data   :: Vector{MatsubaraFrequency},

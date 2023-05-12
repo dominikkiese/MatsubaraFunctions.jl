@@ -25,24 +25,10 @@ struct Boson <: AbstractParticle end
     struct MatsubaraFrequency
 
 MatsubaraFrequency type with fields:
-* `T    :: Float64` : physical temperature
+* `T    :: Float64` : temperature
 * `val  :: Float64` : position on the imaginary axis
 * `idx  :: Int64`   : Matsubara index
 * `type :: Symbol`  : particle type
-
-Examples:
-```julia
-# construction
-T   = 1.0
-idx = 5
-v   = MatsubaraFrequency(T, idx, Fermion)
-w   = MatsubaraFrequency(T, idx, Boson) 
-
-# usage
-w1 = v + v # type(v1) = :Boson
-v2 = w - v # type(v2) = :Fermion
-v3 = -v    # type(v3) = :Fermion 
-```
 """
 struct MatsubaraFrequency 
     T    :: Float64 
@@ -50,7 +36,7 @@ struct MatsubaraFrequency
     idx  :: Int64 
     type :: Symbol 
 
-    # basic constructor
+    # default constructor
     function MatsubaraFrequency(
         T    :: Float64, 
         val  :: Float64, 
@@ -90,7 +76,7 @@ end
         w :: MatsubaraFrequency
         ) :: Float64
 
-Returns w.T
+Returns `w.T`
 """
 function temperature(
     w :: MatsubaraFrequency
@@ -104,7 +90,7 @@ end
         w :: MatsubaraFrequency
         ) :: Float64
 
-Returns w.val
+Returns `w.val`
 """
 function value(
     w :: MatsubaraFrequency
@@ -118,7 +104,7 @@ end
         w :: MatsubaraFrequency
         ) :: Int64
 
-Returns w.idx
+Returns `w.idx`
 """
 function index(
     w :: MatsubaraFrequency
@@ -132,7 +118,7 @@ end
         w :: MatsubaraFrequency
         ) :: Symbol
 
-Returns w.type
+Returns `w.type`
 """
 function type(
     w :: MatsubaraFrequency

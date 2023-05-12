@@ -11,7 +11,7 @@ struct MatsubaraOperation
     sgn :: Bool 
     con :: Bool
 
-    # basic constructor 
+    # default constructor 
     function MatsubaraOperation(
         sgn :: Bool,
         con :: Bool
@@ -177,7 +177,7 @@ struct MatsubaraSymmetryGroup
     classes :: Vector{Vector{Tuple{Int64, MatsubaraOperation}}}
     speedup :: Float64
 
-    # basic constructor 
+    # default constructor 
     function MatsubaraSymmetryGroup(
         classes :: Vector{Vector{Tuple{Int64, MatsubaraOperation}}},
         speedup :: Float64
