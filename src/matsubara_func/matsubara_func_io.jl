@@ -54,11 +54,11 @@ function load_matsubara_function(
 end
 
 """
-function save_matsubara_symmetry_group!(
-    h  :: HDF5.File,
-    l  :: String,
-    SG :: MatsubaraSymmetryGroup
-    )  :: Nothing
+    function save_matsubara_symmetry_group!(
+        h  :: HDF5.File,
+        l  :: String,
+        SG :: MatsubaraSymmetryGroup
+        )  :: Nothing
 
     Save MatsubaraSymmetryGroup `SG` with label `l` to file `h`
 """
@@ -99,10 +99,10 @@ function save_matsubara_symmetry_group!(
 end
 
 """
-function load_matsubara_symmetry_group(
-    h :: HDF5.File,
-    l :: String
-    ) :: MatsubaraSymmetryGroup
+    function load_matsubara_symmetry_group(
+        h :: HDF5.File,
+        l :: String
+        ) :: MatsubaraSymmetryGroup
 
 Load MatsubaraSymmetryGroup with label `l` from file `h`
 """
