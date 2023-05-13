@@ -4,7 +4,7 @@
     struct MatsubaraGrid
 
 MatsubaraGrid type with fields:
-* `T    :: Float64`                    : physical temperature
+* `T    :: Float64`                    : temperature
 * `data :: Vector{MatsubaraFrequency}` : list of MatsubaraFrequency objects
 * `type :: Symbol`                     : particle type
 """

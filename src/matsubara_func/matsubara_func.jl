@@ -5,51 +5,6 @@ MatsubaraFunction type with fields:
 * `grids :: NTuple{GD, MatsubaraGrid}` : collection of MatsubaraGrid
 * `shape :: NTuple{SD, Int64}`         : shape of the tensor structure on every grid point
 * `data  :: Array{Q, DD}`              : data array
-
-Examples:
-```julia 
-# construction
-T = 1.0
-N = 128
-g = MatsubaraGrid(T, N, Fermion)
-
-# 1D grid, rank 1 tensor with index dimension 1 (scalar valued)
-f1_complex = MatsubaraFunction(g, 1)                    # complex valued (default)
-f1_real    = MatsubaraFunction(g, 1, Float64)           # other data type
-
-# 1D grid, rank 1 tensor with index dimension 5 (vector valued)
-f2_complex = MatsubaraFunction(g, 5)                    # complex valued (default)
-f2_real    = MatsubaraFunction(g, 5, Float64)           # other data type
-
-# 1D grid, rank 2 tensor with index dimension 5 (matrix valued)
-f3_complex = MatsubaraFunction(g, (5, 5))               # complex valued (default)
-f3_real    = MatsubaraFunction(g, (5, 5), Float64)      # other data type
-
-# 2D grid, rank 2 tensor with index dimension 5 (matrix valued)
-f4_complex = MatsubaraFunction((g, g), (5, 5))          # complex valued (default)
-f4_real    = MatsubaraFunction((g, g), (5, 5), Float64) # other data type
-
-# usage 
-ξ = 0.5
-f = MatsubaraFunction(g, 1)
-
-for v in g
-    f[v, 1] = 1.0 / (im * value(v) - ξ)
-end 
-
-# access MatsubaraFunction data
-println(f[v, 1])        # fast data access, throws error if v is out of bounds
-println(f(v, 1))        # fast data access, defined even if v is out of bounds
-println(f(value(v), 1)) # slow data access, uses interpolation 
-
-# fallback methods for out of bounds access
-vp = MatsubaraFrequency(T, 256, Fermion)
-println(f(vp, 1))                                  # default x -> 0.0
-println(f(vp, 1; bc = x -> 1.0))                   # custom boundary condition x -> 1.0
-println(f(vp, 1; bc = x -> 1.0 / im / value(x)))   # custom boundary condition x -> 1.0 / im / value(x)
-println(f(value(vp), 1; bc = x -> 1.0 / im / x))   # custom boundary condition x -> 1.0 / im / x
-println(f(vp, 1; extrp = (true, ComplexF64(0.0)))) # polynomial extrapolation in 1D, constant term set to 0.0
-```
 """
 struct MatsubaraFunction{GD, SD, DD, Q <: Number}
     grids :: NTuple{GD, MatsubaraGrid}
@@ -194,7 +149,7 @@ end
         idx :: Int64
         )   :: Int64 where {GD, SD, DD, Q <: Number}
 
-Returns length of f.grids[idx]
+Returns length of `f.grids[idx]`
 """
 function grids_shape(
     f   :: MatsubaraFunction{GD, SD, DD, Q},
@@ -209,7 +164,7 @@ end
         f :: MatsubaraFunction{GD, SD, DD, Q}
         ) :: NTuple{SD, Int64} where {GD, SD, DD, Q <: Number}
 
-Returns f.shape
+Returns `f.shape`
 """
 function shape(
     f :: MatsubaraFunction{GD, SD, DD, Q}
@@ -224,7 +179,7 @@ end
         idx :: Int64
         )   :: Int64 where {GD, SD, DD, Q <: Number}
 
-Returns f.shape[idx]
+Returns `f.shape[idx]`
 """
 function shape(
     f   :: MatsubaraFunction{GD, SD, DD, Q},
@@ -239,7 +194,7 @@ end
         f :: MatsubaraFunction{GD, SD, DD, Q}
         ) :: NTuple{DD, Int64} where {GD, SD, DD, Q <: Number}
 
-Returns shape of f.data
+Returns shape of `f.data`
 """
 function data_shape(
     f :: MatsubaraFunction{GD, SD, DD, Q}
@@ -254,7 +209,7 @@ end
         idx :: Int64
         )   :: Int64 where {GD, SD, DD, Q <: Number}
 
-Returns length of dimension idx of f.data
+Returns length of dimension `idx` of `f.data`
 """
 function data_shape(
     f   :: MatsubaraFunction{GD, SD, DD, Q},
@@ -269,7 +224,7 @@ end
         f :: MatsubaraFunction{GD, SD, DD, Q}
         ) :: Float64 where {GD, SD, DD, Q <: Number}
 
-Returns largest element of f.data (in absolute terms)
+Returns largest element of `f.data` (in absolute terms)
 """
 function absmax(
     f :: MatsubaraFunction{GD, SD, DD, Q}
@@ -283,7 +238,7 @@ end
         f :: MatsubaraFunction{GD, SD, DD, Q}
         ) :: CartesianIndex{DD} where {GD, SD, DD, Q <: Number}
 
-Returns position of largest element of f.data (in absolute terms)
+Returns position of largest element of `f.data` (in absolute terms)
 """
 function Base.:argmax(
     f :: MatsubaraFunction{GD, SD, DD, Q}
@@ -297,7 +252,7 @@ end
         f :: MatsubaraFunction{GD, SD, DD, Q}
         ) :: Nothing where {GD, SD, DD, Q <: Number}
 
-Prints some properties of f
+Prints summary of function properties
 """
 function info(
     f :: MatsubaraFunction{GD, SD, DD, Q}

@@ -11,26 +11,18 @@ g = MatsubaraGrid(T, N, Fermion)
 # 1D grid, rank 1 tensor with index dimension 1 (scalar valued)
 f1_complex = MatsubaraFunction(g, 1) 
 f1_real    = MatsubaraFunction(g, 1, Float64) 
-info(f1_complex)
-info(f1_real)
 
 # 1D grid, rank 1 tensor with index dimension 5 (vector valued)
 f2_complex = MatsubaraFunction(g, 5) 
 f2_real    = MatsubaraFunction(g, 5, Float64) 
-info(f2_complex)
-info(f2_real)
 
 # 1D grid, rank 2 tensor with index dimension 5 (matrix valued)
 f3_complex = MatsubaraFunction(g, (5, 5)) 
 f3_real    = MatsubaraFunction(g, (5, 5), Float64) 
-info(f3_complex)
-info(f3_real)
 
 # 2D grid, rank 2 tensor with index dimension 5 (matrix valued)
 f4_complex = MatsubaraFunction((g, g), (5, 5)) 
 f4_real    = MatsubaraFunction((g, g), (5, 5), Float64) 
-info(f4_complex)
-info(f4_real)
 ```
 
 There are two possible ways to access the data of a `MatsubaraFunction`, using either the bracket `[]` or the parenthesis `()` operator. The former can be used together with a set of linear indices or with a combination of `MatsubaraFrequency` objects and linear indices (for the tensor structure). It will return the value of the function precisely for the given arguments. `()` allows to substitute `Float64` for the frequency arguments, in which case a multilinear interpolation is performed. In addition, `()` is well defined even for out of bounds access, using either a custom boundary condition or, for 1D grids, polynomial extrapolation.
@@ -79,7 +71,7 @@ close(file)
 
 # Advanced Usage: Matsubara Sums 
 
-For `MatsubaraFunction` objects $G_{i_1 ... i_n}(i\omega)$ defined on 1D grids, we export the function `sum_me`, which computes the series $\Sigma_m G_{i_1 ... i_n}(i\omega^{m}) e^{i\omega^m 0^+}$ for $m \in \mathbb{Z}$ using tail fits of $G$ together with analytic formulas for summations of the form $\Sigma_m \frac{1}{(i\omega^m)^\alpha}e^{i\omega^m 0^+}$ with $\alpha \in \mathbb{N}$. This, however, requires $G$ to be representable by a Laurent series in an elongated annulus about the imaginary axis.
+For `MatsubaraFunction` objects $G_{i_1 ... i_n}(i\omega)$ defined on 1D grids, we export the function `sum_me`, which computes the series $\Sigma_m G_{i_1 ... i_n}(i\omega_{m}) e^{i\omega_m 0^+}$ for $m \in \mathbb{Z}$ using tail fits of $G$ together with analytic formulas for summations of the form $\Sigma_m \frac{1}{(i\omega^_m)^\alpha}e^{i\omega_m 0^+}$ with $\alpha \in \mathbb{N}$. This, however, requires $G$ to be representable by a Laurent series in an elongated annulus about the imaginary axis.
 
 ```julia
 ξ = 0.5
@@ -141,7 +133,7 @@ SG(h, InitFunc)
 
 # Advanced Usage: MPI Helpers
 
-To simplify the parallelization of algorithms involving `MatsubaraFunction` instances, we export some useful methods based on the MPI.jl wrapper. For further information on how to set up MPI with Julia see https://github.com/JuliaParallel/MPI.jl.
+To simplify the parallelization of algorithms involving `MatsubaraFunction` instances, we export some useful methods based on the MPI.jl wrapper. For further information on how to set up MPI with Julia see [https://github.com/JuliaParallel/MPI.jl](https://github.com/JuliaParallel/MPI.jl).
 
 ```julia
 using MatsubaraFunctions 

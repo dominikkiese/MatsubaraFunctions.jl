@@ -5,7 +5,7 @@
         g :: MatsubaraGrid
         ) :: Nothing
 
-Save MatsubaraGrid g with label l to file h
+Save MatsubaraGrid `g` with label `l` to file `h`
 """
 function save_matsubara_grid!(
     h :: HDF5.File,
@@ -35,7 +35,7 @@ end
         l :: String
         ) :: MatsubaraGrid
 
-Load MatsubaraGrid with label l from file h
+Load MatsubaraGrid with label `l` from file `h`
 """
 function load_matsubara_grid(
     h :: HDF5.File,

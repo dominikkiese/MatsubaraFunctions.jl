@@ -237,8 +237,8 @@ end
         x  :: Vararg{Int64, SD}
         )  :: Q where {SD, DD, Q <: Complex}
 
-Computes the Matsubara sum (with regulator exp(-iw0+)) for a complex valued MatsubaraFunction on 1D grid. Here, α0 
-is the asymptotic limit for large frequencies. This is only viable if f has a Laurent series representation with respect 
+Computes the Matsubara sum (with regulator exp(-iw0+)) for a complex valued MatsubaraFunction on a 1D grid. Here, `α0`
+is the asymptotic limit for large frequencies. This is only viable if `f1` has a Laurent series representation with respect 
 to an annulus about the imaginary axis.
 """
 function sum_me(

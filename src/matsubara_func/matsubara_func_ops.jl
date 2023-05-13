@@ -33,7 +33,7 @@ end
         )      :: MatsubaraFunction{GD, SD, DD, Q} where {GD, SD, DD, Q <: Number}
 
 Addition of two MatsubaraFunction, returns new MatsubaraFunction. Safety measures can be disabled
-with checks = false if needed for performance (discouraged).
+with `checks = false` if needed for performance (discouraged).
 """
 function add(
     f1     :: MatsubaraFunction{GD, SD, DD, Q}, 
@@ -54,8 +54,8 @@ end
         checks :: Bool = true
         )      :: Nothing where {GD, SD, DD, Q <: Number}
 
-Inplace addition of two MatsubaraFunction (f1 += f2). Safety measures can be disabled
-with checks = false if needed for performance (discouraged).
+Inplace addition of two MatsubaraFunction (`f1 += f2`). Safety measures can be disabled
+with `checks = false` if needed for performance (discouraged).
 """
 function add!(
     f1     :: MatsubaraFunction{GD, SD, DD, Q}, 
@@ -81,7 +81,7 @@ end
         )      :: MatsubaraFunction{GD, SD, DD, Q} where {GD, SD, DD, Q <: Number}
 
 Subtraction of two MatsubaraFunction, returns new MatsubaraFunction. Safety measures can be disabled
-with checks = false if needed for performance (discouraged).
+with `checks = false` if needed for performance (discouraged).
 """
 function subtract(
     f1     :: MatsubaraFunction{GD, SD, DD, Q}, 
@@ -102,8 +102,8 @@ end
         checks :: Bool = true
         )      :: Nothing where {GD, SD, DD, Q <: Number}
 
-Inplace subtraction of two MatsubaraFunction (f1 -= f2). Safety measures can be disabled
-with checks = false if needed for performance (discouraged).
+Inplace subtraction of two MatsubaraFunction (`f1 -= f2`). Safety measures can be disabled
+with `checks = false` if needed for performance (discouraged).
 """
 function subtract!(
     f1     :: MatsubaraFunction{GD, SD, DD, Q}, 
@@ -129,7 +129,7 @@ end
         )      :: MatsubaraFunction{GD, SD, DD, Q} where {GD, SD, DD, Q <: Number, Qp <: Number}
 
 Multiplication of MatsubaraFunction with scalar, returns new MatsubaraFunction. Safety measures can be disabled
-with checks = false if needed for performance (discouraged).
+with `checks = false` if needed for performance (discouraged).
 """
 function mult(
     f      :: MatsubaraFunction{GD, SD, DD, Q},
@@ -148,7 +148,7 @@ end
         val :: Qp
         )   :: Nothing where {GD, SD, DD, Q <: Number, Qp <: Number}
 
-Inplace multiplication of MatsubaraFunction with scalar (f *= val)
+Inplace multiplication of MatsubaraFunction with scalar (`f *= val`)
 """
 function mult!(
     f   :: MatsubaraFunction{GD, SD, DD, Q},
@@ -169,7 +169,7 @@ end
         val :: Qp,
         )   :: Nothing where {GD, SD, DD, Q <: Number, Qp <: Number}
 
-Initialize MatsubaraFunction with val
+Initialize MatsubaraFunction with `val`
 """
 function set!(
     f   :: MatsubaraFunction{GD, SD, DD, Q},
@@ -190,8 +190,8 @@ end
         checks :: Bool = true
         )      :: Nothing where {GD, SD, DD, Q <: Number}
 
-Initialize MatsubaraFunction with another MatsubaraFunction (f1 = f2). Safety measures can be disabled
-with checks = false if needed for performance (discouraged).
+Initialize MatsubaraFunction with another MatsubaraFunction (`f1 = f2`). Safety measures can be disabled
+with `checks = false` if needed for performance (discouraged).
 """
 function set!(
     f1     :: MatsubaraFunction{GD, SD, DD, Q},

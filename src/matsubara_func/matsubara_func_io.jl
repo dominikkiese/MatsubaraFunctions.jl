@@ -5,7 +5,7 @@
         f :: MatsubaraFunction{Dg, Ds, Dt, Q}
         ) :: Nothing where {Dg, Ds, Dt, Q <: Number} 
 
-Save MatsubaraFunction f with label l to file h   
+Save MatsubaraFunction `f` with label `l` to file `h`  
 """
 function save_matsubara_function!(
     h :: HDF5.File,
@@ -35,7 +35,7 @@ end
         l :: String
         ) :: MatsubaraFunction
 
-Load MatsubaraFunction with label l from file h
+Load MatsubaraFunction with label `l` from file `h`
 """
 function load_matsubara_function(
     h :: HDF5.File,
@@ -60,7 +60,7 @@ function save_matsubara_symmetry_group!(
     SG :: MatsubaraSymmetryGroup
     )  :: Nothing
 
-    Save MatsubaraSymmetryGroup SG with label l to file h 
+    Save MatsubaraSymmetryGroup `SG` with label `l` to file `h`
 """
 function save_matsubara_symmetry_group!(
     h  :: HDF5.File,
@@ -104,7 +104,7 @@ function load_matsubara_symmetry_group(
     l :: String
     ) :: MatsubaraSymmetryGroup
 
-Load MatsubaraSymmetryGroup with label l from file h
+Load MatsubaraSymmetryGroup with label `l` from file `h`
 """
 function load_matsubara_symmetry_group(
     h :: HDF5.File,

@@ -49,7 +49,7 @@ end
         x :: Vararg{Int64, SD} 
         ) :: Int64 where {GD, SD, DD, Q <: Number}
 
-Returns linear index for access to f.data
+Returns linear index for access to `f.data`
 """
 function LinearIndex(
     f :: MatsubaraFunction{GD, SD, DD, Q},
@@ -70,7 +70,7 @@ end
         cidx :: CartesianIndex{DD}
         )    :: Int64 where {GD, SD, DD, Q <: Number}
 
-Returns linear index for access to f.data
+Returns linear index for access to `f.data`
 """
 function LinearIndex(
     f    :: MatsubaraFunction{GD, SD, DD, Q},
@@ -87,7 +87,7 @@ end
         x :: Vararg{Int64, DD}
         ) :: Int64 where {GD, SD, DD, Q <: Number}
 
-Returns linear index for access to f.data    
+Returns linear index for access to `f.data`
 """
 function LinearIndex(
     f :: MatsubaraFunction{GD, SD, DD, Q},

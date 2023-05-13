@@ -27,14 +27,14 @@ end
 """
     sgn(op :: MatsubaraOperation) :: Bool
 
-Return op.sgn
+Return `op.sgn`
 """
 sgn(op :: MatsubaraOperation) :: Bool = op.sgn
 
 """
     con(op :: MatsubaraOperation) :: Bool
 
-Return op.con
+Return `op.con`
 """
 con(op :: MatsubaraOperation) :: Bool = op.con
 
@@ -64,8 +64,8 @@ end
     struct MatsubaraSymmetry{GD, SD}
 
 MatsubaraSymmetry type with fields:
-* `f :: FunctionWrappers.FunctionWrapper{Tuple{NTuple{GD, MatsubaraFrequency}, NTuple{SD, Int64}, MatsubaraOperation}, Tuple{NTuple{GD, MatsubaraFrequency}, NTuple{SD, Int64}}}` :
-MatsubaraSymmetry takes grid coordinates and tensor indices as input and returns a new set of coordinates and indices together with a MatsubaraOperation
+* `f :: FunctionWrappers.FunctionWrapper{Tuple{NTuple{GD, MatsubaraFrequency}, NTuple{SD, Int64}, MatsubaraOperation}, Tuple{NTuple{GD, MatsubaraFrequency}, NTuple{SD, Int64}}}`
+`MatsubaraSymmetry` takes grid coordinates and tensor indices as input and returns a new set of coordinates and indices together with a MatsubaraOperation
 """
 struct MatsubaraSymmetry{GD, SD}
     f :: FunctionWrappers.FunctionWrapper{Tuple{NTuple{GD, MatsubaraFrequency}, NTuple{SD, Int64}, MatsubaraOperation}, Tuple{NTuple{GD, MatsubaraFrequency}, NTuple{SD, Int64}}}
@@ -132,46 +132,6 @@ end
 
 MatsubaraSymmetryGroup type with fields:
 * `classes :: Vector{Vector{Tuple{Int64, MatsubaraOperation}}}` : list of collections of symmetry equivalent elements
-
-Examples:
-```julia
-# a simple Green's function
-ξ = 0.5
-T = 1.0
-N = 128
-g = MatsubaraGrid(T, N, Fermion)
-f = MatsubaraFunction(g, 1)
-
-for v in g
-    f[v, 1] = 1.0 / (im * value(v) - ξ)
-end 
-
-# complex conjugation acting on Green's function
-function conj(
-    w :: Tuple{MatsubaraFrequency},
-    x :: Tuple{Int64}
-    ) :: Tuple{Tuple{MatsubaraFrequency}, Tuple{Int64}, MatsubaraOperation}
-
-    return (-w[1],), (x[1],), MatsubaraOperation(false, true)
-end 
-
-# compute the symmetry group 
-SG = MatsubaraSymmetryGroup([MatsubaraSymmetry{1, 1}(conj)], f)
-
-# obtain another Green's function by symmetrization
-function init(
-    w :: Tuple{MatsubaraFrequency},
-    x :: Tuple{Int64}
-    ) :: ComplexF64
-
-    return f[w, x...]
-end 
-
-InitFunc = MatsubaraInitFunction{1, 1, ComplexF64}(init)
-h        = MatsubaraFunction(g, 1)
-SG(h, InitFunc)
-@assert h == f
-```
 """
 struct MatsubaraSymmetryGroup
     classes :: Vector{Vector{Tuple{Int64, MatsubaraOperation}}}
@@ -253,7 +213,7 @@ end
 
 MatsubaraInitFunction type with fields:
 * `f :: FunctionWrappers.FunctionWrapper{Q, Tuple{NTuple{GD, MatsubaraFrequency}, NTuple{SD, Int64}}}` 
-MatsubaraInitFunction takes grid coordinates and tensor indices as input and returns value of type Q
+`MatsubaraInitFunction` takes grid coordinates and tensor indices as input and returns value of type Q
 """
 struct MatsubaraInitFunction{GD, SD, Q <: Number}
     f :: FunctionWrappers.FunctionWrapper{Q, Tuple{NTuple{GD, MatsubaraFrequency}, NTuple{SD, Int64}}}

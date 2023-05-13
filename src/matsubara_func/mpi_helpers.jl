@@ -17,7 +17,7 @@ mpi_size() :: Int64 = MPI.Comm_size(mpi_comm())
         r :: UnitRange{Int64}
         ) :: UnitRange{Int64}
 
-Splits UnitRange evenly among available MPI ranks (including main). 
+Splits `UnitRange` evenly among available MPI ranks (including main). 
 Can, for example, be used to parallelize loops.
 """
 function mpi_split(
@@ -81,7 +81,7 @@ mpi_ismain() :: Bool = mpi_rank() == 0
         s :: String
         ) :: Nothing
 
-Print string s on MPI rank 0
+Print string `s` on MPI rank 0
 """
 function mpi_println(
     s :: String
