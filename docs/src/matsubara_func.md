@@ -35,7 +35,7 @@ g = MatsubaraGrid(T, N, Fermion)
 f = MatsubaraFunction(g, 1)
 
 for v in g
-    # if there is only one index of dimension 1, it does not need to specified, i.e. 
+    # if there is only one index of dimension 1, it does not need to be specified, i.e. 
     # f[v] can be used instead of f[v, 1] (also works for the '()' operator)
     f[v] = 1.0 / (im * value(v) - ξ)
 end 
