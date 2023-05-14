@@ -17,7 +17,7 @@ v2 = w - v # type(v2) = :Fermion
 v3 = -v    # type(v3) = :Fermion 
 ```
 
-# Abstract types
+# Types
 
 ```@docs
 AbstractParticle
@@ -30,8 +30,6 @@ Fermion
 ```@docs
 Boson
 ```
-
-# Structs
 
 ```@docs
 MatsubaraFrequency

@@ -49,7 +49,7 @@ gp = load_matsubara_grid(file, "grid")
 close(file)
 ```
 
-# Structs
+# Types
 
 ```@docs
 MatsubaraGrid

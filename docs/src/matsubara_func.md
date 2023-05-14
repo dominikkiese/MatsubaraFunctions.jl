@@ -162,7 +162,7 @@ end
 mpi_allreduce!(f)
 ```
 
-# Structs
+# Types
 
 ```@docs
 MatsubaraFunction
