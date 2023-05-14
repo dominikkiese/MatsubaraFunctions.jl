@@ -35,21 +35,24 @@ g = MatsubaraGrid(T, N, Fermion)
 f = MatsubaraFunction(g, 1)
 
 for v in g
-    f[v, 1] = 1.0 / (im * value(v) - ξ)
+    # if there is only one index of dimension 1, it does not need to be specified, i.e. 
+    # f[v] can be used instead of f[v, 1] (also works for the '()' operator)
+    f[v] = 1.0 / (im * value(v) - ξ)
 end 
 
 # access MatsubaraFunction data
-println(f[v, 1])        # fast data access, throws error if v is out of bounds
-println(f(v, 1))        # fast data access, defined even if v is out of bounds
-println(f(value(v), 1)) # slow data access, uses interpolation 
+v = g[rand(eachindex(g))]
+println(f[v])        # fast data access, throws error if v is out of bounds
+println(f(v))        # fast data access, defined even if v is out of bounds
+println(f(value(v))) # slow data access, uses interpolation 
 
 # fallback methods for out of bounds access
 vp = MatsubaraFrequency(T, 256, Fermion)
-println(f(vp, 1))                                  # default x -> 0.0
-println(f(vp, 1; bc = x -> 1.0))                   # custom boundary condition x -> 1.0
-println(f(vp, 1; bc = x -> 1.0 / im / value(x)))   # custom boundary condition x -> 1.0 / im / value(x)
-println(f(value(vp), 1; bc = x -> 1.0 / im / x))   # custom boundary condition x -> 1.0 / im / x
-println(f(vp, 1; extrp = (true, ComplexF64(0.0)))) # polynomial extrapolation in 1D, constant term set to 0.0
+println(f(vp))                                  # default x -> 0.0
+println(f(vp; bc = x -> 1.0))                   # custom boundary condition x -> 1.0
+println(f(vp; bc = x -> 1.0 / im / value(x)))   # custom boundary condition x -> 1.0 / im / value(x)
+println(f(value(vp); bc = x -> 1.0 / im / x))   # custom boundary condition x -> 1.0 / im / x
+println(f(vp; extrp = (true, ComplexF64(0.0)))) # polynomial extrapolation in 1D, constant term set to 0.0
 ```
 
 `MatsubaraFunction` objects can be saved in HDF5 file format as
@@ -81,7 +84,7 @@ g = MatsubaraGrid(T, N, Fermion)
 f = MatsubaraFunction(g, 1)
 
 for v in g
-    f[v, 1] = 1.0 / (im * value(v) - ξ)
+    f[v] = 1.0 / (im * value(v) - ξ)
 end 
 
 # evaluate the series and compare to analytic result
@@ -101,7 +104,7 @@ g = MatsubaraGrid(T, N, Fermion)
 f = MatsubaraFunction(g, 1)
 
 for v in g
-    f[v, 1] = 1.0 / (im * value(v) - ξ)
+    f[v] = 1.0 / (im * value(v) - ξ)
 end 
 
 # complex conjugation acting on Green's function

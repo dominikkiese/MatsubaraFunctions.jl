@@ -86,10 +86,12 @@ end
 
     @test CartesianIndex(f, lidx) == cidx 
     @test LinearIndex(f, cidx) == lidx
+
     @test value(first(x)[1]) ≈ value(g[idxs[1]])
     @test value(first(x)[2]) ≈ value(g[idxs[2]])
     @test last(x)[1] == idxs[3] 
     @test last(x)[2] == idxs[4]
+
     @test value(first(y)[1]) ≈ value(g[idxs[1]])
     @test value(first(y)[2]) ≈ value(g[idxs[2]])
     @test last(y)[1] == idxs[3] 
@@ -98,7 +100,11 @@ end
 
 @testset "Evaluate" begin 
     fg = MatsubaraGrid(1.0, 10, Fermion); nf = length(fg)
-    bg = MatsubaraGrid(1.0, 10, Boson);   nb = length(bg)
+    bg = MatsubaraGrid(1.0, 10, Boson); nb = length(bg)
+
+    F1D = MatsubaraFunction((fg,), (1,), rand(nf, 1))
+    F2D = MatsubaraFunction((bg, fg), (1,), rand(nf, nf, 1))
+    F3D = MatsubaraFunction((bg, fg, fg), (1,), rand(nf, nf, nf, 1))
 
     f1D = MatsubaraFunction((fg,), (10, 10), rand(nf, 10, 10))
     f2D = MatsubaraFunction((bg, fg), (10, 10), rand(nb, nf, 10, 10))
@@ -119,7 +125,11 @@ end
         w3D   = bg[idx3D[1]], fg[idx3D[2]], fg[idx3D[3]]
 
         # test evaluators for MatsubaraFrequency and Float64
-        @test f1D(w1D, x...) ≈ f1D[idx1D...]; @test f1D(value(w1D), x...)  ≈ f1D[idx1D...]
+        @test F1D(w1D) ≈ F1D[idx1D[1], 1]; @test F1D(value(w1D)) ≈ F1D[idx1D[1], 1]
+        @test F2D(w2D...) ≈ F2D[idx2D[1 : 2]..., 1]; @test F2D(value.(w2D)...) ≈ F2D[idx2D[1 : 2]..., 1]
+        @test F3D(w3D...) ≈ F3D[idx3D[1 : 3]..., 1]; @test F3D(value.(w3D)...) ≈ F3D[idx3D[1 : 3]..., 1]
+
+        @test f1D(w1D, x...) ≈ f1D[idx1D...]; @test f1D(value(w1D), x...) ≈ f1D[idx1D...]
         @test f2D(w2D, x...) ≈ f2D[idx2D...]; @test f2D(value.(w2D), x...) ≈ f2D[idx2D...]
         @test f3D(w3D, x...) ≈ f3D[idx3D...]; @test f3D(value.(w3D), x...) ≈ f3D[idx3D...]
     end 
@@ -134,22 +144,22 @@ end
     f2 = MatsubaraFunction((fg, fg), 1)
 
     # default bc
-    @test f1(v, 1) ≈ 0.0
-    @test f2((v, fg[1]), 1) ≈ 0.0
-    @test f1(value(v), 1) ≈ 0.0
-    @test f2((value(v), value(fg[1])), 1) ≈ 0.0
+    @test f1(v) ≈ 0.0
+    @test f2(v, fg[1]) ≈ 0.0
+    @test f1(value(v)) ≈ 0.0
+    @test f2(value(v), value(fg[1])) ≈ 0.0
 
     # constant bc
-    @test f1(v, 1; bc = x -> 1.0) ≈ 1.0
-    @test f2((v, fg[1]), 1; bc = x -> 1.0) ≈ 1.0
-    @test f1(value(v), 1; bc = x -> 1.0) ≈ 1.0
-    @test f2((value(v), value(fg[1])), 1; bc = x -> 1.0) ≈ 1.0
+    @test f1(v; bc = x -> 1.0) ≈ 1.0
+    @test f2(v, fg[1]; bc = x -> 1.0) ≈ 1.0
+    @test f1(value(v); bc = x -> 1.0) ≈ 1.0
+    @test f2(value(v), value(fg[1]); bc = x -> 1.0) ≈ 1.0
 
     # frequency dependent bc
-    @test f1(v, 1; bc = x -> 1.0 / value(x)) ≈ 1.0 / value(v)
-    @test f2((v, fg[1]), 1; bc = x -> 1.0 / value(x[1]) / value(x[2])) ≈ 1.0 / value(v) / value(fg[1])
-    @test f1(value(v), 1; bc = x -> 1.0 / x) ≈ 1.0 / value(v)
-    @test f2((value(v), value(fg[1])), 1; bc = x -> 1.0 / x[1] / x[2]) ≈ 1.0 / value(v) / value(fg[1])
+    @test f1(v; bc = x -> 1.0 / value(x)) ≈ 1.0 / value(v)
+    @test f2(v, fg[1]; bc = x -> 1.0 / value(x[1]) / value(x[2])) ≈ 1.0 / value(v) / value(fg[1])
+    @test f1(value(v); bc = x -> 1.0 / x) ≈ 1.0 / value(v)
+    @test f2(value(v), value(fg[1]); bc = x -> 1.0 / x[1] / x[2]) ≈ 1.0 / value(v) / value(fg[1])
 end
 
 @testset "Extrapolation" begin 
@@ -163,13 +173,13 @@ end
     f5 = MatsubaraFunction((fg, fg), 1)
 
     for v in fg
-        f1[v, 1] = 1.0 / (im * value(v))
-        f2[v, 1] = 1.0 / (im * value(v) - ξ)
-        f3[v, 1] = 1.0 / (im * value(v) - ξ) / (im * value(v) - ξ)
-        f4[v, 1] = 1.0 / value(v)
+        f1[v] = 1.0 / (im * value(v))
+        f2[v] = 1.0 / (im * value(v) - ξ)
+        f3[v] = 1.0 / (im * value(v) - ξ) / (im * value(v) - ξ)
+        f4[v] = 1.0 / value(v)
 
         for vp in fg 
-            f5[(v, vp), 1] = 1.0 / (im * value(v) - ξ) / (im * value(vp) - ξ)
+            f5[v, vp] = 1.0 / (im * value(v) - ξ) / (im * value(vp) - ξ)
         end
     end 
     
@@ -177,26 +187,26 @@ end
     c0 = ComplexF64(0.0)
 
     # polynomial extrapolation for 1D grids with MatsubaraFrequency argument
-    @test isapprox(f1(w, 1; extrp = (true, c0)), 1.0 / (im * value(w)); atol = 1e-6, rtol = 1e-6)
-    @test isapprox(f2(w, 1; extrp = (true, c0)), 1.0 / (im * value(w)) - ξ / value(w) / value(w); atol = 1e-6, rtol = 1e-6)
-    @test isapprox(f3(w, 1; extrp = (true, c0)), -1.0 / value(w) / value(w); atol = 1e-6, rtol = 1e-6)
-    @test isapprox(f4(w, 1; extrp = (true, 0.)), 1.0 / value(w); atol = 1e-6, rtol = 1e-6)
+    @test isapprox(f1(w; extrp = (true, c0)), 1.0 / (im * value(w)); atol = 1e-6, rtol = 1e-6)
+    @test isapprox(f2(w; extrp = (true, c0)), 1.0 / (im * value(w)) - ξ / value(w) / value(w); atol = 1e-6, rtol = 1e-6)
+    @test isapprox(f3(w; extrp = (true, c0)), -1.0 / value(w) / value(w); atol = 1e-6, rtol = 1e-6)
+    @test isapprox(f4(w; extrp = (true, 0.)), 1.0 / value(w); atol = 1e-6, rtol = 1e-6)
 
     # polynomial extrapolation for 1D grids with Float64 argument
-    @test isapprox(f1(value(w), 1; extrp = (true, c0)), 1.0 / (im * value(w)); atol = 1e-6, rtol = 1e-6)
-    @test isapprox(f2(value(w), 1; extrp = (true, c0)), 1.0 / (im * value(w)) - ξ / value(w) / value(w); atol = 1e-6, rtol = 1e-6)
-    @test isapprox(f3(value(w), 1; extrp = (true, c0)), -1.0 / value(w) / value(w); atol = 1e-6, rtol = 1e-6)
-    @test isapprox(f4(value(w), 1; extrp = (true, 0.)), 1.0 / value(w); atol = 1e-6, rtol = 1e-6)
+    @test isapprox(f1(value(w); extrp = (true, c0)), 1.0 / (im * value(w)); atol = 1e-6, rtol = 1e-6)
+    @test isapprox(f2(value(w); extrp = (true, c0)), 1.0 / (im * value(w)) - ξ / value(w) / value(w); atol = 1e-6, rtol = 1e-6)
+    @test isapprox(f3(value(w); extrp = (true, c0)), -1.0 / value(w) / value(w); atol = 1e-6, rtol = 1e-6)
+    @test isapprox(f4(value(w); extrp = (true, 0.)), 1.0 / value(w); atol = 1e-6, rtol = 1e-6)
 
     # constant extrapolation for higher-dimensional grids with MatsubaraFrequency argument
-    @test f5((w, w), 1; extrp = (true, c0)) ≈ 1.0 / (im * value(fg[end]) - ξ) / (im * value(fg[end]) - ξ)
-    @test f5((w, fg[1]), 1; extrp = (true, c0)) ≈ 1.0 / (im * value(fg[end]) - ξ) / (im * value(fg[1]) - ξ)
-    @test f5((fg[1], w), 1; extrp = (true, c0)) ≈ 1.0 / (im * value(fg[1]) - ξ) / (im * value(fg[end]) - ξ)
+    @test f5(w, w; extrp = (true, c0)) ≈ 1.0 / (im * value(fg[end]) - ξ) / (im * value(fg[end]) - ξ)
+    @test f5(w, fg[1]; extrp = (true, c0)) ≈ 1.0 / (im * value(fg[end]) - ξ) / (im * value(fg[1]) - ξ)
+    @test f5(fg[1], w; extrp = (true, c0)) ≈ 1.0 / (im * value(fg[1]) - ξ) / (im * value(fg[end]) - ξ)
 
     # constant extrapolation for higher-dimensional grids with Float64 argument
-    @test f5((value(w), value(w)), 1; extrp = (true, c0)) ≈ 1.0 / (im * value(fg[end]) - ξ) / (im * value(fg[end]) - ξ)
-    @test f5((value(w), value(fg[1])), 1; extrp = (true, c0)) ≈ 1.0 / (im * value(fg[end]) - ξ) / (im * value(fg[1]) - ξ)
-    @test f5((value(fg[1]), value(w)), 1; extrp = (true, c0)) ≈ 1.0 / (im * value(fg[1]) - ξ) / (im * value(fg[end]) - ξ)
+    @test f5(value(w), value(w); extrp = (true, c0)) ≈ 1.0 / (im * value(fg[end]) - ξ) / (im * value(fg[end]) - ξ)
+    @test f5(value(w), value(fg[1]); extrp = (true, c0)) ≈ 1.0 / (im * value(fg[end]) - ξ) / (im * value(fg[1]) - ξ)
+    @test f5(value(fg[1]), value(w); extrp = (true, c0)) ≈ 1.0 / (im * value(fg[1]) - ξ) / (im * value(fg[end]) - ξ)
 end
 
 @testset "Summation" begin 
@@ -209,10 +219,10 @@ end
     f4 = MatsubaraFunction(fg, 1)
 
     for v in fg
-        f1[v, 1] = 1.0 / (im * value(v))
-        f2[v, 1] = 1.0 / (im * value(v) - ξ)
-        f3[v, 1] = 1.0 / (im * value(v) + ξ)
-        f4[v, 1] = 1.0 / (im * value(v) - ξ) / (im * value(v) - ξ)
+        f1[v] = 1.0 / (im * value(v))
+        f2[v] = 1.0 / (im * value(v) - ξ)
+        f3[v] = 1.0 / (im * value(v) + ξ)
+        f4[v] = 1.0 / (im * value(v) - ξ) / (im * value(v) - ξ)
     end 
 
     # compute analytic results
@@ -239,7 +249,7 @@ end
     f3 = MatsubaraFunction(g, 1)
 
     for v in g
-        f1[v, 1] = 1.0 / (im * value(v) - ξ)
+        f1[v] = 1.0 / (im * value(v) - ξ)
     end
 
     # complex conjugation for Green's function

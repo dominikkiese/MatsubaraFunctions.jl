@@ -101,7 +101,7 @@ function (f :: MatsubaraFunction{GD, SD, DD, Q})(
     w     :: NTuple{GD, MatsubaraFrequency},
     x     :: Vararg{Int64, SD} 
     ; 
-    bc    :: Function       = x -> 0.0,
+    bc    :: Function       = y -> 0.0,
     extrp :: Tuple{Bool, Q} = (false, Q(0.0))
     )     :: Q where{GD, SD, DD, Q <: Number}
 
@@ -124,11 +124,34 @@ function (f :: MatsubaraFunction{1, SD, DD, Q})(
     w     :: MatsubaraFrequency,
     x     :: Vararg{Int64, SD} 
     ; 
-    bc    :: Function       = x -> 0.0,
+    bc    :: Function       = y -> 0.0,
     extrp :: Tuple{Bool, Q} = (false, Q(0.0))
     )     :: Q where{SD, DD, Q <: Number}
 
-    return f((w,), x...; bc = x -> bc(x[1]), extrp)
+    return f((w,), x...; bc = y -> bc(y[1]), extrp)
+end
+
+function (f :: MatsubaraFunction{GD, 1, DD, Q})(
+    w     :: Vararg{MatsubaraFrequency, GD},
+    ; 
+    bc    :: Function       = y -> 0.0,
+    extrp :: Tuple{Bool, Q} = (false, Q(0.0))
+    )     :: Q where{GD, DD, Q <: Number}
+
+    @assert shape(f, 1) == 1 "MatsubaraFunction is not scalar but vector valued"
+    return f((w...,), 1; bc = y -> bc(y), extrp)
+end
+
+# specialization to make boundary condition more convenient
+function (f :: MatsubaraFunction{1, 1, 2, Q})(
+    w     :: MatsubaraFrequency,
+    ; 
+    bc    :: Function       = y -> 0.0,
+    extrp :: Tuple{Bool, Q} = (false, Q(0.0))
+    )     :: Q where{Q <: Number}
+
+    @assert shape(f, 1) == 1 "MatsubaraFunction is not scalar but vector valued"
+    return f((w,), 1; bc = y -> bc(y[1]), extrp)
 end
 
 
@@ -177,7 +200,7 @@ function (f :: MatsubaraFunction{GD, SD, DD, Q})(
     w     :: NTuple{GD, Float64},
     x     :: Vararg{Int64, SD} 
     ; 
-    bc    :: Function       = x -> 0.0,
+    bc    :: Function       = y -> 0.0,
     extrp :: Tuple{Bool, Q} = (false, Q(0.0))
     )     :: Q where{GD, SD, DD, Q <: Number}
 
@@ -218,11 +241,34 @@ function (f :: MatsubaraFunction{1, SD, DD, Q})(
     w     :: Float64,
     x     :: Vararg{Int64, SD} 
     ; 
-    bc    :: Function       = x -> 0.0,
+    bc    :: Function       = y -> 0.0,
     extrp :: Tuple{Bool, Q} = (false, Q(0.0))
     )     :: Q where{SD, DD, Q <: Number}
 
-    return f((w,), x...; bc = x -> bc(x[1]), extrp)
+    return f((w,), x...; bc = y -> bc(y[1]), extrp)
+end
+
+function (f :: MatsubaraFunction{GD, 1, DD, Q})(
+    w     :: Vararg{Float64, GD},
+    ; 
+    bc    :: Function       = y -> 0.0,
+    extrp :: Tuple{Bool, Q} = (false, Q(0.0))
+    )     :: Q where{GD, DD, Q <: Number}
+
+    @assert shape(f, 1) == 1 "MatsubaraFunction is not scalar but vector valued"
+    return f((w...,), 1; bc = y -> bc(y), extrp)
+end
+
+# specialization to make boundary condition more convenient
+function (f :: MatsubaraFunction{1, 1, 2, Q})(
+    w     :: Float64,
+    ; 
+    bc    :: Function       = y -> 0.0,
+    extrp :: Tuple{Bool, Q} = (false, Q(0.0))
+    )     :: Q where{Q <: Number}
+
+    @assert shape(f, 1) == 1 "MatsubaraFunction is not scalar but vector valued"
+    return f((w,), 1; bc = y -> bc(y[1]), extrp)
 end
 
 

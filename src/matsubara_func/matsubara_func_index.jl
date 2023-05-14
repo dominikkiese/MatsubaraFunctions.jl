@@ -157,6 +157,15 @@ function Base.:getindex(
     return @inbounds f.data[CartesianIndex(f, (w,), x...)]
 end
 
+function Base.:getindex(
+    f :: MatsubaraFunction{GD, 1, DD, Q},
+    w :: Vararg{MatsubaraFrequency, GD} 
+    ) :: Q where {GD, DD, Q <: Number}
+
+    @assert shape(f, 1) == 1 "MatsubaraFunction is not scalar but vector valued"
+    return f[(w...,), 1]
+end
+
 # getindex from CartesianIndex
 function Base.:getindex(
     f    :: MatsubaraFunction{GD, SD, DD, Q},
@@ -212,6 +221,18 @@ function Base.:setindex!(
 
     # bounds check already performed by CartesianIndex
     @inbounds f.data[CartesianIndex(f, (w,), x...)] = val
+
+    return nothing
+end
+
+function Base.:setindex!(
+    f   :: MatsubaraFunction{GD, 1, DD, Q},
+    val :: Qp,
+    w   :: Vararg{MatsubaraFrequency, GD}
+    )   :: Nothing where {GD, DD, Q <: Number, Qp <: Number}
+
+    @assert shape(f, 1) == 1 "MatsubaraFunction is not scalar but vector valued"
+    f[(w...,), 1] = val
 
     return nothing
 end
