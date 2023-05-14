@@ -132,6 +132,7 @@ end
 
 MatsubaraSymmetryGroup type with fields:
 * `classes :: Vector{Vector{Tuple{Int64, MatsubaraOperation}}}` : list of collections of symmetry equivalent elements
+* `speedup :: Float64`                                          : expected speedup from the symmetry reduction
 """
 struct MatsubaraSymmetryGroup
     classes :: Vector{Vector{Tuple{Int64, MatsubaraOperation}}}
@@ -179,11 +180,6 @@ struct MatsubaraSymmetryGroup
 
         return MatsubaraSymmetryGroup(classes, length(f.data) / length(classes))
     end 
-end
-
-# accessor for speedup 
-function speedup(SG :: MatsubaraSymmetryGroup) 
-    return SG.speedup 
 end
 
 # make MatsubaraSymmetryGroup callable with MatsubaraFunction. This will iterate 

@@ -1,15 +1,44 @@
 module MatsubaraFunctions
 
-    using LinearAlgebra 
-    using StaticArrays
-    using FunctionWrappers
-    using MPI
-    using HDF5 
-    using Documenter
+    using PrecompileTools
+
+    @recompile_invalidations begin
+        using LinearAlgebra 
+        using StaticArrays
+        using FunctionWrappers
+        using MPI
+        using HDF5
+        using Documenter
+    end
     
     include("matsubara_freq/matsubara_freq.jl")
     include("matsubara_grid/matsubara_grid.jl")
     include("matsubara_func/matsubara_func.jl")
+
+    @compile_workload begin
+        fg = MatsubaraGrid(1.0, 10, Fermion)
+        bg = MatsubaraGrid(1.0, 10, Boson)
+
+        # typical MatsubaraFunction constructors 
+        f1D_c = MatsubaraFunction(fg, 1)
+        f1D_r = MatsubaraFunction(fg, 1, Float64)
+
+        f2D_c = MatsubaraFunction((bg, fg), 1)
+        f2D_r = MatsubaraFunction((bg, fg), 1, Float64)
+
+        f3D_c = MatsubaraFunction((bg, fg, fg), 1)
+        f3D_r = MatsubaraFunction((bg, fg, fg), 1, Float64)
+
+        # typical MatsubaraFunction accessors 
+        f1D_c[fg[1]]; f1D_c(fg[1]); f1D_c(value(fg[1]))
+        f1D_r[fg[1]]; f1D_r(fg[1]); f1D_r(value(fg[1]))
+
+        f2D_c[bg[1], fg[1]]; f2D_c(bg[1], fg[1]); f2D_c(value(bg[1]), value(fg[1]))
+        f2D_r[bg[1], fg[1]]; f2D_r(bg[1], fg[1]); f2D_r(value(bg[1]), value(fg[1]))
+
+        f3D_c[bg[1], fg[1], fg[1]]; f3D_c(bg[1], fg[1], fg[1]); f3D_c(value(bg[1]), value(fg[1]), value(fg[1]))
+        f3D_r[bg[1], fg[1], fg[1]]; f3D_r(bg[1], fg[1], fg[1]); f3D_r(value(bg[1]), value(fg[1]), value(fg[1]))
+    end
 
     export
         # matsubara_freq.jl 
