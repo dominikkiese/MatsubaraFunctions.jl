@@ -117,7 +117,7 @@ function (f :: MatsubaraFunction{GD, SD, DD, Q})(
         end 
     end
 
-    return f[ntuple(i -> grid_index(w[i], f.grids[i]), GD)..., x ...]
+    return f.data[ntuple(i -> grid_index(w[i], f.grids[i]), GD)..., x ...]
 end
 
 function (f :: MatsubaraFunction{1, SD, DD, Q})(
@@ -215,7 +215,7 @@ function (f :: MatsubaraFunction{GD, SD, DD, Q})(
                 for cidx in CartesianIndices(ntuple(i -> 2, GD))
                     wgts  = ntuple(i -> p[i].wgts[cidx[i]], GD)
                     idxs  = ntuple(i -> p[i].idxs[cidx[i]], GD)
-                    val  += prod(wgts) * f[idxs..., x...]
+                    val  += prod(wgts) * f.data[idxs..., x...]
                 end
 
                 return val
@@ -231,7 +231,7 @@ function (f :: MatsubaraFunction{GD, SD, DD, Q})(
     for cidx in CartesianIndices(ntuple(i -> 2, GD))
         wgts  = ntuple(i -> p[i].wgts[cidx[i]], GD)
         idxs  = ntuple(i -> p[i].idxs[cidx[i]], GD)
-        val  += prod(wgts) * f[idxs..., x...]
+        val  += prod(wgts) * f.data[idxs..., x...]
     end
 
     return val

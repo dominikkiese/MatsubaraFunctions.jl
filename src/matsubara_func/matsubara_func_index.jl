@@ -15,6 +15,10 @@ function Base.CartesianIndex(
 
     # calling grid with frequency performs inbounds check
     idxs = ntuple(i -> f.grids[i](w[i]), GD)
+
+    # check if tensor indices are inbounds 
+    @assert any(ntuple(i -> !(1 <= x[i] <= shape(f, i)), SD)) == false "Tensor indices invalid, shape is $(shape(f))"
+
     return CartesianIndex(idxs..., x...)
 end
 
@@ -26,7 +30,12 @@ function CartesianIndex_extrp(
     x :: Vararg{Int64, SD} 
     ) :: CartesianIndex{DD} where {GD, SD, DD, Q <: Number}
 
+    # determine grid indices
     idxs = ntuple(i -> grid_index_extrp(w[i], f.grids[i]), GD)
+
+    # check if tensor indices are inbounds 
+    @assert any(ntuple(i -> !(1 <= x[i] <= shape(f, i)), SD)) == false "Tensor indices invalid, shape is $(shape(f))"
+
     return CartesianIndex(idxs..., x...)
 end
 
@@ -143,8 +152,8 @@ function Base.:getindex(
     x :: Vararg{Int64, SD} 
     ) :: Q where {GD, SD, DD, Q <: Number}
 
-    # bounds check already performed by CartesianIndex
-    return @inbounds f.data[CartesianIndex(f, w, x...)]
+    # bounds check performed by Base
+    return f.data[ntuple(i -> grid_index(w[i], f.grids[i]), GD)..., x...]
 end
 
 function Base.:getindex(
@@ -153,8 +162,8 @@ function Base.:getindex(
     x :: Vararg{Int64, SD} 
     ) :: Q where {SD, DD, Q <: Number}
 
-    # bounds check already performed by CartesianIndex
-    return @inbounds f.data[CartesianIndex(f, (w,), x...)]
+    # bounds check performed by Base
+    return f.data[grid_index(w, f.grids[1]), x...]
 end
 
 function Base.:getindex(
@@ -162,8 +171,9 @@ function Base.:getindex(
     w :: Vararg{MatsubaraFrequency, GD} 
     ) :: Q where {GD, DD, Q <: Number}
 
-    @assert shape(f, 1) == 1 "MatsubaraFunction is not scalar but vector valued"
-    return f[(w...,), 1]
+    # bounds check performed by Base
+    @assert shape(f, 1) == 1 "MatsubaraFunction is not scalar but vector valued!"
+    return f.data[ntuple(i -> grid_index(w[i], f.grids[i]), GD)..., 1]
 end
 
 # getindex from CartesianIndex
@@ -206,8 +216,8 @@ function Base.:setindex!(
     x   :: Vararg{Int64, SD} 
     )   :: Nothing where {GD, SD, DD, Q <: Number, Qp <: Number}
 
-    # bounds check already performed by CartesianIndex
-    @inbounds f.data[CartesianIndex(f, w, x...)] = val
+    # bounds check performed by Base
+    f.data[ntuple(i -> grid_index(w[i], f.grids[i]), GD)..., x...] = val
 
     return nothing
 end
@@ -219,8 +229,8 @@ function Base.:setindex!(
     x   :: Vararg{Int64, SD} 
     )   :: Nothing where {SD, DD, Q <: Number, Qp <: Number}
 
-    # bounds check already performed by CartesianIndex
-    @inbounds f.data[CartesianIndex(f, (w,), x...)] = val
+    # bounds check performed by Base
+    f.data[grid_index(w, f.grids[1]), x...] = val
 
     return nothing
 end
@@ -231,8 +241,9 @@ function Base.:setindex!(
     w   :: Vararg{MatsubaraFrequency, GD}
     )   :: Nothing where {GD, DD, Q <: Number, Qp <: Number}
 
+    # bounds check performed by Base
     @assert shape(f, 1) == 1 "MatsubaraFunction is not scalar but vector valued"
-    f[(w...,), 1] = val
+    f.data[ntuple(i -> grid_index(w[i], f.grids[i]), GD)..., 1] = val
 
     return nothing
 end

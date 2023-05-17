@@ -65,7 +65,7 @@ end
     end 
 end
 
-# make linear MatsubaraGrid callable with Float64
+# make MatsubaraGrid callable with Float64
 # returns index to data array corresponding to closest frequency if in grid
 @inline function (f :: MatsubaraGrid)(
     w :: Float64
