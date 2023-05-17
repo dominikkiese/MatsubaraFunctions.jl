@@ -154,8 +154,7 @@ f = MatsubaraFunction(g, 1)
 
 # simple loop parallelization for UnitRange
 for vidx in mpi_split(1 : length(g))
-  comm = MPI.COMM_WORLD 
-  println("My rank is $(MPI.Comm_rank(comm)): $(vidx)")
+    println("My rank is $(mpi_rank()): $(vidx)")
 end
 
 # simple (+) allreduce
