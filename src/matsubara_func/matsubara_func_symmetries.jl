@@ -147,6 +147,15 @@ struct MatsubaraSymmetryGroup
         return new(classes, speedup)
     end 
 
+    # dummy constructor 
+    function MatsubaraSymmetryGroup(
+        f :: MatsubaraFunction{GD, SD, DD, Q}
+        ) :: MatsubaraSymmetryGroup where {GD, SD, DD, Q <: Number}
+
+        all_class = Tuple{Int64, MatsubaraOperation}[(idx, MatsubaraOperation()) for idx in eachindex(f.data)]
+        return new(Vector{Tuple{Int64, MatsubaraOperation}}[all_class], 1.0)
+    end
+
     # convenience constructor from MatsubaraFunction and list of symmetries 
     function MatsubaraSymmetryGroup(
         symmetries :: Vector{MatsubaraSymmetry{GD, SD}},
