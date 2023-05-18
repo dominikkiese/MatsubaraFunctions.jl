@@ -72,7 +72,7 @@ function save_matsubara_symmetry_group!(
     grp = create_group(h, l)
 
     # add metadata 
-    attributes(grp)["speedup"]     = speedup(SG)
+    attributes(grp)["speedup"]     = SG.speedup
     attributes(grp)["num_classes"] = length(SG.classes)
 
     # add data 
