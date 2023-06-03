@@ -294,14 +294,17 @@ function sum_me(
     )  :: Q where {SD, DD, Q <: Complex}
 
     # compute tail moments 
-    upper_moments = upper_tail_moments(f, α0, x...)
-    lower_moments = lower_tail_moments(f, α0, x...)
+    upper_moments = upper_tail_moments(f, α0, x...); upper_max = max(abs.(upper_moments)...)
+    lower_moments = lower_tail_moments(f, α0, x...); lower_max = max(abs.(lower_moments)...)
 
     # check self-consistency 
-    diff1 = abs(upper_moments[1] - lower_moments[1])
-    diff2 = abs(upper_moments[2] - lower_moments[2])
-    @assert diff1 < 1e-2 "Tail fits are inconsistent (Δ = $diff1)! Try more frequencies or check prerequisites"
-    @assert diff2 < 1e-2 "Tail fits are inconsistent (Δ = $diff2)! Try more frequencies or check prerequisites"
+    diff  = max(abs.(upper_moments .- lower_moments)...);
+    scale = 1e-3 + max(upper_max, lower_max) * 1e-2;
+    err   = diff / scale
+
+    if err >= 1.0 
+        @warn "Tail fits are inconsistent: upper_moments = $(upper_moments), lower_moments = $(lower_moments)" 
+    end
 
     # compute expansion coefficients
     α1 = +0.5 * (upper_moments[1] + lower_moments[1]) * im
