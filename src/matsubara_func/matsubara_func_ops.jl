@@ -184,6 +184,25 @@ end
 
 """
     function set!(
+        f   :: MatsubaraFunction{GD, SD, DD, Q},
+        arr :: Array{Qp, DD},
+        )   :: Nothing where {GD, SD, DD, Q <: Number, Qp <: Number}
+
+Initialize MatsubaraFunction with `arr`
+"""
+function set!(
+    f   :: MatsubaraFunction{GD, SD, DD, Q},
+    arr :: Array{Qp, DD},
+    )   :: Nothing where {GD, SD, DD, Q <: Number, Qp <: Number}
+
+    # type promotion checked by Base
+    f.data .= arr
+
+    return nothing
+end
+
+"""
+    function set!(
         f1     :: MatsubaraFunction{GD, SD, DD, Q},
         f2     :: MatsubaraFunction{GD, SD, DD, Q},
         ; 
