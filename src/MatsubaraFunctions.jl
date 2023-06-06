@@ -53,8 +53,13 @@ module MatsubaraFunctions
 
         # matsubara_grid.jl
         MatsubaraGrid, 
+        first_index,
+        last_index,
         index_range,
         is_inbounds,
+        first_value,
+        last_value,
+        value_range,
         info,
         save_matsubara_grid!, 
         load_matsubara_grid,
@@ -92,7 +97,6 @@ module MatsubaraFunctions
         con,
         MatsubaraSymmetry,
         MatsubaraSymmetryGroup,
-        speedup,
         MatsubaraInitFunction,
         save_matsubara_function!, 
         load_matsubara_function,

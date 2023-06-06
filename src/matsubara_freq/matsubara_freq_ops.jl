@@ -1,5 +1,5 @@
 # basic operations
-@inline function Base.:+(
+function Base.:+(
     w1 :: MatsubaraFrequency, 
     w2 :: MatsubaraFrequency
     )  :: MatsubaraFrequency 
@@ -10,7 +10,7 @@
     return MatsubaraFrequency(temperature(w1), index(w1) + index(w2) + shift, ptype)
 end
 
-@inline function Base.:-(
+function Base.:-(
     w1 :: MatsubaraFrequency, 
     w2 :: MatsubaraFrequency
     )  :: MatsubaraFrequency 
@@ -21,7 +21,7 @@ end
     return MatsubaraFrequency(temperature(w1), index(w1) - index(w2) - shift, ptype)
 end
 
-@inline function Base.:-(
+function Base.:-(
     w :: MatsubaraFrequency, 
     ) :: MatsubaraFrequency 
 

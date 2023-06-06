@@ -93,17 +93,45 @@ function Base.:length(
 end
 
 """
+    function first_index(
+        grid :: MatsubaraGrid
+        )    :: Int64 
+
+Returns the index of the first Matsubara frequency in grid
+"""
+function first_index(
+    grid :: MatsubaraGrid
+    )    :: Int64 
+
+    return index(grid.data[1])
+end
+
+"""
+    function last_index(
+        grid :: MatsubaraGrid
+        )    :: Int64 
+
+Returns the index of the last Matsubara frequency in grid
+"""
+function last_index(
+    grid :: MatsubaraGrid
+    )    :: Int64 
+
+    return index(grid.data[end])
+end
+
+"""
     function index_range(
         grid :: MatsubaraGrid
         )    :: NTuple{2, Int64}
 
-Returns Matsubara indices of the first and last MatsubaraFrequency in grid
+Returns indices of the first and last Matsubara frequency in grid
 """
 function index_range(
     grid :: MatsubaraGrid
     )    :: NTuple{2, Int64}
 
-    return index(grid.data[1]), index(grid.data[end])
+    return first_index(grid), last_index(grid)
 end
 
 """
@@ -114,7 +142,7 @@ end
 
 Checks if `w` is contained in grid
 """
-@inline function is_inbounds(
+function is_inbounds(
     w    :: MatsubaraFrequency,
     grid :: MatsubaraGrid
     )    :: Bool
@@ -122,8 +150,49 @@ Checks if `w` is contained in grid
     # perform checks, otherwise question is ill-defined
     @assert type(w) == type(grid) "Particle type must be equal between frequency and grid"
     @assert temperature(w) ≈ temperature(grid) "Temperature must be equal between frequency and grid"
-    idx_range = index_range(grid)
-    return idx_range[1] <= index(w) <= idx_range[2]
+    return first_index(grid) <= index(w) <= last_index(grid)
+end
+
+"""
+    function first_value(
+        grid :: MatsubaraGrid
+        )    :: Float64
+
+Returns the value of the first Matsubara frequency in grid
+"""
+function first_value(
+    grid :: MatsubaraGrid
+    )    :: Float64
+
+    return value(grid.data[1])
+end
+
+"""
+    function last_value(
+        grid :: MatsubaraGrid
+        )    :: Float64
+
+Returns the value of the last Matsubara frequency in grid
+"""
+function last_value(
+    grid :: MatsubaraGrid
+    )    :: Float64
+
+    return value(grid.data[end])
+end
+
+"""
+    function value_range(
+        grid :: MatsubaraGrid
+        )    :: NTuple{2, Float64}
+
+Returns values of the first and last Matsubara frequency in grid
+"""
+function value_range(
+    grid :: MatsubaraGrid
+    )    :: NTuple{2, Float64}
+
+    return first_value(grid), last_value(grid)
 end
 
 """
@@ -139,7 +208,7 @@ function is_inbounds(
     grid :: MatsubaraGrid
     )    :: Bool
 
-    return value(grid[1]) <= w <= value(grid[end])
+    return first_value(grid) <= w <= last_value(grid)
 end
 
 """
@@ -159,6 +228,7 @@ function info(
     println("Temperature   : $(temperature(grid))")
     println("Length        : $(length(grid))")
     println("Index range   : $(index_range(grid))")
+    println("Value range   : $(value_range(grid))")
 
     return nothing
 end

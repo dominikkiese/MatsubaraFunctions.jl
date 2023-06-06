@@ -58,11 +58,31 @@ MatsubaraGrid
 # Functions
 
 ```@docs
+first_index
+```
+
+```@docs
+last_index
+```
+
+```@docs
 index_range
 ```
 
 ```@docs
 is_inbounds
+```
+
+```@docs
+first_value
+```
+
+```@docs
+last_value
+```
+
+```@docs
+value_range
 ```
 
 ```@docs

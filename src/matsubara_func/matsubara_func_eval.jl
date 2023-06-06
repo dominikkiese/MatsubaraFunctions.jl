@@ -172,7 +172,7 @@ struct Param
     end
 
     # convenience constructor
-    @inline function Param(
+    function Param(
         val  :: Float64, 
         grid :: MatsubaraGrid
         )    :: Param
