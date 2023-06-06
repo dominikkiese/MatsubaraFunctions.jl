@@ -154,6 +154,20 @@ function is_inbounds(
 end
 
 """
+    function N(
+        grid :: MatsubaraGrid
+        )    :: Int64
+
+Returns that value `N` used to construct the grid
+"""
+function N(
+    grid :: MatsubaraGrid
+    )    :: Int64
+
+    return last_index(grid) + 1
+end
+
+"""
     function first_value(
         grid :: MatsubaraGrid
         )    :: Float64

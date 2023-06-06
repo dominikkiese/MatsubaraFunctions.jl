@@ -74,6 +74,10 @@ is_inbounds
 ```
 
 ```@docs
+N
+```
+
+```@docs
 first_value
 ```
 

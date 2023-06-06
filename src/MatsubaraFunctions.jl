@@ -57,6 +57,7 @@ module MatsubaraFunctions
         last_index,
         index_range,
         is_inbounds,
+        N,
         first_value,
         last_value,
         value_range,
