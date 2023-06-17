@@ -226,6 +226,36 @@ function is_inbounds(
 end
 
 """
+    function indices(
+        grid :: MatsubaraGrid
+        )    :: Vector{Int64}
+
+Returns list of indices for Matsubara frequencies in grid
+"""
+function indices(
+    grid :: MatsubaraGrid
+    )    :: Vector{Int64}
+
+    return index.(grid.data)
+end 
+
+"""
+    function values(
+        grid :: MatsubaraGrid
+        )    :: Vector{Float64}
+
+Returns list of values for Matsubara frequencies in grid
+"""
+function Base.values(
+    grid :: MatsubaraGrid
+    )    :: Vector{Float64}
+
+    return value.(grid.data)
+end 
+
+
+
+"""
     function info(
         grid :: MatsubaraGrid
         )    :: Nothing

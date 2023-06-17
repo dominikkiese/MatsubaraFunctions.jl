@@ -61,12 +61,14 @@ module MatsubaraFunctions
         first_value,
         last_value,
         value_range,
+        indices,
         info,
         save_matsubara_grid!, 
         load_matsubara_grid,
 
         # matsubara_func.jl
-        MatsubaraFunction, 
+        MatsubaraFunction,
+        grids, 
         grids_shape,
         shape, 
         data_shape,

@@ -127,7 +127,35 @@ struct MatsubaraFunction{GD, SD, DD, Q <: Number}
     end
 end
 
+"""
+    function grids(
+        f :: MatsubaraFunction{GD, SD, DD, Q}
+        ) :: NTuple{GD, MatsubaraGrid} where {GD, SD, DD, Q <: Number}
 
+Returns grids of f
+"""
+function grids(
+    f :: MatsubaraFunction{GD, SD, DD, Q}
+    ) :: NTuple{GD, MatsubaraGrid} where {GD, SD, DD, Q <: Number}
+
+    return f.grids
+end
+
+"""
+    function grids(
+        f   :: MatsubaraFunction{GD, SD, DD, Q},
+        idx :: Int64
+        )   :: MatsubaraGrid where {GD, SD, DD, Q <: Number}
+
+Returns `f.grids[idx]`
+"""
+function grids(
+    f   :: MatsubaraFunction{GD, SD, DD, Q},
+    idx :: Int64
+    )   :: MatsubaraGrid where {GD, SD, DD, Q <: Number}
+
+    return f.grids[idx]
+end
 
 """
     function grids_shape(
