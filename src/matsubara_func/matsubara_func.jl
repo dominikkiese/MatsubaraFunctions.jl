@@ -220,6 +220,34 @@ function data_shape(
 end
 
 """
+    function length(
+        f :: MatsubaraFunction{GD, SD, DD, Q}
+        ) :: Int64 where {GD, SD, DD, Q <: Number}
+
+Returns length of `f.data`
+"""
+function Base.length(
+    f :: MatsubaraFunction{GD, SD, DD, Q}
+    ) :: Int64 where {GD, SD, DD, Q <: Number}
+
+    return length(f.data)
+end
+
+"""
+    function temperature(
+        f :: MatsubaraFunction{GD, SD, DD, Q},
+        ) :: Float64 where {GD, SD, DD, Q <: Number}
+
+Returns temperature for which `f.grids` are defined
+"""
+function temperature(
+    f :: MatsubaraFunction{GD, SD, DD, Q},
+    ) :: Float64 where {GD, SD, DD, Q <: Number}
+
+    return temperature(f.grids[1])
+end
+
+"""
     function absmax(
         f :: MatsubaraFunction{GD, SD, DD, Q}
         ) :: Float64 where {GD, SD, DD, Q <: Number}

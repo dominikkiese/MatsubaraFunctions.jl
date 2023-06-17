@@ -4,6 +4,8 @@
         -> subtraction 
         -> multiplication with scalar 
         -> initialization with scalar or MatsubaraFunction
+        -> value comparison
+        -> flattening of data array into vector
 ==#
 
 function check_shape_grid!(
@@ -235,4 +237,58 @@ function Base.:(==)(
 
     check_shape_grid!(f1, f2) 
     return f1.data ≈ f2.data 
+end
+
+
+
+"""
+    function flatten(
+        f :: MatsubaraFunction{GD, SD, DD, Q}
+        ) :: Vector{Q} where {GD, SD, DD, Q <: Number}
+
+Flatten data array of MatsubaraFunction and return vector of the corresponding data type
+"""
+function flatten(
+    f :: MatsubaraFunction{GD, SD, DD, Q}
+    ) :: Vector{Q} where {GD, SD, DD, Q <: Number}
+
+    x  = Vector{Q}(undef, length(f))
+    x .= @view f.data[:]
+
+    return x
+end
+
+"""
+    function flatten!(
+        f :: MatsubaraFunction{GD, SD, DD, Q},
+        x :: AbstractVector
+        ) :: Nothing where {GD, SD, DD, Q <: Number}
+
+Flatten data array of MatsubaraFunction into vector
+"""
+function flatten!(
+    f :: MatsubaraFunction{GD, SD, DD, Q},
+    x :: AbstractVector
+    ) :: Nothing where {GD, SD, DD, Q <: Number}
+
+    # dimension checked by Base
+    x .= @view f.data[:]
+    return nothing
+end
+
+"""
+    function unflatten!(
+        f :: MatsubaraFunction{GD, SD, DD, Q},
+        x :: AbstractVector
+        ) :: Nothing where {GD, SD, DD, Q <: Number}
+
+Initialize data array of MatsubaraFunction from vector
+"""
+function unflatten!(
+    f :: MatsubaraFunction{GD, SD, DD, Q},
+    x :: AbstractVector
+    ) :: Nothing where {GD, SD, DD, Q <: Number}
+    
+    f.data[:] .= x
+    return nothing
 end
