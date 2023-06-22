@@ -321,3 +321,11 @@ function sum_me(
 
     return val
 end
+
+function density(
+    f :: MatsubaraFunction{1, SD, DD, Q},
+    x :: Vararg{Int64, SD}
+    ) :: Q where {SD, DD, Q <: Complex}
+
+    return 1.0 + sum_me(f, ComplexF64(0.0), x...)
+end

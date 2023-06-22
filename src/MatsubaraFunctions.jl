@@ -38,6 +38,22 @@ module MatsubaraFunctions
 
         f3D_c[bg[1], fg[1], fg[1]]; f3D_c(bg[1], fg[1], fg[1]); f3D_c(value(bg[1]), value(fg[1]), value(fg[1]))
         f3D_r[bg[1], fg[1], fg[1]]; f3D_r(bg[1], fg[1], fg[1]); f3D_r(value(bg[1]), value(fg[1]), value(fg[1]))
+
+        # typical MatsubaraFunction slices and views 
+        f1D_c[:]; view(f1D_c, :)
+        f1D_r[:]; view(f1D_r, :)
+
+        f2D_c[:, fg[1]]; view(f2D_c, :, fg[1])
+        f2D_r[:, fg[1]]; view(f2D_r, :, fg[1])
+        f2D_c[bg[1], :]; view(f2D_c, bg[1], :)
+        f2D_r[bg[1], :]; view(f2D_r, bg[1], :)
+
+        f3D_c[:, fg[1], fg[1]]; view(f3D_c, :, fg[1], fg[1])
+        f3D_r[:, fg[1], fg[1]]; view(f3D_r, :, fg[1], fg[1])
+        f3D_c[bg[1], :, fg[1]]; view(f3D_c, bg[1], :, fg[1])
+        f3D_r[bg[1], :, fg[1]]; view(f3D_r, bg[1], :, fg[1])
+        f3D_c[bg[1], fg[1], :]; view(f3D_c, bg[1], fg[1], :)
+        f3D_r[bg[1], fg[1], :]; view(f3D_r, bg[1], fg[1], :)
     end
 
     export
@@ -98,6 +114,7 @@ module MatsubaraFunctions
         upper_tail_moments,
         lower_tail_moments,
         sum_me,
+        density,
         MatsubaraOperation,
         sgn,
         con,
