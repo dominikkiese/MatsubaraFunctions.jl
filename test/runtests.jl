@@ -1,4 +1,5 @@
 using Test
+using MPI; MPI.Init()
 using MatsubaraFunctions 
 
 @testset "Frequencies" begin 
@@ -299,6 +300,14 @@ end
     end 
 
     InitFunc = MatsubaraInitFunction{1, 1, ComplexF64}(init)
-    SG(f3, InitFunc)
+    SG(f3, InitFunc; mode = :serial)
+    @test f3 == f1
+
+    InitFunc = MatsubaraInitFunction{1, 1, ComplexF64}(init)
+    SG(f3, InitFunc; mode = :threads)
+    @test f3 == f1
+
+    InitFunc = MatsubaraInitFunction{1, 1, ComplexF64}(init)
+    SG(f3, InitFunc; mode = :hybrid)
     @test f3 == f1
 end

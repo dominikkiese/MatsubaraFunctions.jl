@@ -237,13 +237,25 @@ end
 # over all symmetry classes and symmetrize the data array of the MatsubaraFunction starting from an 
 # evaluation of the MatsubaraInitFunction
 function (SG :: MatsubaraSymmetryGroup)(
-    f            :: MatsubaraFunction{GD, SD, DD, Q},
-    I            :: MatsubaraInitFunction{GD, SD, Q}
+    f    :: MatsubaraFunction{GD, SD, DD, Q},
+    I    :: MatsubaraInitFunction{GD, SD, Q}
     ;
-    mpi_parallel :: Bool = false
-    )            :: Nothing where {GD, SD, DD, Q <: Number}
+    mode :: Symbol = :serial
+    )    :: Nothing where {GD, SD, DD, Q <: Number}
 
-    if mpi_parallel 
+    if mode == :serial 
+        for class in SG.classes
+            lidx    = class[1][1]
+            f[lidx] = I(to_Matsubara(f, lidx)...)
+        end 
+
+    elseif mode == :threads
+        Threads.@threads for class in SG.classes
+            lidx    = class[1][1]
+            f[lidx] = I(to_Matsubara(f, lidx)...)
+        end
+
+    elseif mode == :hybrid 
         set!(f, 0.0)
 
         Threads.@threads for clidx in mpi_split(1 : length(SG.classes))
@@ -252,11 +264,9 @@ function (SG :: MatsubaraSymmetryGroup)(
         end
 
         mpi_allreduce!(f)
-    else
-        for class in SG.classes
-            lidx    = class[1][1]
-            f[lidx] = I(to_Matsubara(f, lidx)...)
-        end 
+
+    else 
+        error("Calculation mode $(mode) unknown. Possible options are: serial, threads and hybrid.")
     end
 
     SG(f)
