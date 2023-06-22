@@ -145,12 +145,21 @@ end
 
 
 
-# getindex from MatsubaraFrequency + sites
+# add method to grid_index that can handle UnitRange and Colon
+function grid_index(
+    w    :: Union{UnitRange, Colon},
+    grid :: MatsubaraGrid
+    )    :: Union{UnitRange, Colon}
+
+    return w
+end
+
+# getindex methods
 function Base.:getindex(
     f :: MatsubaraFunction{GD, SD, DD, Q},
-    w :: NTuple{GD, MatsubaraFrequency},
-    x :: Vararg{Int64, SD} 
-    ) :: Q where {GD, SD, DD, Q <: Number}
+    w :: NTuple{GD, Union{MatsubaraFrequency, UnitRange, Colon}},
+    x :: Vararg{Union{Int64, UnitRange, Colon}, SD} 
+    ) :: Union{Q, AbstractArray{Q}} where {GD, SD, DD, Q <: Number}
 
     # bounds check performed by Base
     return f.data[ntuple(i -> grid_index(w[i], f.grids[i]), GD)..., x...]
@@ -158,9 +167,9 @@ end
 
 function Base.:getindex(
     f :: MatsubaraFunction{1, SD, DD, Q},
-    w :: MatsubaraFrequency,
-    x :: Vararg{Int64, SD} 
-    ) :: Q where {SD, DD, Q <: Number}
+    w :: Union{MatsubaraFrequency, UnitRange, Colon},
+    x :: Vararg{Union{Int64, UnitRange, Colon}, SD} 
+    ) :: Union{Q, AbstractArray{Q}} where {SD, DD, Q <: Number}
 
     # bounds check performed by Base
     return f.data[grid_index(w, f.grids[1]), x...]
@@ -168,15 +177,14 @@ end
 
 function Base.:getindex(
     f :: MatsubaraFunction{GD, 1, DD, Q},
-    w :: Vararg{MatsubaraFrequency, GD} 
-    ) :: Q where {GD, DD, Q <: Number}
+    w :: Vararg{Union{MatsubaraFrequency, UnitRange, Colon}, GD} 
+    ) :: Union{Q, AbstractArray{Q}} where {GD, DD, Q <: Number}
 
     # bounds check performed by Base
     @assert shape(f, 1) == 1 "MatsubaraFunction is not scalar but vector valued!"
     return f.data[ntuple(i -> grid_index(w[i], f.grids[i]), GD)..., 1]
 end
 
-# getindex from CartesianIndex
 function Base.:getindex(
     f    :: MatsubaraFunction{GD, SD, DD, Q},
     cidx :: CartesianIndex{DD},
@@ -186,7 +194,6 @@ function Base.:getindex(
     return f.data[cidx]
 end
 
-# getindex from LinearIndex
 function Base.:getindex(
     f   :: MatsubaraFunction{GD, SD, DD, Q},
     idx :: Int64,
@@ -196,11 +203,10 @@ function Base.:getindex(
     return f.data[idx]
 end
 
-# getindex from Vararg
 function Base.:getindex(
     f :: MatsubaraFunction{GD, SD, DD, Q},
-    x :: Vararg{Int64, DD}
-    ) :: Q where {GD, SD, DD, Q <: Number}
+    x :: Vararg{Union{Int64, UnitRange, Colon}, DD}
+    ) :: Union{Q, AbstractArray{Q}} where {GD, SD, DD, Q <: Number}
 
     # bounds check performed by Base
     return f.data[x...]
@@ -208,7 +214,49 @@ end
 
 
 
-# setindex! from MatsubaraFrequency + sites
+# views
+function Base.:view(
+    f :: MatsubaraFunction{GD, SD, DD, Q},
+    w :: NTuple{GD, Union{MatsubaraFrequency, UnitRange, Colon}},
+    x :: Vararg{Union{Int64, UnitRange, Colon}, SD} 
+    ) :: SubArray{Q} where {GD, SD, DD, Q <: Number}
+
+    # bounds check performed by Base
+    return view(f.data, ntuple(i -> grid_index(w[i], f.grids[i]), GD)..., x...)
+end
+
+function Base.:view(
+    f :: MatsubaraFunction{1, SD, DD, Q},
+    w :: Union{MatsubaraFrequency, UnitRange, Colon},
+    x :: Vararg{Union{Int64, UnitRange, Colon}, SD} 
+    ) :: SubArray{Q} where {SD, DD, Q <: Number}
+
+    # bounds check performed by Base
+    return view(f.data, grid_index(w, f.grids[1]), x...)
+end
+
+function Base.:view(
+    f :: MatsubaraFunction{GD, 1, DD, Q},
+    w :: Vararg{Union{MatsubaraFrequency, UnitRange, Colon}, GD} 
+    ) :: SubArray{Q} where {GD, DD, Q <: Number}
+
+    # bounds check performed by Base
+    @assert shape(f, 1) == 1 "MatsubaraFunction is not scalar but vector valued!"
+    return view(f.data, ntuple(i -> grid_index(w[i], f.grids[i]), GD)..., 1)
+end
+
+function Base.:view(
+    f :: MatsubaraFunction{GD, SD, DD, Q},
+    x :: Vararg{Union{Int64, UnitRange, Colon}, DD}
+    ) :: SubArray{Q} where {GD, SD, DD, Q <: Number}
+
+    # bounds check performed by Base
+    return view(f.data, x...)
+end
+
+
+
+# setindex! methods
 function Base.:setindex!(
     f   :: MatsubaraFunction{GD, SD, DD, Q},
     val :: Qp,
@@ -248,7 +296,6 @@ function Base.:setindex!(
     return nothing
 end
 
-# setindex! from CartesianIndex
 function Base.:setindex!(
     f    :: MatsubaraFunction{GD, SD, DD, Q},
     val  :: Qp,
@@ -261,7 +308,6 @@ function Base.:setindex!(
     return nothing
 end
 
-# setindex! from LinearIndex
 function Base.:setindex!(
     f   :: MatsubaraFunction{GD, SD, DD, Q},
     val :: Qp,
@@ -274,7 +320,6 @@ function Base.:setindex!(
     return nothing
 end
 
-# setindex! from Vararg
 function Base.:setindex!(
     f   :: MatsubaraFunction{GD, SD, DD, Q},
     val :: Qp,

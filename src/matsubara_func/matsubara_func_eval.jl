@@ -322,10 +322,54 @@ function sum_me(
     return val
 end
 
+"""
+    function sum_me(
+        f  :: MatsubaraFunction{1, 1, 2, Q},
+        α0 :: Q
+        )  :: Q where {Q <: Complex}
+
+Computes the Matsubara sum (with regulator exp(-iw0+)) for a complex valued MatsubaraFunction on a 1D grid. Here, `α0`
+is the asymptotic limit for large frequencies. This is only viable if `f1` has a Laurent series representation with respect 
+to an annulus about the imaginary axis. Requires `shape(f, 1) == 1`.
+"""
+function sum_me(
+    f  :: MatsubaraFunction{1, 1, 2, Q},
+    α0 :: Q
+    )  :: Q where {Q <: Complex}
+
+    @assert shape(f, 1) == 1 "MatsubaraFunction is not scalar but vector valued"
+    return sum_me(f, α0, 1)
+end
+
+"""
+    function density(
+        f :: MatsubaraFunction{1, SD, DD, Q},
+        x :: Vararg{Int64, SD}
+        ) :: Q where {SD, DD, Q <: Complex}
+
+Computes the density for a complex valued MatsubaraFunction on a 1D grid. Assumes that `f` decays to zero for large 
+frequencies (as a single-particle Green's function would).
+"""
 function density(
     f :: MatsubaraFunction{1, SD, DD, Q},
     x :: Vararg{Int64, SD}
     ) :: Q where {SD, DD, Q <: Complex}
 
     return 1.0 + sum_me(f, ComplexF64(0.0), x...)
+end
+
+"""
+    function density(
+        f :: MatsubaraFunction{1, 1, 2, Q}
+        ) :: Q where {Q <: Complex}
+
+Computes the density for a complex valued MatsubaraFunction on a 1D grid. Assumes that `f` decays to zero for large 
+frequencies (as a single-particle Green's function would). Requires `shape(f, 1) == 1`.
+"""
+function density(
+    f :: MatsubaraFunction{1, 1, 2, Q}
+    ) :: Q where {Q <: Complex}
+
+    @assert shape(f, 1) == 1 "MatsubaraFunction is not scalar but vector valued"
+    return 1.0 + sum_me(f, ComplexF64(0.0), 1)
 end

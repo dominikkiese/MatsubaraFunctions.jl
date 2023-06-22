@@ -75,10 +75,11 @@ end
     @test typeof(MatsubaraFunction(fg, 2)) == MatsubaraFunction{1, 1, 2, ComplexF64}
 end
 
-@testset "Indices" begin 
+@testset "Index" begin 
     g    = MatsubaraGrid(1.0, 10, Fermion)
+    ng   = length(g)
     f    = MatsubaraFunction((g, g), (10, 10))
-    idxs = rand(1 : length(g)), rand(1 : length(g)), rand(1 : 10), rand(1 : 10)
+    idxs = rand(1 : ng), rand(1 : ng), rand(1 : 10), rand(1 : 10)
     lidx = LinearIndex(f, (g[idxs[1]], g[idxs[2]]), idxs[3], idxs[4])
     cidx = CartesianIndex(f, (g[idxs[1]], g[idxs[2]]), idxs[3], idxs[4])
     x    = to_Matsubara(f, lidx) 
@@ -96,6 +97,18 @@ end
     @test value(first(y)[2]) ≈ value(g[idxs[2]])
     @test last(y)[1] == idxs[3] 
     @test last(y)[2] == idxs[4]
+
+    # exemplary tests for slices and views 
+    w   = rand(g.data)
+    idx = rand(1 : 10)
+    f1  = MatsubaraFunction((g, g), (1,), rand(ng, ng, 1))
+    f2  = MatsubaraFunction((g, g), (10, 10), rand(ng, ng, 10, 10))
+
+    @test f1[:, w] ≈ f1.data[:, g(w), 1]
+    @test @views f1[:, w] ≈ f1.data[:, g(w), 1]
+
+    @test f2[(:, w), :, idx] ≈ f2.data[:, g(w), :, idx]
+    @test @views f2[(:, w), :, idx] ≈ f2.data[:, g(w), :, idx]
 end
 
 @testset "Evaluate" begin 
@@ -238,6 +251,10 @@ end
     @test isapprox(sum_me(f2, c0, 1), ρ1p; atol = 1e-6, rtol = 1e-6)
     @test isapprox(sum_me(f3, c0, 1), ρ1m; atol = 1e-6, rtol = 1e-6)
     @test isapprox(sum_me(f4, c0, 1),  ρ2; atol = 1e-6, rtol = 1e-6)
+
+    @test isapprox(density(f1, 1), ρ(+0, T); atol = 1e-6, rtol = 1e-6)
+    @test isapprox(density(f2, 1), ρ(+ξ, T); atol = 1e-6, rtol = 1e-6)
+    @test isapprox(density(f3, 1), ρ(-ξ, T); atol = 1e-6, rtol = 1e-6)
 end
 
 @testset "Symmetries" begin 
