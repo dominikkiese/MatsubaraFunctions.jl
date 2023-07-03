@@ -24,7 +24,7 @@ struct MatsubaraGrid
 
         if checks 
             for w in data 
-                @assert type == w.type "Particle type must be equal between frequencies and grid"
+                @assert type === w.type "Particle type must be equal between frequencies and grid"
                 @assert T ≈ temperature(w) "Temperature must be equal between frequencies and grid"
             end  
         end  
@@ -148,7 +148,7 @@ function is_inbounds(
     )    :: Bool
 
     # perform checks, otherwise question is ill-defined
-    @assert type(w) == type(grid) "Particle type must be equal between frequency and grid"
+    @assert type(w) === type(grid) "Particle type must be equal between frequency and grid"
     @assert temperature(w) ≈ temperature(grid) "Temperature must be equal between frequency and grid"
     return first_index(grid) <= index(w) <= last_index(grid)
 end

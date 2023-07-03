@@ -243,19 +243,19 @@ function (SG :: MatsubaraSymmetryGroup)(
     mode :: Symbol = :serial
     )    :: Nothing where {GD, SD, DD, Q <: Number}
 
-    if mode == :serial 
+    if mode === :serial 
         for class in SG.classes
             lidx    = class[1][1]
             f[lidx] = I(to_Matsubara(f, lidx)...)
         end 
 
-    elseif mode == :threads
+    elseif mode === :threads
         Threads.@threads for class in SG.classes
             lidx    = class[1][1]
             f[lidx] = I(to_Matsubara(f, lidx)...)
         end
 
-    elseif mode == :hybrid 
+    elseif mode === :hybrid 
         set!(f, 0.0)
 
         Threads.@threads for clidx in mpi_split(1 : length(SG.classes))
