@@ -48,6 +48,14 @@ function add(
     return MatsubaraFunction(f1.grids, f1.shape, f1.data .+ f2.data; checks)
 end
 
+function Base.:+(
+    f1 :: MatsubaraFunction{GD, SD, DD, Q}, 
+    f2 :: MatsubaraFunction{GD, SD, DD, Q}
+    )  :: MatsubaraFunction{GD, SD, DD, Q} where {GD, SD, DD, Q <: Number}
+
+    return add(f1, f2)
+end
+
 """
     function add!(
         f1     :: MatsubaraFunction{GD, SD, DD, Q}, 
@@ -96,6 +104,14 @@ function subtract(
     return MatsubaraFunction(f1.grids, f1.shape, f1.data .- f2.data; checks)
 end
 
+function Base.:-(
+    f1 :: MatsubaraFunction{GD, SD, DD, Q}, 
+    f2 :: MatsubaraFunction{GD, SD, DD, Q}
+    )  :: MatsubaraFunction{GD, SD, DD, Q} where {GD, SD, DD, Q <: Number}
+
+    return subtract(f1, f2)
+end
+
 """
     function subtract!(
         f1     :: MatsubaraFunction{GD, SD, DD, Q}, 
@@ -142,6 +158,22 @@ function mult(
 
     # type promotion checked by Base
     return MatsubaraFunction(f.grids, f.shape, val .* f.data; checks)
+end
+
+function Base.:*(
+    f   :: MatsubaraFunction{GD, SD, DD, Q},
+    val :: Qp
+    )   :: MatsubaraFunction{GD, SD, DD, Q} where {GD, SD, DD, Q <: Number, Qp <: Number}
+
+    return mult(f, val)
+end
+
+function Base.:*(
+    val :: Qp,
+    f   :: MatsubaraFunction{GD, SD, DD, Q}
+    )   :: MatsubaraFunction{GD, SD, DD, Q} where {GD, SD, DD, Q <: Number, Qp <: Number}
+
+    return mult(f, val)
 end
 
 """
