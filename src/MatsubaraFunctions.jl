@@ -7,6 +7,7 @@ module MatsubaraFunctions
         using StaticArrays
         using FunctionWrappers
         using MPI
+        using Polyester
         using HDF5
         using Documenter
     end
