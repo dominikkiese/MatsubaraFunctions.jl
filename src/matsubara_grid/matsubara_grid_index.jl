@@ -6,6 +6,13 @@ function Base.:eachindex(
     return eachindex(grid.data)
 end
 
+function Base.:firstindex(
+    grid :: MatsubaraGrid
+    )    :: Int64
+
+    return firstindex(grid.data)
+end
+
 function Base.:lastindex(
     grid :: MatsubaraGrid
     )    :: Int64
