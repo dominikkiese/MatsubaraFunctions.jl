@@ -3,8 +3,6 @@ module MatsubaraFunctions
     using PrecompileTools
 
     @recompile_invalidations begin
-        using LinearAlgebra 
-        using StaticArrays
         using FunctionWrappers
         using MPI
         using Polyester
