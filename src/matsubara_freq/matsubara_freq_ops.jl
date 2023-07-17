@@ -4,7 +4,7 @@ function Base.:+(
     w2 :: MatsubaraFrequency
     )  :: MatsubaraFrequency 
 
-    @assert temperature(w1) ≈ temperature(w2) "Temperatures must be equal for addition"
+    @check temperature(w1) ≈ temperature(w2) "Temperatures must be equal for addition"
     shift = (type(w1) === :Fermion && type(w2) === :Fermion)
     ptype = (type(w1) === type(w2) ? Boson : Fermion)
     return MatsubaraFrequency(temperature(w1), index(w1) + index(w2) + shift, ptype)
@@ -15,7 +15,7 @@ function Base.:-(
     w2 :: MatsubaraFrequency
     )  :: MatsubaraFrequency 
 
-    @assert temperature(w1) ≈ temperature(w2) "Temperatures must be equal for subtraction"
+    @check temperature(w1) ≈ temperature(w2) "Temperatures must be equal for subtraction"
     shift = (type(w1) === :Boson && type(w2) === :Fermion)
     ptype = (type(w1) === type(w2) ? Boson : Fermion)
     return MatsubaraFrequency(temperature(w1), index(w1) - index(w2) - shift, ptype)

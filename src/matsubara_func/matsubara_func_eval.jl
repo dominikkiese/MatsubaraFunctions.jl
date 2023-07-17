@@ -28,7 +28,7 @@ function upper_tail_moments(
     # compute interpolation nodes
     dist = ceil(Int64, 1.0 / min(temperature(f.grids[1]), 1.0))
     idx  = grids_shape(f, 1) - dist
-    @assert idx > ceil(Int64, 0.75 * grids_shape(f, 1)) "Grid is too small for extrapolation"
+    @check idx > ceil(Int64, 0.75 * grids_shape(f, 1)) "Grid is too small for extrapolation"
 
     # read data
     y1, y2     = f.data[end, x...] - α0, f.data[idx, x...] - α0
@@ -61,7 +61,7 @@ function lower_tail_moments(
     # compute interpolation nodes
     dist = ceil(Int64, 1.0 / min(temperature(f.grids[1]), 1.0))
     idx  = 1 + dist
-    @assert idx < floor(Int64, 0.25 * grids_shape(f, 1)) "Grid is too small for extrapolation"
+    @check idx < floor(Int64, 0.25 * grids_shape(f, 1)) "Grid is too small for extrapolation"
 
     # read data
     y1, y2     = f.data[1, x...] - α0, f.data[idx, x...] - α0
@@ -117,7 +117,7 @@ function (f :: MatsubaraFunction{GD, SD, DD, Q})(
         end 
     end
 
-    return f.data[ntuple(i -> grid_index(w[i], f.grids[i]), GD)..., x ...]
+    return f[ntuple(i -> grid_index(w[i], f.grids[i]), GD)..., x ...]
 end
 
 function (f :: MatsubaraFunction{1, SD, DD, Q})(
@@ -138,7 +138,7 @@ function (f :: MatsubaraFunction{GD, 1, DD, Q})(
     extrp :: Tuple{Bool, Q} = (false, Q(0.0))
     )     :: Q where{GD, DD, Q <: Number}
 
-    @assert shape(f, 1) == 1 "MatsubaraFunction is not scalar but vector valued"
+    @check shape(f, 1) == 1 "MatsubaraFunction is not scalar but vector valued"
     return f((w...,), 1; bc = y -> bc(y), extrp)
 end
 
@@ -150,7 +150,7 @@ function (f :: MatsubaraFunction{1, 1, 2, Q})(
     extrp :: Tuple{Bool, Q} = (false, Q(0.0))
     )     :: Q where{Q <: Number}
 
-    @assert shape(f, 1) == 1 "MatsubaraFunction is not scalar but vector valued"
+    @check shape(f, 1) == 1 "MatsubaraFunction is not scalar but vector valued"
     return f((w,), 1; bc = y -> bc(y[1]), extrp)
 end
 
@@ -215,7 +215,7 @@ function (f :: MatsubaraFunction{GD, SD, DD, Q})(
                 for cidx in CartesianIndices(ntuple(i -> 2, GD))
                     wgts  = ntuple(i -> p[i].wgts[cidx[i]], GD)
                     idxs  = ntuple(i -> p[i].idxs[cidx[i]], GD)
-                    val  += prod(wgts) * f.data[idxs..., x...]
+                    val  += prod(wgts) * f[idxs..., x...]
                 end
 
                 return val
@@ -231,7 +231,7 @@ function (f :: MatsubaraFunction{GD, SD, DD, Q})(
     for cidx in CartesianIndices(ntuple(i -> 2, GD))
         wgts  = ntuple(i -> p[i].wgts[cidx[i]], GD)
         idxs  = ntuple(i -> p[i].idxs[cidx[i]], GD)
-        val  += prod(wgts) * f.data[idxs..., x...]
+        val  += prod(wgts) * f[idxs..., x...]
     end
 
     return val
@@ -255,7 +255,7 @@ function (f :: MatsubaraFunction{GD, 1, DD, Q})(
     extrp :: Tuple{Bool, Q} = (false, Q(0.0))
     )     :: Q where{GD, DD, Q <: Number}
 
-    @assert shape(f, 1) == 1 "MatsubaraFunction is not scalar but vector valued"
+    @check shape(f, 1) == 1 "MatsubaraFunction is not scalar but vector valued"
     return f((w...,), 1; bc = y -> bc(y), extrp)
 end
 
@@ -267,7 +267,7 @@ function (f :: MatsubaraFunction{1, 1, 2, Q})(
     extrp :: Tuple{Bool, Q} = (false, Q(0.0))
     )     :: Q where{Q <: Number}
 
-    @assert shape(f, 1) == 1 "MatsubaraFunction is not scalar but vector valued"
+    @check shape(f, 1) == 1 "MatsubaraFunction is not scalar but vector valued"
     return f((w,), 1; bc = y -> bc(y[1]), extrp)
 end
 
@@ -337,7 +337,7 @@ function sum_me(
     α0 :: Q
     )  :: Q where {Q <: Complex}
 
-    @assert shape(f, 1) == 1 "MatsubaraFunction is not scalar but vector valued"
+    @check shape(f, 1) == 1 "MatsubaraFunction is not scalar but vector valued"
     return sum_me(f, α0, 1)
 end
 
@@ -370,6 +370,6 @@ function density(
     f :: MatsubaraFunction{1, 1, 2, Q}
     ) :: Q where {Q <: Complex}
 
-    @assert shape(f, 1) == 1 "MatsubaraFunction is not scalar but vector valued"
+    @check shape(f, 1) == 1 "MatsubaraFunction is not scalar but vector valued"
     return 1.0 + sum_me(f, ComplexF64(0.0), 1)
 end

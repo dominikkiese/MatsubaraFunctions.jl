@@ -44,7 +44,7 @@ struct MatsubaraFrequency
         type :: Symbol 
         )    :: MatsubaraFrequency
         
-        @assert type === :Fermion || type === :Boson "MatsubaraFrequency type must be Fermion or Boson"
+        @check (type === :Fermion || type === :Boson) "MatsubaraFrequency type must be Fermion or Boson"
         return new(T, val, idx, type)
     end 
 

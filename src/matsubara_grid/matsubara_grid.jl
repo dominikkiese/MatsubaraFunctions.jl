@@ -15,18 +15,14 @@ struct MatsubaraGrid
 
     # default constructor 
     function MatsubaraGrid(
-        T      :: Float64,
-        data   :: Vector{MatsubaraFrequency},
-        type   :: Symbol
-        ;
-        checks :: Bool = true
-        )      :: MatsubaraGrid
+        T    :: Float64,
+        data :: Vector{MatsubaraFrequency},
+        type :: Symbol
+        )    :: MatsubaraGrid
 
-        if checks 
-            for w in data 
-                @assert type === w.type "Particle type must be equal between frequencies and grid"
-                @assert T ≈ temperature(w) "Temperature must be equal between frequencies and grid"
-            end  
+        for w in data 
+            @check type === w.type "Particle type must be equal between frequencies and grid"
+            @check T ≈ temperature(w) "Temperature must be equal between frequencies and grid"
         end  
     
         return new(T, data, type)
@@ -40,7 +36,7 @@ struct MatsubaraGrid
         ) :: MatsubaraGrid
 
         grid = MatsubaraFrequency[MatsubaraFrequency(T, n, Fermion) for n in -N : N - 1]
-        return MatsubaraGrid(T, grid, :Fermion; checks = false)
+        return MatsubaraGrid(T, grid, :Fermion)
     end
 
     # convenience constructor for bosonic grid (total no. frequencies generated is 2 * N - 1)
@@ -51,7 +47,7 @@ struct MatsubaraGrid
         ) :: MatsubaraGrid
 
         grid = MatsubaraFrequency[MatsubaraFrequency(T, n, Boson) for n in -N + 1 : N - 1]
-        return MatsubaraGrid(T, grid, :Boson; checks = false)
+        return MatsubaraGrid(T, grid, :Boson)
     end
 end
 
@@ -148,8 +144,8 @@ function is_inbounds(
     )    :: Bool
 
     # perform checks, otherwise question is ill-defined
-    @assert type(w) === type(grid) "Particle type must be equal between frequency and grid"
-    @assert temperature(w) ≈ temperature(grid) "Temperature must be equal between frequency and grid"
+    @check type(w) === type(grid) "Particle type must be equal between frequency and grid"
+    @check temperature(w) ≈ temperature(grid) "Temperature must be equal between frequency and grid"
     return first_index(grid) <= index(w) <= last_index(grid)
 end
 

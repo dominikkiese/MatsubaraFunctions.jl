@@ -13,25 +13,21 @@ struct MatsubaraFunction{GD, SD, DD, Q <: Number}
 
     # default constructor
     function MatsubaraFunction(
-        grids  :: NTuple{GD, MatsubaraGrid}, 
-        shape  :: NTuple{SD, Int64}, 
-        data   :: Array{Q, DD}
-        ;
-        checks :: Bool = true
-        )      :: MatsubaraFunction{GD, SD, DD, Q} where {GD, SD, DD, Q <: Number}
+        grids :: NTuple{GD, MatsubaraGrid}, 
+        shape :: NTuple{SD, Int64}, 
+        data  :: Array{Q, DD}
+        )     :: MatsubaraFunction{GD, SD, DD, Q} where {GD, SD, DD, Q <: Number}
 
         # error for integer data type
         if Q <: Integer || Q <: Complex{Int} error("Integer data type not supported") end
         
-        if checks
-            # check dimensions
-            @assert GD + SD == DD "Dimensions do not match"
-            
-            # check grids
-            for g in grids
-                @assert temperature(g) ≈ temperature(grids[1]) "Grids must have same temperature"
-                @assert issorted(Float64[value(w) for w in g]) "Grids must be sorted"
-            end
+        # check dimensions
+        @check GD + SD == DD "Dimensions do not match"
+        
+        # check grids
+        for g in grids
+            @check temperature(g) ≈ temperature(grids[1]) "Grids must have same temperature"
+            @check issorted(Float64[value(w) for w in g]) "Grids must be sorted"
         end
 
         return new{GD, SD, DD, Q}(grids, shape, data)
@@ -39,91 +35,75 @@ struct MatsubaraFunction{GD, SD, DD, Q <: Number}
 
     # convenience constructors
     function MatsubaraFunction(
-        grids  :: NTuple{GD, MatsubaraGrid},
-        shape  :: NTuple{SD, Int64},
-               :: Type{Q}
-        ;
-        checks :: Bool = true
-        )      :: MatsubaraFunction{GD, SD, GD + SD, Q} where {GD, SD, Q <: Number}
+        grids :: NTuple{GD, MatsubaraGrid},
+        shape :: NTuple{SD, Int64},
+              :: Type{Q}
+        )     :: MatsubaraFunction{GD, SD, GD + SD, Q} where {GD, SD, Q <: Number}
 
         dims = length.(grids)..., shape...
         data = Array{Q, GD + SD}(undef, dims)
 
-        return MatsubaraFunction(grids, shape, data; checks)
+        return MatsubaraFunction(grids, shape, data)
     end
 
     function MatsubaraFunction(
-        grid   :: MatsubaraGrid,
-        shape  :: NTuple{SD, Int64},
-               :: Type{Q}
-        ;
-        checks :: Bool = true
-        )      :: MatsubaraFunction{1, SD, 1 + SD, Q} where {SD, Q <: Number}
+        grid  :: MatsubaraGrid,
+        shape :: NTuple{SD, Int64},
+              :: Type{Q}
+        )     :: MatsubaraFunction{1, SD, 1 + SD, Q} where {SD, Q <: Number}
 
-        return MatsubaraFunction((grid,), shape, Q; checks)
+        return MatsubaraFunction((grid,), shape, Q)
     end
 
     function MatsubaraFunction(
-        grids  :: NTuple{GD, MatsubaraGrid},
-        shape  :: Int64,
-               :: Type{Q}
-        ;
-        checks :: Bool = true
-        )      :: MatsubaraFunction{GD, 1, GD + 1, Q} where {GD, Q <: Number}
+        grids :: NTuple{GD, MatsubaraGrid},
+        shape :: Int64,
+              :: Type{Q}
+        )     :: MatsubaraFunction{GD, 1, GD + 1, Q} where {GD, Q <: Number}
 
-        return MatsubaraFunction(grids, (shape,), Q; checks)
+        return MatsubaraFunction(grids, (shape,), Q)
     end
 
     function MatsubaraFunction(
-        grid   :: MatsubaraGrid,
-        shape  :: Int64,
-               :: Type{Q}
-        ;
-        checks :: Bool = true
-        )      :: MatsubaraFunction{1, 1, 2, Q} where {Q <: Number}
+        grid  :: MatsubaraGrid,
+        shape :: Int64,
+              :: Type{Q}
+        )     :: MatsubaraFunction{1, 1, 2, Q} where {Q <: Number}
 
-        return MatsubaraFunction((grid,), (shape,), Q; checks)
+        return MatsubaraFunction((grid,), (shape,), Q)
     end
 
     # fallback methods if data type Q is not provided
     function MatsubaraFunction(
-        grids  :: NTuple{GD, MatsubaraGrid},
-        shape  :: NTuple{SD, Int64}
-        ;
-        checks :: Bool = true
-        )      :: MatsubaraFunction{GD, SD, GD + SD, ComplexF64} where {GD, SD}
+        grids :: NTuple{GD, MatsubaraGrid},
+        shape :: NTuple{SD, Int64}
+        )     :: MatsubaraFunction{GD, SD, GD + SD, ComplexF64} where {GD, SD}
 
-        return MatsubaraFunction(grids, shape, ComplexF64; checks)
+        return MatsubaraFunction(grids, shape, ComplexF64)
     end
 
     function MatsubaraFunction(
-        grid   :: MatsubaraGrid,
-        shape  :: NTuple{SD, Int64},
-        ;
-        checks :: Bool = true
-        )      :: MatsubaraFunction{1, SD, 1 + SD, ComplexF64} where {SD}
+        grid  :: MatsubaraGrid,
+        shape :: NTuple{SD, Int64},
+        )     :: MatsubaraFunction{1, SD, 1 + SD, ComplexF64} where {SD}
 
-        return MatsubaraFunction(grid, shape, ComplexF64; checks)
+        return MatsubaraFunction(grid, shape, ComplexF64)
     end
 
     function MatsubaraFunction(
-        grids  :: NTuple{GD, MatsubaraGrid},
-        shape  :: Int64,
-        ;
-        checks :: Bool = true
-        )      :: MatsubaraFunction{GD, 1, GD + 1, ComplexF64} where {GD}
+        grids :: NTuple{GD, MatsubaraGrid},
+        shape :: Int64,
+        )     :: MatsubaraFunction{GD, 1, GD + 1, ComplexF64} where {GD}
 
-        return MatsubaraFunction(grids, shape, ComplexF64; checks)
+        return MatsubaraFunction(grids, shape, ComplexF64)
     end
 
     function MatsubaraFunction(
-        grid   :: MatsubaraGrid,
-        shape  :: Int64,
-        ;
-        checks :: Bool = true
-        )      :: MatsubaraFunction{1, 1, 2, ComplexF64}
+        grid  :: MatsubaraGrid,
+        shape :: Int64,
+        )     :: MatsubaraFunction{1, 1, 2, ComplexF64}
 
-        return MatsubaraFunction(grid, shape, ComplexF64; checks)
+        return MatsubaraFunction(grid, shape, ComplexF64)
     end
 end
 

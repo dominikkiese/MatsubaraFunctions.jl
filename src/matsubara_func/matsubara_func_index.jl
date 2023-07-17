@@ -17,7 +17,7 @@ function Base.CartesianIndex(
     idxs = ntuple(i -> f.grids[i](w[i]), GD)
 
     # check if tensor indices are inbounds 
-    @assert any(ntuple(i -> !(1 <= x[i] <= shape(f, i)), SD)) == false "Tensor indices invalid, shape is $(shape(f))"
+    @check any(ntuple(i -> !(1 <= x[i] <= shape(f, i)), SD)) == false "Tensor indices invalid, shape is $(shape(f))"
 
     return CartesianIndex(idxs..., x...)
 end
@@ -34,7 +34,7 @@ function CartesianIndex_extrp(
     idxs = ntuple(i -> grid_index_extrp(w[i], f.grids[i]), GD)
 
     # check if tensor indices are inbounds 
-    @assert any(ntuple(i -> !(1 <= x[i] <= shape(f, i)), SD)) == false "Tensor indices invalid, shape is $(shape(f))"
+    @check any(ntuple(i -> !(1 <= x[i] <= shape(f, i)), SD)) == false "Tensor indices invalid, shape is $(shape(f))"
 
     return CartesianIndex(idxs..., x...)
 end
@@ -181,7 +181,7 @@ function Base.:getindex(
     ) :: Union{Q, AbstractArray{Q}} where {GD, DD, Q <: Number}
 
     # bounds check performed by Base
-    @assert shape(f, 1) == 1 "MatsubaraFunction is not scalar but vector valued!"
+    @check shape(f, 1) == 1 "MatsubaraFunction is not scalar but vector valued!"
     return f.data[ntuple(i -> grid_index(w[i], f.grids[i]), GD)..., 1]
 end
 
@@ -241,7 +241,7 @@ function Base.:view(
     ) :: SubArray{Q} where {GD, DD, Q <: Number}
 
     # bounds check performed by Base
-    @assert shape(f, 1) == 1 "MatsubaraFunction is not scalar but vector valued!"
+    @check shape(f, 1) == 1 "MatsubaraFunction is not scalar but vector valued!"
     return view(f.data, ntuple(i -> grid_index(w[i], f.grids[i]), GD)..., 1)
 end
 
@@ -290,7 +290,7 @@ function Base.:setindex!(
     )   :: Nothing where {GD, DD, Q <: Number, Qp <: Number}
 
     # bounds check performed by Base
-    @assert shape(f, 1) == 1 "MatsubaraFunction is not scalar but vector valued"
+    @check shape(f, 1) == 1 "MatsubaraFunction is not scalar but vector valued"
     f.data[ntuple(i -> grid_index(w[i], f.grids[i]), GD)..., 1] = val
 
     return nothing

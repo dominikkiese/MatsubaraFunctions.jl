@@ -13,12 +13,12 @@ function check_shape_grid!(
     f2 :: MatsubaraFunction{GD, SD, DD, Q}
     )  :: Nothing where {GD, SD, DD, Q <: Number}
 
-    @assert data_shape(f1) == data_shape(f2) "Data shapes must be equal"
+    @check data_shape(f1) == data_shape(f2) "Data shapes must be equal"
 
     for i in 1 : GD 
-        @assert type(f1.grids[i]) == type(f2.grids[i]) "Grids must have same particle type" 
-        @assert temperature(f1.grids[i]) == temperature(f2.grids[i]) "Grids must have same temperature" 
-        @assert index_range(f1.grids[i]) == index_range(f2.grids[i]) "Grids must have same index range" 
+        @check type(f1.grids[i]) == type(f2.grids[i]) "Grids must have same particle type" 
+        @check temperature(f1.grids[i]) == temperature(f2.grids[i]) "Grids must have same temperature" 
+        @check index_range(f1.grids[i]) == index_range(f2.grids[i]) "Grids must have same index range" 
     end
 
     return nothing 
@@ -28,24 +28,20 @@ end
 
 """
     function add(
-        f1     :: MatsubaraFunction{GD, SD, DD, Q}, 
-        f2     :: MatsubaraFunction{GD, SD, DD, Q}
-        ;
-        checks :: Bool = true
-        )      :: MatsubaraFunction{GD, SD, DD, Q} where {GD, SD, DD, Q <: Number}
+        f1 :: MatsubaraFunction{GD, SD, DD, Q}, 
+        f2 :: MatsubaraFunction{GD, SD, DD, Q}
+        )  :: MatsubaraFunction{GD, SD, DD, Q} where {GD, SD, DD, Q <: Number}
 
-Addition of two MatsubaraFunction, returns new MatsubaraFunction. Safety measures can be disabled
-with `checks = false` if needed for performance (discouraged).
+Addition of two MatsubaraFunction, returns new MatsubaraFunction
 """
 function add(
-    f1     :: MatsubaraFunction{GD, SD, DD, Q}, 
-    f2     :: MatsubaraFunction{GD, SD, DD, Q}
+    f1 :: MatsubaraFunction{GD, SD, DD, Q}, 
+    f2 :: MatsubaraFunction{GD, SD, DD, Q}
     ;
-    checks :: Bool = true
-    )      :: MatsubaraFunction{GD, SD, DD, Q} where {GD, SD, DD, Q <: Number}
+    )  :: MatsubaraFunction{GD, SD, DD, Q} where {GD, SD, DD, Q <: Number}
 
-    if checks check_shape_grid!(f1, f2) end
-    return MatsubaraFunction(f1.grids, f1.shape, f1.data .+ f2.data; checks)
+    check_shape_grid!(f1, f2)
+    return MatsubaraFunction(f1.grids, f1.shape, f1.data .+ f2.data)
 end
 
 function Base.:+(
@@ -58,23 +54,18 @@ end
 
 """
     function add!(
-        f1     :: MatsubaraFunction{GD, SD, DD, Q}, 
-        f2     :: MatsubaraFunction{GD, SD, DD, Q}
-        ;
-        checks :: Bool = true
-        )      :: Nothing where {GD, SD, DD, Q <: Number}
+        f1 :: MatsubaraFunction{GD, SD, DD, Q}, 
+        f2 :: MatsubaraFunction{GD, SD, DD, Q}
+        )  :: Nothing where {GD, SD, DD, Q <: Number}
 
-Inplace addition of two MatsubaraFunction (`f1 += f2`). Safety measures can be disabled
-with `checks = false` if needed for performance (discouraged).
+Inplace addition of two MatsubaraFunction (`f1 += f2`)
 """
 function add!(
-    f1     :: MatsubaraFunction{GD, SD, DD, Q}, 
-    f2     :: MatsubaraFunction{GD, SD, DD, Q}
-    ;
-    checks :: Bool = true
-    )      :: Nothing where {GD, SD, DD, Q <: Number}
+    f1 :: MatsubaraFunction{GD, SD, DD, Q}, 
+    f2 :: MatsubaraFunction{GD, SD, DD, Q}
+    )  :: Nothing where {GD, SD, DD, Q <: Number}
 
-    if checks check_shape_grid!(f1, f2) end
+    check_shape_grid!(f1, f2)
     f1.data .+= f2.data
 
     return nothing 
@@ -84,24 +75,19 @@ end
 
 """
     function subtract(
-        f1     :: MatsubaraFunction{GD, SD, DD, Q}, 
-        f2     :: MatsubaraFunction{GD, SD, DD, Q}
-        ;
-        checks :: Bool = true
-        )      :: MatsubaraFunction{GD, SD, DD, Q} where {GD, SD, DD, Q <: Number}
+        f1 :: MatsubaraFunction{GD, SD, DD, Q}, 
+        f2 :: MatsubaraFunction{GD, SD, DD, Q}
+        )  :: MatsubaraFunction{GD, SD, DD, Q} where {GD, SD, DD, Q <: Number}
 
-Subtraction of two MatsubaraFunction, returns new MatsubaraFunction. Safety measures can be disabled
-with `checks = false` if needed for performance (discouraged).
+Subtraction of two MatsubaraFunction, returns new MatsubaraFunction
 """
 function subtract(
-    f1     :: MatsubaraFunction{GD, SD, DD, Q}, 
-    f2     :: MatsubaraFunction{GD, SD, DD, Q}
-    ;
-    checks :: Bool = true
-    )      :: MatsubaraFunction{GD, SD, DD, Q} where {GD, SD, DD, Q <: Number}
+    f1 :: MatsubaraFunction{GD, SD, DD, Q}, 
+    f2 :: MatsubaraFunction{GD, SD, DD, Q}
+    )  :: MatsubaraFunction{GD, SD, DD, Q} where {GD, SD, DD, Q <: Number}
 
-    if checks check_shape_grid!(f1, f2) end
-    return MatsubaraFunction(f1.grids, f1.shape, f1.data .- f2.data; checks)
+    check_shape_grid!(f1, f2)
+    return MatsubaraFunction(f1.grids, f1.shape, f1.data .- f2.data)
 end
 
 function Base.:-(
@@ -114,23 +100,18 @@ end
 
 """
     function subtract!(
-        f1     :: MatsubaraFunction{GD, SD, DD, Q}, 
-        f2     :: MatsubaraFunction{GD, SD, DD, Q}
-        ;
-        checks :: Bool = true
-        )      :: Nothing where {GD, SD, DD, Q <: Number}
+        f1 :: MatsubaraFunction{GD, SD, DD, Q}, 
+        f2 :: MatsubaraFunction{GD, SD, DD, Q}
+        )  :: Nothing where {GD, SD, DD, Q <: Number}
 
-Inplace subtraction of two MatsubaraFunction (`f1 -= f2`). Safety measures can be disabled
-with `checks = false` if needed for performance (discouraged).
+Inplace subtraction of two MatsubaraFunction (`f1 -= f2`)
 """
 function subtract!(
-    f1     :: MatsubaraFunction{GD, SD, DD, Q}, 
-    f2     :: MatsubaraFunction{GD, SD, DD, Q}
-    ;
-    checks :: Bool = true
-    )      :: Nothing where {GD, SD, DD, Q <: Number}
+    f1 :: MatsubaraFunction{GD, SD, DD, Q}, 
+    f2 :: MatsubaraFunction{GD, SD, DD, Q}
+    )  :: Nothing where {GD, SD, DD, Q <: Number}
 
-    if checks check_shape_grid!(f1, f2) end
+    check_shape_grid!(f1, f2)
     f1.data .-= f2.data
 
     return nothing 
@@ -140,24 +121,19 @@ end
 
 """
     function mult(
-        f      :: MatsubaraFunction{GD, SD, DD, Q},
-        val    :: Qp
-        ;
-        checks :: Bool = true
-        )      :: MatsubaraFunction{GD, SD, DD, Q} where {GD, SD, DD, Q <: Number, Qp <: Number}
+        f   :: MatsubaraFunction{GD, SD, DD, Q},
+        val :: Qp
+        )   :: MatsubaraFunction{GD, SD, DD, Q} where {GD, SD, DD, Q <: Number, Qp <: Number}
 
-Multiplication of MatsubaraFunction with scalar, returns new MatsubaraFunction. Safety measures can be disabled
-with `checks = false` if needed for performance (discouraged).
+Multiplication of MatsubaraFunction with scalar, returns new MatsubaraFunction
 """
 function mult(
-    f      :: MatsubaraFunction{GD, SD, DD, Q},
-    val    :: Qp
-    ;
-    checks :: Bool = true
-    )      :: MatsubaraFunction{GD, SD, DD, Q} where {GD, SD, DD, Q <: Number, Qp <: Number}
+    f   :: MatsubaraFunction{GD, SD, DD, Q},
+    val :: Qp
+    )   :: MatsubaraFunction{GD, SD, DD, Q} where {GD, SD, DD, Q <: Number, Qp <: Number}
 
     # type promotion checked by Base
-    return MatsubaraFunction(f.grids, f.shape, val .* f.data; checks)
+    return MatsubaraFunction(f.grids, f.shape, val .* f.data)
 end
 
 function Base.:*(
@@ -237,23 +213,18 @@ end
 
 """
     function set!(
-        f1     :: MatsubaraFunction{GD, SD, DD, Q},
-        f2     :: MatsubaraFunction{GD, SD, DD, Q},
-        ; 
-        checks :: Bool = true
-        )      :: Nothing where {GD, SD, DD, Q <: Number}
+        f1 :: MatsubaraFunction{GD, SD, DD, Q},
+        f2 :: MatsubaraFunction{GD, SD, DD, Q},
+        )  :: Nothing where {GD, SD, DD, Q <: Number}
 
-Initialize MatsubaraFunction with another MatsubaraFunction (`f1 = f2`). Safety measures can be disabled
-with `checks = false` if needed for performance (discouraged).
+Initialize MatsubaraFunction with another MatsubaraFunction (`f1 = f2`)
 """
 function set!(
-    f1     :: MatsubaraFunction{GD, SD, DD, Q},
-    f2     :: MatsubaraFunction{GD, SD, DD, Q},
-    ; 
-    checks :: Bool = true
-    )      :: Nothing where {GD, SD, DD, Q <: Number}
+    f1 :: MatsubaraFunction{GD, SD, DD, Q},
+    f2 :: MatsubaraFunction{GD, SD, DD, Q},
+    )  :: Nothing where {GD, SD, DD, Q <: Number}
 
-    if checks check_shape_grid!(f1, f2) end
+    check_shape_grid!(f1, f2)
     f1.data .= f2.data
 
     return nothing
