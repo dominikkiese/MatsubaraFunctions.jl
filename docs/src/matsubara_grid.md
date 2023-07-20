@@ -5,11 +5,12 @@ A `MatsubaraGrid` is a sorted (symmetric) set of `MatsubaraFrequency` objects an
 ```julia
 T  = 1.0
 N  = 128
-g1 = MatsubaraGrid(T, N, Fermion) # no. frequencies is 2N
-g2 = MatsubaraGrid(T, N, Boson)   # no. frequencies is 2N - 1
+g1 = MatsubaraGrid(T, N, Fermion) # total no. frequencies is 2N
+g2 = MatsubaraGrid(T, N, Boson)   # total no. frequencies is 2N - 1
 ```
 
-`MatsubaraGrid` instances are iterable
+where N is the number of positive frequencies. Note that for bosonic grids the frequency at zero is included
+in the positive frequency count. `MatsubaraGrid` instances are iterable
 
 ```julia
 T = 1.0
@@ -87,6 +88,14 @@ last_value
 
 ```@docs
 value_range
+```
+
+```@docs
+indices
+```
+
+```@docs
+values
 ```
 
 ```@docs

@@ -1,7 +1,6 @@
 # MatsubaraFunction
 
-A `MatsubaraFunction` is a collection of `MatsubaraGrid` instances together with an associated tensor structure $G_{i_1...i_n}$ for each point $(\omega_1, ..., \omega_m)$ in the cartesian product of the grids. 
-Some possible constructors are
+A `MatsubaraFunction` is a collection of `MatsubaraGrid` instances together with an associated tensor structure $G_{i_1...i_n}$ for each point $(\omega_1, ..., \omega_m)$ in the cartesian product of the grids. Some possible constructors are
 
 ```julia
 T = 1.0
@@ -89,7 +88,7 @@ end
 
 # evaluate the series and compare to analytic result
 ρ(x, T) = 1.0 / (exp(x / T) + 1.0)
-println(abs(sum_me(f, ComplexF64(0.0), 1) - (ρ(+ξ, T) - 1.0)))
+println(abs(sum_me(f, ComplexF64(0.0)) - (ρ(+ξ, T) - 1.0)))
 ```
 
 # Advanced Usage: Automated Symmetry Reduction
@@ -134,9 +133,9 @@ SG(h, InitFunc)
 @assert h == f
 ```
 
-# Advanced Usage: MPI Helpers
+# Advanced Usage: Running in parallel
 
-To simplify the parallelization of algorithms involving `MatsubaraFunction` instances, we export some useful methods based on the MPI.jl wrapper. For further information on how to set up MPI with Julia see [https://github.com/JuliaParallel/MPI.jl](https://github.com/JuliaParallel/MPI.jl).
+To simplify the parallelization of algorithms when using the package, we export some useful methods based on the MPI.jl wrapper. For further information on how to set up MPI with Julia see [https://github.com/JuliaParallel/MPI.jl](https://github.com/JuliaParallel/MPI.jl).
 
 ```julia
 using MatsubaraFunctions 
@@ -161,6 +160,8 @@ end
 mpi_allreduce!(f)
 ```
 
+In addition, calls of `MatsubaraSymmetryGroup` with an initialization function have an opt-in switch (`mode`) to enable parallel evaluation of the `MatsubaraInitFunction` (by default `mode = :serial`). If `mode = :polyester`, shared memory multithreading via the `Polyester` [https://github.com/JuliaSIMD/Polyester.jl](https://github.com/JuliaSIMD/Polyester.jl) Julia package is used. This mode is recommended for initialization functions that are cheap to evaluate and are unlikely to benefit from `Threads.@threads` due to the overhead from invoking the Julia scheduler. For more expensive functions, users can choose between `mode = :threads`, which simply uses `Threads.@threads`, and `mode = :hybrid`. The latter combines both MPI and native Julia threads and can therefore be used to run calculations on multiple compute nodes.
+
 # Types
 
 ```@docs
@@ -184,6 +185,10 @@ MatsubaraInitFunction
 ```
 
 # Functions
+
+```@docs
+grids
+```
 
 ```@docs
 grids_shape
@@ -258,6 +263,18 @@ set!
 ```
 
 ```@docs
+flatten
+```
+
+```@docs
+flatten!
+```
+
+```@docs
+unflatten!
+```
+
+```@docs
 LinearIndex
 ```
 
@@ -275,6 +292,10 @@ lower_tail_moments
 
 ```@docs
 sum_me
+```
+
+```@docs
+density
 ```
 
 ```@docs
