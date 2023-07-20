@@ -112,7 +112,7 @@ end
         f :: MatsubaraFunction{GD, SD, DD, Q}
         ) :: NTuple{GD, MatsubaraGrid} where {GD, SD, DD, Q <: Number}
 
-Returns grids of f
+Returns grids of `f`
 """
 function grids(
     f :: MatsubaraFunction{GD, SD, DD, Q}
