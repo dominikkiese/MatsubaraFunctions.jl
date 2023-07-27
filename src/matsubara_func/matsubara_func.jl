@@ -22,6 +22,7 @@ struct MatsubaraFunction{GD, SD, DD, Q <: Number}
         if Q <: Integer || Q <: Complex{Int} error("Integer data type not supported") end
         
         # check dimensions
+        @check SD > 0 "Shape dimension cannot be zero"
         @check GD + SD == DD "Dimensions do not match"
         
         # check grids
