@@ -184,6 +184,10 @@ MatsubaraSymmetryGroup
 MatsubaraInitFunction
 ```
 
+```@docs
+PadeApprox
+```
+
 # Functions
 
 ```@docs
@@ -320,4 +324,12 @@ save_matsubara_symmetry_group!
 
 ```@docs
 load_matsubara_symmetry_group
+```    
+
+```@docs
+coeffs
+```    
+
+```@docs
+xdat
 ```    

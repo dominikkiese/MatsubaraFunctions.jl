@@ -3,6 +3,7 @@ module MatsubaraFunctions
     using PrecompileTools
 
     @recompile_invalidations begin
+        using LinearAlgebra
         using FunctionWrappers
         using MPI
         using Polyester
@@ -130,5 +131,8 @@ module MatsubaraFunctions
         save_matsubara_function!, 
         load_matsubara_function,
         save_matsubara_symmetry_group!,
-        load_matsubara_symmetry_group
+        load_matsubara_symmetry_group,
+        PadeApprox,
+        coeffs, 
+        xdat
 end
