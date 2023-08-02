@@ -56,6 +56,10 @@ close(file)
 MatsubaraGrid
 ```
 
+```@docs
+MatsubaraIndex
+```
+
 # Functions
 
 ```@docs

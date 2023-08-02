@@ -45,24 +45,14 @@ end
 
         # call to fermionic grid
         @test wFermion(wFermion[wFermion_idx]) == wFermion_idx
+        @test wFermion(MatsubaraIndex(wFermion[wFermion_idx])) == wFermion_idx
         @test wFermion(value(wFermion[wFermion_idx])) == wFermion_idx
 
         # call to bosonic grid
         @test wBoson(wBoson[wBoson_idx]) == wBoson_idx
+        @test wBoson(MatsubaraIndex(wBoson[wBoson_idx])) == wBoson_idx
         @test wBoson(value(wBoson[wBoson_idx])) == wBoson_idx
-    end 
-
-    # first element
-    @test wFermion(wFermion[1]) == 1
-    @test wFermion(value(wFermion[1])) == 1
-    @test wBoson(wBoson[1]) == 1
-    @test wBoson(value(wBoson[1])) == 1
-
-    # last element
-    @test wFermion(wFermion[end]) == length(wFermion)
-    @test wFermion(value(wFermion[end])) == length(wFermion)
-    @test wBoson(wBoson[end]) == length(wBoson)
-    @test wBoson(value(wBoson[end])) == length(wBoson)
+    end
 end
 
 @testset "Constructors" begin 
@@ -81,8 +71,29 @@ end
     ng   = length(g)
     f    = MatsubaraFunction((g, g), (10, 10))
     idxs = rand(1 : ng), rand(1 : ng), rand(1 : 10), rand(1 : 10)
+
+    # test with MatsubaraFrequency
     lidx = LinearIndex(f, (g[idxs[1]], g[idxs[2]]), idxs[3], idxs[4])
     cidx = CartesianIndex(f, (g[idxs[1]], g[idxs[2]]), idxs[3], idxs[4])
+    x    = to_Matsubara(f, lidx) 
+    y    = to_Matsubara(f, cidx)
+
+    @test CartesianIndex(f, lidx) == cidx 
+    @test LinearIndex(f, cidx) == lidx
+
+    @test value(first(x)[1]) ≈ value(g[idxs[1]])
+    @test value(first(x)[2]) ≈ value(g[idxs[2]])
+    @test last(x)[1] == idxs[3] 
+    @test last(x)[2] == idxs[4]
+
+    @test value(first(y)[1]) ≈ value(g[idxs[1]])
+    @test value(first(y)[2]) ≈ value(g[idxs[2]])
+    @test last(y)[1] == idxs[3] 
+    @test last(y)[2] == idxs[4]
+
+    # test with MatsubaraIndex
+    lidx = LinearIndex(f, (MatsubaraIndex(g[idxs[1]]), MatsubaraIndex(g[idxs[2]])), idxs[3], idxs[4])
+    cidx = CartesianIndex(f, (MatsubaraIndex(g[idxs[1]]), MatsubaraIndex(g[idxs[2]])), idxs[3], idxs[4])
     x    = to_Matsubara(f, lidx) 
     y    = to_Matsubara(f, cidx)
 
@@ -106,10 +117,14 @@ end
     f2  = MatsubaraFunction((g, g), (10, 10), rand(ng, ng, 10, 10))
 
     @test f1[:, w] ≈ f1.data[:, g(w), 1]
+    @test f1[:, MatsubaraIndex(w)] ≈ f1.data[:, g(w), 1]
     @test @views f1[:, w] ≈ f1.data[:, g(w), 1]
+    @test @views f1[:, MatsubaraIndex(w)] ≈ f1.data[:, g(w), 1]
 
     @test f2[(:, w), :, idx] ≈ f2.data[:, g(w), :, idx]
+    @test f2[(:, MatsubaraIndex(w)), :, idx] ≈ f2.data[:, g(w), :, idx]
     @test @views f2[(:, w), :, idx] ≈ f2.data[:, g(w), :, idx]
+    @test @views f2[(:, MatsubaraIndex(w)), :, idx] ≈ f2.data[:, g(w), :, idx]
 end
 
 @testset "Evaluate" begin 

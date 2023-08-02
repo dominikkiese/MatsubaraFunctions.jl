@@ -3,17 +3,18 @@
         -> CartesianIndex
         -> LinearIndex
         -> getindex 
+        -> views
         -> setindex!
 ==#
 
-# CartesianIndex from MatsubaraFrequency and sites
+# CartesianIndex from MatsubaraFrequency or MatsubaraIndex and sites
 function Base.CartesianIndex(
     f :: MatsubaraFunction{GD, SD, DD, Q},
-    w :: NTuple{GD, MatsubaraFrequency},
+    w :: NTuple{GD, Union{MatsubaraFrequency, MatsubaraIndex}},
     x :: Vararg{Int64, SD} 
     ) :: CartesianIndex{DD} where {GD, SD, DD, Q <: Number}
 
-    # calling grid with frequency performs inbounds check
+    # calling grid with frequency or index performs inbounds check
     idxs = ntuple(i -> f.grids[i](w[i]), GD)
 
     # check if tensor indices are inbounds 
@@ -22,11 +23,11 @@ function Base.CartesianIndex(
     return CartesianIndex(idxs..., x...)
 end
 
-# extrapolated CartesianIndex from MatsubaraFrequency and sites
+# extrapolated CartesianIndex from MatsubaraFrequency or MatsubaraIndex and sites
 # (i.e. frequencies which are out of bounds will be reset to mesh boundaries)
 function CartesianIndex_extrp(
     f :: MatsubaraFunction{GD, SD, DD, Q},
-    w :: NTuple{GD, MatsubaraFrequency},
+    w :: NTuple{GD, Union{MatsubaraFrequency, MatsubaraIndex}},
     x :: Vararg{Int64, SD} 
     ) :: CartesianIndex{DD} where {GD, SD, DD, Q <: Number}
 
@@ -54,7 +55,7 @@ end
 """
     function LinearIndex(
         f :: MatsubaraFunction{GD, SD, DD, Q},
-        w :: NTuple{GD, MatsubaraFrequency},
+        w :: NTuple{GD, Union{MatsubaraFrequency, MatsubaraIndex}},
         x :: Vararg{Int64, SD} 
         ) :: Int64 where {GD, SD, DD, Q <: Number}
 
@@ -62,7 +63,7 @@ Returns linear index for access to `f.data`
 """
 function LinearIndex(
     f :: MatsubaraFunction{GD, SD, DD, Q},
-    w :: NTuple{GD, MatsubaraFrequency},
+    w :: NTuple{GD, Union{MatsubaraFrequency, MatsubaraIndex}},
     x :: Vararg{Int64, SD} 
     ) :: Int64 where {GD, SD, DD, Q <: Number}
 
@@ -145,7 +146,7 @@ end
 
 
 
-# add method to grid_index that can handle UnitRange and Colon
+# getindex methods
 function grid_index(
     w    :: Union{UnitRange, Colon},
     grid :: MatsubaraGrid
@@ -154,10 +155,9 @@ function grid_index(
     return w
 end
 
-# getindex methods
 function Base.:getindex(
     f :: MatsubaraFunction{GD, SD, DD, Q},
-    w :: NTuple{GD, Union{MatsubaraFrequency, UnitRange, Colon}},
+    w :: NTuple{GD, Union{MatsubaraFrequency, MatsubaraIndex, UnitRange, Colon}},
     x :: Vararg{Union{Int64, UnitRange, Colon}, SD} 
     ) :: Union{Q, AbstractArray{Q}} where {GD, SD, DD, Q <: Number}
 
@@ -167,7 +167,7 @@ end
 
 function Base.:getindex(
     f :: MatsubaraFunction{1, SD, DD, Q},
-    w :: Union{MatsubaraFrequency, UnitRange, Colon},
+    w :: Union{MatsubaraFrequency, MatsubaraIndex, UnitRange, Colon},
     x :: Vararg{Union{Int64, UnitRange, Colon}, SD} 
     ) :: Union{Q, AbstractArray{Q}} where {SD, DD, Q <: Number}
 
@@ -177,7 +177,7 @@ end
 
 function Base.:getindex(
     f :: MatsubaraFunction{GD, 1, DD, Q},
-    w :: Vararg{Union{MatsubaraFrequency, UnitRange, Colon}, GD} 
+    w :: Vararg{Union{MatsubaraFrequency, MatsubaraIndex, UnitRange, Colon}, GD} 
     ) :: Union{Q, AbstractArray{Q}} where {GD, DD, Q <: Number}
 
     # bounds check performed by Base
@@ -217,7 +217,7 @@ end
 # views
 function Base.:view(
     f :: MatsubaraFunction{GD, SD, DD, Q},
-    w :: NTuple{GD, Union{MatsubaraFrequency, UnitRange, Colon}},
+    w :: NTuple{GD, Union{MatsubaraFrequency, MatsubaraIndex, UnitRange, Colon}},
     x :: Vararg{Union{Int64, UnitRange, Colon}, SD} 
     ) :: SubArray{Q} where {GD, SD, DD, Q <: Number}
 
@@ -227,7 +227,7 @@ end
 
 function Base.:view(
     f :: MatsubaraFunction{1, SD, DD, Q},
-    w :: Union{MatsubaraFrequency, UnitRange, Colon},
+    w :: Union{MatsubaraFrequency, MatsubaraIndex, UnitRange, Colon},
     x :: Vararg{Union{Int64, UnitRange, Colon}, SD} 
     ) :: SubArray{Q} where {SD, DD, Q <: Number}
 
@@ -237,7 +237,7 @@ end
 
 function Base.:view(
     f :: MatsubaraFunction{GD, 1, DD, Q},
-    w :: Vararg{Union{MatsubaraFrequency, UnitRange, Colon}, GD} 
+    w :: Vararg{Union{MatsubaraFrequency, MatsubaraIndex, UnitRange, Colon}, GD} 
     ) :: SubArray{Q} where {GD, DD, Q <: Number}
 
     # bounds check performed by Base
@@ -260,7 +260,7 @@ end
 function Base.:setindex!(
     f   :: MatsubaraFunction{GD, SD, DD, Q},
     val :: Qp,
-    w   :: NTuple{GD, MatsubaraFrequency},
+    w   :: NTuple{GD, Union{MatsubaraFrequency, MatsubaraIndex}},
     x   :: Vararg{Int64, SD} 
     )   :: Nothing where {GD, SD, DD, Q <: Number, Qp <: Number}
 
@@ -273,7 +273,7 @@ end
 function Base.:setindex!(
     f   :: MatsubaraFunction{1, SD, DD, Q},
     val :: Qp,
-    w   :: MatsubaraFrequency,
+    w   :: Union{MatsubaraFrequency, MatsubaraIndex},
     x   :: Vararg{Int64, SD} 
     )   :: Nothing where {SD, DD, Q <: Number, Qp <: Number}
 
@@ -286,7 +286,7 @@ end
 function Base.:setindex!(
     f   :: MatsubaraFunction{GD, 1, DD, Q},
     val :: Qp,
-    w   :: Vararg{MatsubaraFrequency, GD}
+    w   :: Vararg{Union{MatsubaraFrequency, MatsubaraIndex}, GD}
     )   :: Nothing where {GD, DD, Q <: Number, Qp <: Number}
 
     # bounds check performed by Base
