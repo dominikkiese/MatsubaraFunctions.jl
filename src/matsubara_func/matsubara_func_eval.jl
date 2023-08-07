@@ -273,7 +273,7 @@ end
 
 
 
-# compute Matsubara sum for complex-valued MatsubaraFunction on 1D grid
+# compute fermionic Matsubara sum for complex-valued MatsubaraFunction on 1D grid
 # Note: only viable if f has Laurent series representation with
 #       respect to an annulus about the imaginary axis
 """
@@ -283,7 +283,7 @@ end
         x  :: Vararg{Int64, SD}
         )  :: Q where {SD, DD, Q <: Complex}
 
-Computes the Matsubara sum (with regulator exp(-iw0+)) for a complex valued MatsubaraFunction on a 1D grid. Here, `α0`
+Computes the fermionic Matsubara sum (with regulator exp(-iw0+)) for a complex valued MatsubaraFunction on a 1D grid. Here, `α0`
 is the asymptotic limit for large frequencies. This is only viable if `f1` has a Laurent series representation with respect 
 to an annulus about the imaginary axis.
 """
@@ -292,6 +292,9 @@ function sum_me(
     α0 :: Q,
     x  :: Vararg{Int64, SD}
     )  :: Q where {SD, DD, Q <: Complex}
+
+    # sanity check for current implementation, lift this restriction as soon as possible
+    @check type(grids(f, 1)) === :Fermion "Extrapolation is currently limited to fermionic grids"
 
     # compute tail moments 
     upper_moments = upper_tail_moments(f, α0, x...); upper_max = max(abs.(upper_moments)...)
@@ -328,7 +331,7 @@ end
         α0 :: Q
         )  :: Q where {Q <: Complex}
 
-Computes the Matsubara sum (with regulator exp(-iw0+)) for a complex valued MatsubaraFunction on a 1D grid. Here, `α0`
+Computes fermionic the Matsubara sum (with regulator exp(-iw0+)) for a complex valued MatsubaraFunction on a 1D grid. Here, `α0`
 is the asymptotic limit for large frequencies. This is only viable if `f1` has a Laurent series representation with respect 
 to an annulus about the imaginary axis. Requires `shape(f, 1) == 1`.
 """
@@ -347,7 +350,7 @@ end
         x :: Vararg{Int64, SD}
         ) :: Q where {SD, DD, Q <: Complex}
 
-Computes the density for a complex valued MatsubaraFunction on a 1D grid. Assumes that `f` decays to zero for large 
+Computes the fermionic density for a complex valued MatsubaraFunction on a 1D grid. Assumes that `f` decays to zero for large 
 frequencies (as a single-particle Green's function would).
 """
 function density(
@@ -363,7 +366,7 @@ end
         f :: MatsubaraFunction{1, 1, 2, Q}
         ) :: Q where {Q <: Complex}
 
-Computes the density for a complex valued MatsubaraFunction on a 1D grid. Assumes that `f` decays to zero for large 
+Computes the fermionic density for a complex valued MatsubaraFunction on a 1D grid. Assumes that `f` decays to zero for large 
 frequencies (as a single-particle Green's function would). Requires `shape(f, 1) == 1`.
 """
 function density(
