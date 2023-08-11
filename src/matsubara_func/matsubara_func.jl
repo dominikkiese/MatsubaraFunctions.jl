@@ -28,7 +28,7 @@ struct MatsubaraFunction{GD, SD, DD, Q <: Number}
         # check grids
         for g in grids
             @check temperature(g) ≈ temperature(grids[1]) "Grids must have same temperature"
-            @check issorted(Float64[value(w) for w in g]) "Grids must be sorted"
+            @check issorted(values(g)) "Grids must be sorted"
         end
 
         return new{GD, SD, DD, Q}(grids, shape, data)
