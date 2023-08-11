@@ -55,8 +55,6 @@ function (op :: MatsubaraOperation)(
     return con(op) ? conj(x) : x
 end
 
-
-
 # a symmetry should be defined such that it takes some 
 # MatsubaraFrequency arguments and tensor indices and returns a new set 
 # of MatsubaraFrequency and tensor indices together with a MatsubaraOperation 
@@ -79,8 +77,6 @@ function (S :: MatsubaraSymmetry{GD, SD})(
 
     return S.f(w, x)
 end
-
-
 
 # implementation of the symmetry reduction 
 function reduce(
@@ -153,7 +149,7 @@ struct MatsubaraSymmetryGroup
         ) :: MatsubaraSymmetryGroup where {GD, SD, DD, Q <: Number}
 
         classes = Vector{Tuple{Int64, MatsubaraOperation}}[[(idx, MatsubaraOperation())] for idx in eachindex(f.data)]
-        return new(classes, 1.0)
+        return MatsubaraSymmetryGroup(classes, 1.0)
     end
 
     # convenience constructor from MatsubaraFunction and list of symmetries 
@@ -208,8 +204,6 @@ function (SG :: MatsubaraSymmetryGroup)(
 
     return nothing 
 end
-
-
 
 # an init function should be defined such that it takes some 
 # MatsubaraFrequency arguments and shape indices and returns a value of type Q

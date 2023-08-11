@@ -89,8 +89,6 @@ function extrapolate(
     end
 end
 
-
-
 # call to MatsubaraFunction with MatsubaraFrequency
 # Note: in contrast to the [] operator used for indexing with MatsubaraFrequency, 
 #       () has well-defined behavior for out of bounds access (bc or extrapolation)
@@ -153,8 +151,6 @@ function (f :: MatsubaraFunction{1, 1, 2, Q})(
     @check shape(f, 1) == 1 "MatsubaraFunction is not scalar but vector valued"
     return f((w,), 1; bc = y -> bc(y[1]), extrp)
 end
-
-
 
 # Note: we do not use the () operator to find the closest index in a MatsubaraGrid
 #       in order to to avoid duplicate boundary checks
@@ -270,8 +266,6 @@ function (f :: MatsubaraFunction{1, 1, 2, Q})(
     @check shape(f, 1) == 1 "MatsubaraFunction is not scalar but vector valued"
     return f((w,), 1; bc = y -> bc(y[1]), extrp)
 end
-
-
 
 # compute fermionic Matsubara sum for complex-valued MatsubaraFunction on 1D grid
 # Note: only viable if f has Laurent series representation with

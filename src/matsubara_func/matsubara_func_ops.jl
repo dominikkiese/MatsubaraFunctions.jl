@@ -24,8 +24,6 @@ function check_shape_grid!(
     return nothing 
 end
 
-
-
 """
     function add(
         f1 :: MatsubaraFunction{GD, SD, DD, Q}, 
@@ -71,8 +69,6 @@ function add!(
     return nothing 
 end
 
-
-
 """
     function subtract(
         f1 :: MatsubaraFunction{GD, SD, DD, Q}, 
@@ -116,8 +112,6 @@ function subtract!(
 
     return nothing 
 end
-
-
 
 """
     function mult(
@@ -171,8 +165,6 @@ function mult!(
     return nothing
 end
  
-
-
 """
     function set!(
         f   :: MatsubaraFunction{GD, SD, DD, Q},
@@ -230,8 +222,6 @@ function set!(
     return nothing
 end
 
-
-
 # value comparison
 function Base.:(==)(    
     f1 :: MatsubaraFunction{GD, SD, DD, Q},
@@ -241,8 +231,6 @@ function Base.:(==)(
     check_shape_grid!(f1, f2) 
     return f1.data ≈ f2.data 
 end
-
-
 
 """
     function flatten(

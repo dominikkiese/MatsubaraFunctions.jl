@@ -69,8 +69,6 @@ struct MatsubaraFrequency
     end 
 end 
 
-
-
 """
     function temperature(
         w :: MatsubaraFrequency
@@ -126,8 +124,6 @@ function type(
 
     return w.type
 end 
-
-
 
 # load methods
 include("matsubara_freq_ops.jl")

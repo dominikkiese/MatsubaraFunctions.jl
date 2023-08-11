@@ -8,7 +8,7 @@
 ==#
 
 # CartesianIndex from MatsubaraFrequency or MatsubaraIndex and sites
-function Base.CartesianIndex(
+function Base.:CartesianIndex(
     f :: MatsubaraFunction{GD, SD, DD, Q},
     w :: NTuple{GD, Union{MatsubaraFrequency, MatsubaraIndex}},
     x :: Vararg{Int64, SD} 
@@ -41,7 +41,7 @@ function CartesianIndex_extrp(
 end
 
 # CartesianIndex from LinearIndex
-function Base.CartesianIndex(
+function Base.:CartesianIndex(
     f   :: MatsubaraFunction{GD, SD, DD, Q},
     idx :: Int64
     )   :: CartesianIndex{DD} where {GD, SD, DD, Q <: Number}
@@ -49,8 +49,6 @@ function Base.CartesianIndex(
     # bounds check performed by Base
     return CartesianIndices(data_shape(f))[idx]
 end
-
-
 
 """
     function LinearIndex(
@@ -108,8 +106,6 @@ function LinearIndex(
     return LinearIndices(data_shape(f))[x...]
 end
 
-
-
 """
     function to_Matsubara(
         f    :: MatsubaraFunction{GD, SD, DD, Q},
@@ -143,8 +139,6 @@ function to_Matsubara(
     cidx = CartesianIndex(f, idx)
     return to_Matsubara(f, cidx)
 end
-
-
 
 # getindex methods
 function grid_index(
@@ -212,8 +206,6 @@ function Base.:getindex(
     return f.data[x...]
 end
 
-
-
 # views
 function Base.:view(
     f :: MatsubaraFunction{GD, SD, DD, Q},
@@ -253,8 +245,6 @@ function Base.:view(
     # bounds check performed by Base
     return view(f.data, x...)
 end
-
-
 
 # setindex! methods
 function Base.:setindex!(

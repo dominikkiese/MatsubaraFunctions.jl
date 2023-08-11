@@ -105,8 +105,6 @@ function Base.:getindex(
     return @view grid.data[idxs]
 end  
 
-
-
 # make MatsubaraGrid callable with MatsubaraFrequency or MatsubaraIndex
 # returns index to data array corresponding to this frequency if in grid
 """
@@ -150,8 +148,6 @@ function (f :: MatsubaraGrid)(
         error("Frequency not in grid")
     end 
 end
-
-
 
 # make Matsubara grid iterable
 function Base.:iterate(

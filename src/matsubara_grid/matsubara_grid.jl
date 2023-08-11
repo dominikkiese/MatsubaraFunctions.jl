@@ -49,9 +49,15 @@ struct MatsubaraGrid
         grid = MatsubaraFrequency[MatsubaraFrequency(T, n, Boson) for n in -N + 1 : N - 1]
         return MatsubaraGrid(T, grid, :Boson)
     end
+
+    # copy constructor 
+    function MatsubaraGrid(
+        grid :: MatsubaraGrid
+        )    :: MatsubaraGrid
+
+        return MatsubaraGrid(temperature(grid), copy(grid.data), type(grid))
+    end
 end
-
-
 
 """
     function temperature(
@@ -128,6 +134,13 @@ function index_range(
     )    :: NTuple{2, Int64}
 
     return first_index(grid), last_index(grid)
+end
+
+function Base.:copy(
+    grid :: MatsubaraGrid
+    )    :: MatsubaraGrid
+
+    return MatsubaraGrid(grid)
 end
 
 """
@@ -242,14 +255,12 @@ end
 
 Returns list of values for Matsubara frequencies in grid
 """
-function Base.values(
+function Base.:values(
     grid :: MatsubaraGrid
     )    :: Vector{Float64}
 
     return value.(grid.data)
 end 
-
-
 
 """
     function info(
@@ -272,8 +283,6 @@ function info(
 
     return nothing
 end
-
-
 
 # load methods
 include("matsubara_grid_index.jl")

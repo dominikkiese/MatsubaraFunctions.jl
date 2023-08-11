@@ -44,7 +44,7 @@ struct MatsubaraFunction{GD, SD, DD, Q <: Number}
         dims = length.(grids)..., shape...
         data = Array{Q, GD + SD}(undef, dims)
 
-        return MatsubaraFunction(grids, shape, data)
+        return matsubara_function_grid_cp(grids, shape, data)
     end
 
     function MatsubaraFunction(
@@ -106,6 +106,24 @@ struct MatsubaraFunction{GD, SD, DD, Q <: Number}
 
         return MatsubaraFunction(grid, shape, ComplexF64)
     end
+
+    # copy constructor 
+    function MatsubaraFunction(
+        f :: MatsubaraFunction{GD, SD, DD, Q}
+        ) :: MatsubaraFunction{GD, SD, DD, Q} where {GD, SD, DD, Q <: Number}
+
+        return matsubara_function_grid_cp(grids(f), shape(f), copy(f.data))
+    end
+end
+
+# safer version of MatsubaraFunction default constructor using grid copies
+function matsubara_function_grid_cp(
+    grids :: NTuple{GD, MatsubaraGrid}, 
+    shape :: NTuple{SD, Int64}, 
+    data  :: Array{Q, DD}
+    )     :: MatsubaraFunction{GD, SD, DD, Q} where {GD, SD, DD, Q <: Number}
+
+    return MatsubaraFunction(copy.(grids), shape, data)
 end
 
 """
@@ -235,7 +253,7 @@ end
 
 Returns length of `f.data`
 """
-function Base.length(
+function Base.:length(
     f :: MatsubaraFunction{GD, SD, DD, Q}
     ) :: Int64 where {GD, SD, DD, Q <: Number}
 
@@ -244,16 +262,23 @@ end
 
 """
     function temperature(
-        f :: MatsubaraFunction{GD, SD, DD, Q},
+        f :: MatsubaraFunction{GD, SD, DD, Q}
         ) :: Float64 where {GD, SD, DD, Q <: Number}
 
 Returns temperature for which `f.grids` are defined
 """
 function temperature(
-    f :: MatsubaraFunction{GD, SD, DD, Q},
+    f :: MatsubaraFunction{GD, SD, DD, Q}
     ) :: Float64 where {GD, SD, DD, Q <: Number}
 
     return temperature(f.grids[1])
+end
+
+function Base.:copy(
+    f :: MatsubaraFunction{GD, SD, DD, Q}
+    ) :: MatsubaraFunction{GD, SD, DD, Q} where {GD, SD, DD, Q <: Number}
+
+    return MatsubaraFunction(f)
 end
 
 """
@@ -305,8 +330,6 @@ function info(
 
     return nothing
 end
-
-
 
 # load methods 
 include("mpi_helpers.jl")
