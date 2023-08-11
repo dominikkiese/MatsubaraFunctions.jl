@@ -13,8 +13,9 @@ function save_matsubara_function!(
     f :: MatsubaraFunction{Dg, Ds, Dt, Q}
     ) :: Nothing where {Dg, Ds, Dt, Q <: Number}
 
-    # create new group
-    grp = create_group(h, l)
+    # create new group and tag it
+    grp                    = create_group(h, l)
+    attributes(grp)["tag"] = "MatsubaraFunction"
 
     # add metadata 
     attributes(grp)["shape"] = Int64[f.shape...]
@@ -42,6 +43,10 @@ function load_matsubara_function(
     l :: String
     ) :: MatsubaraFunction
 
+    # check if group has correct tag 
+    @check haskey(attributes(h[l]), "tag") "Group $(l) not compatible with MatsubaraFunctions"
+    @check read_attribute(h[l], "tag") == "MatsubaraFunction" "Group $(l) not tagged as MatsubaraFunction"
+
     # read the metadata 
     shape = read_attribute(h[l], "shape")
 
@@ -68,8 +73,9 @@ function save_matsubara_symmetry_group!(
     SG :: MatsubaraSymmetryGroup
     )  :: Nothing
 
-    # create new group 
-    grp = create_group(h, l)
+    # create new group and tag it
+    grp                    = create_group(h, l)
+    attributes(grp)["tag"] = "MatsubaraSymmetryGroup"
 
     # add metadata 
     attributes(grp)["speedup"]     = SG.speedup
@@ -79,7 +85,7 @@ function save_matsubara_symmetry_group!(
     num_in_classes        = Int64[length(class) for class in SG.classes]
     grp["num_in_classes"] = num_in_classes
 
-    # convert classes to big matrix for fast write to disk
+    # convert classes to matrix for fast write to disk
     mat    = Matrix{Int64}(undef, 3, sum(num_in_classes))
     offset = 0
 
@@ -110,6 +116,10 @@ function load_matsubara_symmetry_group(
     h :: HDF5.File,
     l :: String
     ) :: MatsubaraSymmetryGroup
+
+    # check if group has correct tag 
+    @check haskey(attributes(h[l]), "tag") "Group $(l) not compatible with MatsubaraFunctions"
+    @check read_attribute(h[l], "tag") == "MatsubaraSymmetryGroup" "Group $(l) not tagged as MatsubaraSymmetryGroup"
 
     # read the metadata 
     speedup     = read_attribute(h[l], "speedup")
