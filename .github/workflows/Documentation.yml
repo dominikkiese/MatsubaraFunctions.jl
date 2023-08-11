@@ -4,10 +4,12 @@ on:
   push:
     branches:
       - main
+      - unstable
     tags: '*'
   pull_request:
     branches:
       - main
+      - unstable
 jobs:
   build:
     runs-on: ubuntu-latest
