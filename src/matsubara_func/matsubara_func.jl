@@ -333,10 +333,8 @@ function info(
 end
 
 # load methods 
-include("mpi_helpers.jl")
 include("matsubara_func_ops.jl")
 include("matsubara_func_index.jl")
 include("matsubara_func_eval.jl")
 include("matsubara_func_symmetries.jl")
 include("matsubara_func_io.jl")
-include("matsubara_func_pade.jl")

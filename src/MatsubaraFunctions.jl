@@ -21,9 +21,27 @@ module MatsubaraFunctions
     include("matsubara_freq/matsubara_freq.jl")
     include("matsubara_grid/matsubara_grid.jl")
     include("matsubara_func/matsubara_func.jl")
+    include("misc/mpi_helpers.jl")
+    include("misc/pade.jl")
 
     export
-        # matsubara_freq.jl 
+        # mpi_helpers
+        mpi_comm,
+        mpi_rank,
+        mpi_size,
+        mpi_split,
+        mpi_allreduce!,
+        mpi_ismain,
+        mpi_println,
+        mpi_info,
+        mpi_barrier,
+        
+        # pade
+        PadeApprox,
+        coeffs, 
+        xdat,
+
+        # matsubara_freq
         AbstractParticle,
         Fermion,
         Boson,
@@ -33,7 +51,7 @@ module MatsubaraFunctions
         index,
         type,
 
-        # matsubara_grid.jl
+        # matsubara_grid
         MatsubaraGrid, 
         first_index,
         last_index,
@@ -50,22 +68,13 @@ module MatsubaraFunctions
         save_matsubara_grid!, 
         load_matsubara_grid,
 
-        # matsubara_func.jl
+        # matsubara_func
         MatsubaraFunction,
         grids, 
         grids_shape,
         shape, 
         data_shape,
         absmax,
-        mpi_comm,
-        mpi_rank,
-        mpi_size,
-        mpi_split,
-        mpi_allreduce!,
-        mpi_ismain,
-        mpi_println,
-        mpi_info,
-        mpi_barrier,
         add,
         add!, 
         subtract,
@@ -91,8 +100,5 @@ module MatsubaraFunctions
         save_matsubara_function!, 
         load_matsubara_function,
         save_matsubara_symmetry_group!,
-        load_matsubara_symmetry_group,
-        PadeApprox,
-        coeffs, 
-        xdat
+        load_matsubara_symmetry_group
 end

@@ -234,32 +234,26 @@ function (f :: MatsubaraFunction{GD, 1, DD, Q})(
     return f((w,), 1; extrp)
 end
 
-# compute fermionic Matsubara sum for complex-valued MatsubaraFunction on 1D grid
-# Note: only viable if f has Laurent series representation with
-#       respect to an annulus about the imaginary axis
 """
     function sum_me(
-        f  :: MatsubaraFunction{1, SD, DD, Q},
-        α0 :: Q,
-        x  :: Vararg{Int64, SD}
-        )  :: Q where {SD, DD, Q <: Complex}
+        f :: MatsubaraFunction{1, SD, DD, Q},
+        x :: Vararg{Int64, SD}
+        ) :: Q where {SD, DD, Q <: Complex}
 
-Computes the fermionic Matsubara sum (with regulator exp(-iw0+)) for a complex valued MatsubaraFunction on a 1D grid. Here, `α0`
-is the asymptotic limit for large frequencies. This is only viable if `f` has a Laurent series representation with respect 
-to an annulus about the imaginary axis.
+Computes the fermionic Matsubara sum (with regulator exp(-iw0+)) for a complex valued MatsubaraFunction on a 1D grid. This is only viable if `f` has 
+a Laurent series representation with respect to an annulus about the imaginary axis and decays to zero.
 """
 function sum_me(
-    f  :: MatsubaraFunction{1, SD, DD, Q},
-    α0 :: Q,
-    x  :: Vararg{Int64, SD}
-    )  :: Q where {SD, DD, Q <: Complex}
+    f :: MatsubaraFunction{1, SD, DD, Q},
+    x :: Vararg{Int64, SD}
+    ) :: Q where {SD, DD, Q <: Complex}
 
     # sanity check for current implementation, lift this restriction as soon as possible
     @check type(grids(f, 1)) === :Fermion "Extrapolation is currently limited to fermionic grids"
 
     # compute tail moments 
-    upper_moments = upper_tail_moments(f, α0, x...); upper_max = max(abs.(upper_moments)...)
-    lower_moments = lower_tail_moments(f, α0, x...); lower_max = max(abs.(lower_moments)...)
+    upper_moments = upper_tail_moments(f, Q(0.0), x...); upper_max = max(abs.(upper_moments)...)
+    lower_moments = lower_tail_moments(f, Q(0.0), x...); lower_max = max(abs.(lower_moments)...)
 
     # check self-consistency 
     diff  = max(abs.(upper_moments .- lower_moments)...);
@@ -277,7 +271,7 @@ function sum_me(
     # compute the Matsubara sum using quadratic asymptotic model
     T   = temperature(grids(f, 1))
     num = grids_shape(f, 1)
-    val = -T * (num * α0 - sum(view(f, :, x...))) - 0.5 * (α1 + 0.5 * α2 / T)
+    val = T * sum(view(f, :, x...)) - 0.5 * (α1 + 0.5 * α2 / T)
 
     for w in 1 : num
         val += T * α2 / value(grids(f, 1)[w]) / value(grids(f, 1)[w])
@@ -288,21 +282,18 @@ end
 
 """
     function sum_me(
-        f  :: MatsubaraFunction{1, 1, 2, Q},
-        α0 :: Q
-        )  :: Q where {Q <: Complex}
+        f :: MatsubaraFunction{1, 1, 2, Q},
+        ) :: Q where {Q <: Complex}
 
-Computes fermionic the Matsubara sum (with regulator exp(-iw0+)) for a complex valued MatsubaraFunction on a 1D grid. Here, `α0`
-is the asymptotic limit for large frequencies. This is only viable if `f` has a Laurent series representation with respect 
-to an annulus about the imaginary axis. Requires `shape(f, 1) == 1`.
+Computes fermionic the Matsubara sum (with regulator exp(-iw0+)) for a complex valued MatsubaraFunction on a 1D grid. This is only viable if `f` has 
+a Laurent series representation with respect to an annulus about the imaginary axis and decays to zero. Requires `shape(f, 1) == 1`.
 """
 function sum_me(
-    f  :: MatsubaraFunction{1, 1, 2, Q},
-    α0 :: Q
-    )  :: Q where {Q <: Complex}
+    f :: MatsubaraFunction{1, 1, 2, Q},
+    ) :: Q where {Q <: Complex}
 
     @check shape(f, 1) == 1 "MatsubaraFunction is not scalar but vector valued"
-    return sum_me(f, α0, 1)
+    return sum_me(f, 1)
 end
 
 """
@@ -311,15 +302,14 @@ end
         x :: Vararg{Int64, SD}
         ) :: Q where {SD, DD, Q <: Complex}
 
-Computes the fermionic density for a complex valued MatsubaraFunction on a 1D grid. Assumes that `f` decays to zero for large 
-frequencies (as a single-particle Green's function would).
+Computes the fermionic density for a complex valued MatsubaraFunction on a 1D grid.
 """
 function density(
     f :: MatsubaraFunction{1, SD, DD, Q},
     x :: Vararg{Int64, SD}
     ) :: Q where {SD, DD, Q <: Complex}
 
-    return 1.0 + sum_me(f, ComplexF64(0.0), x...)
+    return 1.0 + sum_me(f, x...)
 end
 
 """
@@ -327,13 +317,12 @@ end
         f :: MatsubaraFunction{1, 1, 2, Q}
         ) :: Q where {Q <: Complex}
 
-Computes the fermionic density for a complex valued MatsubaraFunction on a 1D grid. Assumes that `f` decays to zero for large 
-frequencies (as a single-particle Green's function would). Requires `shape(f, 1) == 1`.
+Computes the fermionic density for a complex valued MatsubaraFunction on a 1D grid. Requires `shape(f, 1) == 1`.
 """
 function density(
     f :: MatsubaraFunction{1, 1, 2, Q}
     ) :: Q where {Q <: Complex}
 
     @check shape(f, 1) == 1 "MatsubaraFunction is not scalar but vector valued"
-    return 1.0 + sum_me(f, ComplexF64(0.0), 1)
+    return 1.0 + sum_me(f, 1)
 end
