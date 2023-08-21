@@ -1,5 +1,3 @@
-# residual modifier after application of symmetry transformation
-# sgn -> change of sign | con -> complex conjugation
 """
     struct MatsubaraOperation 
 
@@ -122,7 +120,6 @@ function reduce(
     end 
 end
 
-# here, a symmetry group is a list of collections of symmetry equivalent elements
 """
     MatsubaraSymmetryGroup
 
@@ -205,8 +202,6 @@ function (SG :: MatsubaraSymmetryGroup)(
     return nothing 
 end
 
-# an init function should be defined such that it takes some 
-# MatsubaraFrequency arguments and shape indices and returns a value of type Q
 """
     struct MatsubaraInitFunction{GD, SD, Q <: Number}
 

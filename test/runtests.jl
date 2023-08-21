@@ -165,33 +165,6 @@ end
     end 
 end
 
-@testset "BC" begin 
-    T  = 0.5
-    ξ  = 0.5
-    v  = MatsubaraFrequency(T, 1000, Fermion)
-    fg = MatsubaraGrid(T, 512, Fermion)
-    f1 = MatsubaraFunction(fg, 1)
-    f2 = MatsubaraFunction((fg, fg), 1)
-
-    # default bc
-    @test f1(v) ≈ 0.0
-    @test f2(v, fg[1]) ≈ 0.0
-    @test f1(value(v)) ≈ 0.0
-    @test f2(value(v), value(fg[1])) ≈ 0.0
-
-    # constant bc
-    @test f1(v; bc = x -> 1.0) ≈ 1.0
-    @test f2(v, fg[1]; bc = x -> 1.0) ≈ 1.0
-    @test f1(value(v); bc = x -> 1.0) ≈ 1.0
-    @test f2(value(v), value(fg[1]); bc = x -> 1.0) ≈ 1.0
-
-    # frequency dependent bc
-    @test f1(v; bc = x -> 1.0 / value(x)) ≈ 1.0 / value(v)
-    @test f2(v, fg[1]; bc = x -> 1.0 / value(x[1]) / value(x[2])) ≈ 1.0 / value(v) / value(fg[1])
-    @test f1(value(v); bc = x -> 1.0 / x) ≈ 1.0 / value(v)
-    @test f2(value(v), value(fg[1]); bc = x -> 1.0 / x[1] / x[2]) ≈ 1.0 / value(v) / value(fg[1])
-end
-
 @testset "Extrapolation" begin 
     T  = 0.1
     ξ  = 0.5
@@ -217,26 +190,26 @@ end
     c0 = ComplexF64(0.0)
 
     # polynomial extrapolation for 1D grids with MatsubaraFrequency argument
-    @test isapprox(f1(w; extrp = (true, c0)), 1.0 / (im * value(w)); atol = 1e-6, rtol = 1e-6)
-    @test isapprox(f2(w; extrp = (true, c0)), 1.0 / (im * value(w)) - ξ / value(w) / value(w); atol = 1e-6, rtol = 1e-6)
-    @test isapprox(f3(w; extrp = (true, c0)), -1.0 / value(w) / value(w); atol = 1e-6, rtol = 1e-6)
-    @test isapprox(f4(w; extrp = (true, 0.)), 1.0 / value(w); atol = 1e-6, rtol = 1e-6)
+    @test isapprox(f1(w), 1.0 / (im * value(w)); atol = 1e-6, rtol = 1e-6)
+    @test isapprox(f2(w), 1.0 / (im * value(w)) - ξ / value(w) / value(w); atol = 1e-6, rtol = 1e-6)
+    @test isapprox(f3(w), -1.0 / value(w) / value(w); atol = 1e-6, rtol = 1e-6)
+    @test isapprox(f4(w; extrp = 0.0), 1.0 / value(w); atol = 1e-6, rtol = 1e-6)
 
     # polynomial extrapolation for 1D grids with Float64 argument
-    @test isapprox(f1(value(w); extrp = (true, c0)), 1.0 / (im * value(w)); atol = 1e-6, rtol = 1e-6)
-    @test isapprox(f2(value(w); extrp = (true, c0)), 1.0 / (im * value(w)) - ξ / value(w) / value(w); atol = 1e-6, rtol = 1e-6)
-    @test isapprox(f3(value(w); extrp = (true, c0)), -1.0 / value(w) / value(w); atol = 1e-6, rtol = 1e-6)
-    @test isapprox(f4(value(w); extrp = (true, 0.)), 1.0 / value(w); atol = 1e-6, rtol = 1e-6)
+    @test isapprox(f1(value(w)), 1.0 / (im * value(w)); atol = 1e-6, rtol = 1e-6)
+    @test isapprox(f2(value(w)), 1.0 / (im * value(w)) - ξ / value(w) / value(w); atol = 1e-6, rtol = 1e-6)
+    @test isapprox(f3(value(w)), -1.0 / value(w) / value(w); atol = 1e-6, rtol = 1e-6)
+    @test isapprox(f4(value(w); extrp = 0.0), 1.0 / value(w); atol = 1e-6, rtol = 1e-6)
 
     # constant extrapolation for higher-dimensional grids with MatsubaraFrequency argument
-    @test f5(w, w; extrp = (true, c0)) ≈ 1.0 / (im * value(fg[end]) - ξ) / (im * value(fg[end]) - ξ)
-    @test f5(w, fg[1]; extrp = (true, c0)) ≈ 1.0 / (im * value(fg[end]) - ξ) / (im * value(fg[1]) - ξ)
-    @test f5(fg[1], w; extrp = (true, c0)) ≈ 1.0 / (im * value(fg[1]) - ξ) / (im * value(fg[end]) - ξ)
+    @test f5(w, w) ≈ 1.0 / (im * value(fg[end]) - ξ) / (im * value(fg[end]) - ξ)
+    @test f5(w, fg[1]) ≈ 1.0 / (im * value(fg[end]) - ξ) / (im * value(fg[1]) - ξ)
+    @test f5(fg[1], w) ≈ 1.0 / (im * value(fg[1]) - ξ) / (im * value(fg[end]) - ξ)
 
     # constant extrapolation for higher-dimensional grids with Float64 argument
-    @test f5(value(w), value(w); extrp = (true, c0)) ≈ 1.0 / (im * value(fg[end]) - ξ) / (im * value(fg[end]) - ξ)
-    @test f5(value(w), value(fg[1]); extrp = (true, c0)) ≈ 1.0 / (im * value(fg[end]) - ξ) / (im * value(fg[1]) - ξ)
-    @test f5(value(fg[1]), value(w); extrp = (true, c0)) ≈ 1.0 / (im * value(fg[1]) - ξ) / (im * value(fg[end]) - ξ)
+    @test f5(value(w), value(w)) ≈ 1.0 / (im * value(fg[end]) - ξ) / (im * value(fg[end]) - ξ)
+    @test f5(value(w), value(fg[1])) ≈ 1.0 / (im * value(fg[end]) - ξ) / (im * value(fg[1]) - ξ)
+    @test f5(value(fg[1]), value(w)) ≈ 1.0 / (im * value(fg[1]) - ξ) / (im * value(fg[end]) - ξ)
 end
 
 @testset "Summation" begin 

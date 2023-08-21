@@ -22,6 +22,7 @@ struct MatsubaraFunction{GD, SD, DD, Q <: Number}
         if Q <: Integer || Q <: Complex{Int} error("Integer data type not supported") end
         
         # check dimensions
+        @check GD > 0 "Grid dimension cannot be zero"
         @check SD > 0 "Shape dimension cannot be zero"
         @check GD + SD == DD "Dimensions do not match"
         
@@ -131,7 +132,7 @@ end
         f :: MatsubaraFunction{GD, SD, DD, Q}
         ) :: NTuple{GD, MatsubaraGrid} where {GD, SD, DD, Q <: Number}
 
-Returns grids of `f`
+Returns `f.grids`
 """
 function grids(
     f :: MatsubaraFunction{GD, SD, DD, Q}
@@ -167,7 +168,7 @@ function grids_shape(
     f :: MatsubaraFunction{GD, SD, DD, Q}
     ) :: NTuple{GD, Int64} where {GD, SD, DD, Q <: Number}
 
-    return length.(f.grids)
+    return length.(grids(f))
 end
 
 """
@@ -183,7 +184,7 @@ function grids_shape(
     idx :: Int64
     )   :: Int64 where {GD, SD, DD, Q <: Number}
 
-    return length(f.grids[idx])
+    return length(grids(f, idx))
 end
 
 """
@@ -271,7 +272,7 @@ function temperature(
     f :: MatsubaraFunction{GD, SD, DD, Q}
     ) :: Float64 where {GD, SD, DD, Q <: Number}
 
-    return temperature(f.grids[1])
+    return temperature(grids(f, 1))
 end
 
 function Base.:copy(
@@ -322,7 +323,7 @@ function info(
 
     println("MatsubaraFunction properties")
     println("----------------------------")
-    println("Temperature     : $(temperature(f.grids[1]))")
+    println("Temperature     : $(temperature(f))")
     println("Grid dimension  : $(GD)")
     println("Shape dimension : $(SD)")
     println("Data dimension  : $(DD)")

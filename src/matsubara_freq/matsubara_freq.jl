@@ -65,7 +65,7 @@ struct MatsubaraFrequency
             :: Type{Boson}
         )   :: MatsubaraFrequency 
 
-        return new(T, 2.0 * pi * T * idx, idx, :Boson)
+        return new(T, 2 * pi * T * idx, idx, :Boson)
     end 
 end 
 

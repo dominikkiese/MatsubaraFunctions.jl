@@ -1,4 +1,3 @@
-# convenience accessor for grids
 """
     struct MatsubaraIndex 
 
@@ -7,7 +6,8 @@ MatsubaraIndex type with fields:
 """
 struct MatsubaraIndex 
     idx :: Int64
-
+    
+    # default constructor
     function MatsubaraIndex(
         idx :: Int64
         )   :: MatsubaraIndex 
@@ -15,6 +15,7 @@ struct MatsubaraIndex
         return new(idx)
     end
 
+    # convenience constructor
     function MatsubaraIndex(
         w :: MatsubaraFrequency
         ) :: MatsubaraIndex 
@@ -43,7 +44,7 @@ function grid_index(
     grid :: MatsubaraGrid
     )    :: Int64 
 
-    return index(w) - index(grid[1]) + 1
+    return index(w) - first_index(grid) + 1
 end
 
 # safer method for converting MatsubaraFrequency or MatsubaraIndex to grid index
@@ -93,7 +94,7 @@ function Base.:getindex(
     )    :: MatsubaraFrequency
 
     # bounds check performed by Base
-    return grid.data[grid_index(x, g)]
+    return grid[grid_index(x, grid)]
 end
 
 function Base.:getindex(

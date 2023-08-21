@@ -1,12 +1,3 @@
-#== 
-    Indexing for MatsubaraFunctions:
-        -> CartesianIndex
-        -> LinearIndex
-        -> getindex 
-        -> views
-        -> setindex!
-==#
-
 # CartesianIndex from MatsubaraFrequency or MatsubaraIndex and sites
 function Base.:CartesianIndex(
     f :: MatsubaraFunction{GD, SD, DD, Q},
@@ -15,7 +6,7 @@ function Base.:CartesianIndex(
     ) :: CartesianIndex{DD} where {GD, SD, DD, Q <: Number}
 
     # calling grid with frequency or index performs inbounds check
-    idxs = ntuple(i -> f.grids[i](w[i]), GD)
+    idxs = ntuple(i -> grids(f, i)(w[i]), GD)
 
     # check if tensor indices are inbounds 
     @check any(ntuple(i -> !(1 <= x[i] <= shape(f, i)), SD)) == false "Tensor indices invalid, shape is $(shape(f))"
@@ -32,7 +23,7 @@ function CartesianIndex_extrp(
     ) :: CartesianIndex{DD} where {GD, SD, DD, Q <: Number}
 
     # determine grid indices
-    idxs = ntuple(i -> grid_index_extrp(w[i], f.grids[i]), GD)
+    idxs = ntuple(i -> grid_index_extrp(w[i], grids(f, i)), GD)
 
     # check if tensor indices are inbounds 
     @check any(ntuple(i -> !(1 <= x[i] <= shape(f, i)), SD)) == false "Tensor indices invalid, shape is $(shape(f))"
@@ -66,7 +57,7 @@ function LinearIndex(
     ) :: Int64 where {GD, SD, DD, Q <: Number}
 
     # calling grid with frequency performs inbounds check
-    idxs = ntuple(i -> f.grids[i](w[i]), GD)
+    idxs = ntuple(i -> grids(f, i)(w[i]), GD)
 
     # bounds check for x performed by Base
     return LinearIndices(data_shape(f))[idxs..., x...]
@@ -120,7 +111,7 @@ function to_Matsubara(
     )    :: Tuple{NTuple{GD, MatsubaraFrequency}, NTuple{SD, Int64}} where {GD, SD, DD, Q <: Number}
 
     # bounds check performed by Base
-    return ntuple(i -> f.grids[i][cidx[i]], GD), ntuple(i -> cidx[GD + i], SD)
+    return ntuple(i -> grids(f, i)[cidx[i]], GD), ntuple(i -> cidx[GD + i], SD)
 end
 
 """
@@ -140,7 +131,7 @@ function to_Matsubara(
     return to_Matsubara(f, cidx)
 end
 
-# getindex methods
+# overload to generalize getindex methods
 function grid_index(
     w    :: Union{UnitRange, Colon},
     grid :: MatsubaraGrid
@@ -149,6 +140,7 @@ function grid_index(
     return w
 end
 
+# getindex methods
 function Base.:getindex(
     f :: MatsubaraFunction{GD, SD, DD, Q},
     w :: NTuple{GD, Union{MatsubaraFrequency, MatsubaraIndex, UnitRange, Colon}},
@@ -156,7 +148,7 @@ function Base.:getindex(
     ) :: Union{Q, AbstractArray{Q}} where {GD, SD, DD, Q <: Number}
 
     # bounds check performed by Base
-    return f.data[ntuple(i -> grid_index(w[i], f.grids[i]), GD)..., x...]
+    return f.data[ntuple(i -> grid_index(w[i], grids(f, i)), GD)..., x...]
 end
 
 function Base.:getindex(
@@ -166,7 +158,7 @@ function Base.:getindex(
     ) :: Union{Q, AbstractArray{Q}} where {SD, DD, Q <: Number}
 
     # bounds check performed by Base
-    return f.data[grid_index(w, f.grids[1]), x...]
+    return f.data[grid_index(w, grids(f, 1)), x...]
 end
 
 function Base.:getindex(
@@ -176,7 +168,7 @@ function Base.:getindex(
 
     # bounds check performed by Base
     @check shape(f, 1) == 1 "MatsubaraFunction is not scalar but vector valued!"
-    return f.data[ntuple(i -> grid_index(w[i], f.grids[i]), GD)..., 1]
+    return f.data[ntuple(i -> grid_index(w[i], grids(f, i)), GD)..., 1]
 end
 
 function Base.:getindex(
@@ -214,7 +206,7 @@ function Base.:view(
     ) :: SubArray{Q} where {GD, SD, DD, Q <: Number}
 
     # bounds check performed by Base
-    return view(f.data, ntuple(i -> grid_index(w[i], f.grids[i]), GD)..., x...)
+    return view(f.data, ntuple(i -> grid_index(w[i], grids(f, i)), GD)..., x...)
 end
 
 function Base.:view(
@@ -224,7 +216,7 @@ function Base.:view(
     ) :: SubArray{Q} where {SD, DD, Q <: Number}
 
     # bounds check performed by Base
-    return view(f.data, grid_index(w, f.grids[1]), x...)
+    return view(f.data, grid_index(w, grids(f, 1)), x...)
 end
 
 function Base.:view(
@@ -234,7 +226,7 @@ function Base.:view(
 
     # bounds check performed by Base
     @check shape(f, 1) == 1 "MatsubaraFunction is not scalar but vector valued!"
-    return view(f.data, ntuple(i -> grid_index(w[i], f.grids[i]), GD)..., 1)
+    return view(f.data, ntuple(i -> grid_index(w[i], grids(f, i)), GD)..., 1)
 end
 
 function Base.:view(
@@ -255,7 +247,7 @@ function Base.:setindex!(
     )   :: Nothing where {GD, SD, DD, Q <: Number, Qp <: Number}
 
     # bounds check performed by Base
-    f.data[ntuple(i -> grid_index(w[i], f.grids[i]), GD)..., x...] = val
+    f.data[ntuple(i -> grid_index(w[i], grids(f, i)), GD)..., x...] = val
 
     return nothing
 end
@@ -268,7 +260,7 @@ function Base.:setindex!(
     )   :: Nothing where {SD, DD, Q <: Number, Qp <: Number}
 
     # bounds check performed by Base
-    f.data[grid_index(w, f.grids[1]), x...] = val
+    f.data[grid_index(w, grids(f, 1)), x...] = val
 
     return nothing
 end
@@ -281,7 +273,7 @@ function Base.:setindex!(
 
     # bounds check performed by Base
     @check shape(f, 1) == 1 "MatsubaraFunction is not scalar but vector valued"
-    f.data[ntuple(i -> grid_index(w[i], f.grids[i]), GD)..., 1] = val
+    f.data[ntuple(i -> grid_index(w[i], grids(f, i)), GD)..., 1] = val
 
     return nothing
 end

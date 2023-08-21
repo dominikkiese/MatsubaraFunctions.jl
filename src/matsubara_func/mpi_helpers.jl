@@ -2,13 +2,25 @@
 ENV["JULIA_EXCLUSIVE"]   = "0"
 ENV["UCX_ERROR_SIGNALS"] = "SIGILL,SIGBUS,SIGFPE"
 
-# mpi command to obtain the communicator 
+"""
+    function mpi_comm() :: MPI.Comm
+
+Return the MPI communicator
+"""
 mpi_comm() :: MPI.Comm = MPI.COMM_WORLD
 
-# mpi command to obtain current rank
+"""
+    function mpi_rank() :: Int64
+
+Return the current MPI rank
+"""
 mpi_rank() :: Int64 = MPI.Comm_rank(mpi_comm())
 
-# mpi command to obtain current communicator size
+"""
+    function mpi_size() :: Int64
+
+Return the size of the MPI communicator 
+"""
 mpi_size() :: Int64 = MPI.Comm_size(mpi_comm())
 
 # mpi command for simple loop parallelization (main is busy) 
@@ -50,7 +62,6 @@ function mpi_split(
     end
 end
 
-# mpi command for simple inplace reduction 
 """
     function mpi_allreduce!(
         f :: MatsubaraFunction{GD, SD, DD, Q}
@@ -67,7 +78,6 @@ function mpi_allreduce!(
     return nothing
 end
 
-# mpi command to check if root 
 """
     mpi_ismain() :: Bool
 
@@ -75,7 +85,6 @@ Returns true for MPI rank 0
 """
 mpi_ismain() :: Bool = mpi_rank() == 0
 
-# mpi command to print from main 
 """
     function mpi_println(
         s :: String
@@ -95,7 +104,6 @@ function mpi_println(
     return nothing 
 end
 
-# mpi command to print available resources 
 """
     mpi_info() :: Nothing
 
@@ -105,8 +113,7 @@ function mpi_info() :: Nothing
     mpi_println("NOTE: Running in MPI environment with $(mpi_size()) rank(s) and $(Threads.nthreads()) thread(s) per rank")
     return nothing 
 end
-
-# mpi command to place synchronization barrier 
+ 
 """
     mpi_barrier() :: Nothing 
 
