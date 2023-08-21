@@ -84,7 +84,7 @@ end
 #       () has well-defined behavior for out of bounds access (extrapolation)
 function (f :: MatsubaraFunction{GD, SD, DD, Q})(
     w :: NTuple{GD, MatsubaraFrequency},
-    x :: Vararg{Int64, SD} 
+    x :: Vararg{Int64, SD}
     ) :: Q where{GD, SD, DD, Q <: Number}
 
     return f[CartesianIndex_extrp(f, w, x...)]
@@ -96,7 +96,7 @@ function (f :: MatsubaraFunction{1, SD, DD, Q})(
     x     :: Vararg{Int64, SD} 
     ; 
     extrp :: Q = Q(0.0)
-    )     :: Q where{GD, SD, DD, Q <: Number}
+    )     :: Q where{SD, DD, Q <: Number}
 
     if !is_inbounds(w[1], grids(f, 1))
         return extrapolate(f, value(w[1]), extrp, x...)
@@ -117,7 +117,7 @@ end
 
 # specialize for SD = 1
 function (f :: MatsubaraFunction{GD, 1, DD, Q})(
-    w :: Vararg{MatsubaraFrequency, GD},
+    w :: Vararg{MatsubaraFrequency, GD}
     ) :: Q where{GD, DD, Q <: Number}
 
     @check shape(f, 1) == 1 "MatsubaraFunction is not scalar but vector valued"
@@ -128,7 +128,7 @@ function (f :: MatsubaraFunction{1, 1, 2, Q})(
     w     :: MatsubaraFrequency
     ; 
     extrp :: Q = Q(0.0)
-    )     :: Q where{GD, DD, Q <: Number}
+    )     :: Q where{Q <: Number}
 
     @check shape(f, 1) == 1 "MatsubaraFunction is not scalar but vector valued"
     return f((w,), 1; extrp)
@@ -195,7 +195,7 @@ function (f :: MatsubaraFunction{1, SD, DD, Q})(
     x     :: Vararg{Int64, SD} 
     ; 
     extrp :: Q = Q(0.0)
-    )     :: Q where{GD, SD, DD, Q <: Number}
+    )     :: Q where{SD, DD, Q <: Number}
 
     if !is_inbounds(w[1], grids(f, 1))
         return extrapolate(f, w[1], extrp, x...)
@@ -210,7 +210,7 @@ function (f :: MatsubaraFunction{1, SD, DD, Q})(
     x     :: Vararg{Int64, SD} 
     ; 
     extrp :: Q = Q(0.0)
-    )     :: Q where{GD, SD, DD, Q <: Number}
+    )     :: Q where{SD, DD, Q <: Number}
 
     return f((w,), x...; extrp)
 end
@@ -224,14 +224,45 @@ function (f :: MatsubaraFunction{GD, 1, DD, Q})(
     return f((w...,), 1)
 end
 
-function (f :: MatsubaraFunction{GD, 1, DD, Q})(
+function (f :: MatsubaraFunction{1, 1, 2, Q})(
     w     :: Float64
     ;
     extrp :: Q = Q(0.0)
-    )     :: Q where{GD, DD, Q <: Number}
+    )     :: Q where{Q <: Number}
 
     @check shape(f, 1) == 1 "MatsubaraFunction is not scalar but vector valued"
     return f((w,), 1; extrp)
+end
+
+# specializations to avoid method ambiguities 
+function (:: MatsubaraFunction{0, SD, DD, Q})(
+    :: Tuple{}, 
+    :: Vararg{Int64, SD}
+    ) where {SD, DD, Q <: Number}
+
+    error("The type MatsubaraFunction{0, SD, DD, Q} is not supported, grid dimension cannot be zero") 
+end
+
+function (:: Core.var"#Any##kw")(
+    :: Any, 
+    :: MatsubaraFunction{0, SD, DD, Q}, 
+    :: Tuple{}, 
+    :: Vararg{Int64, SD}
+    ) where {SD, DD, Q<:Number}
+
+    error("The type MatsubaraFunction{0, SD, DD, Q} is not supported, grid dimension cannot be zero") 
+end
+
+function (:: MatsubaraFunction{0, 1, DD, Q})() where {DD, Q <: Number}
+    error("The type MatsubaraFunction{0, 1, DD, Q} is not supported, grid dimension cannot be zero")
+end
+
+function (:: Core.var"#Any##kw")(
+    :: Any, 
+    :: MatsubaraFunction{0, 1, DD, Q}
+    ) where {DD, Q<:Number}
+
+    error("The type MatsubaraFunction{0, 1, DD, Q} is not supported, grid dimension cannot be zero")
 end
 
 """

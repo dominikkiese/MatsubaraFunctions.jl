@@ -9,6 +9,7 @@ module MatsubaraFunctions
         using Polyester
         using HDF5
         using Documenter
+        using Aqua
     end
 
     # macro for sanity checks

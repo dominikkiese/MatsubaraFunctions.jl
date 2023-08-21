@@ -198,6 +198,15 @@ function Base.:getindex(
     return f.data[x...]
 end
 
+# specialization to avoid method ambiguity 
+function Base.:getindex(
+    :: MatsubaraFunction{GD, SD, 1, Q}, 
+    :: Int64
+    ) where {GD, SD, Q <: Number}
+
+    error("The type MatsubaraFunction{GD, SD, 1, Q} is not supported, data dimension cannot be smaller than 2") 
+end
+
 # views
 function Base.:view(
     f :: MatsubaraFunction{GD, SD, DD, Q},
