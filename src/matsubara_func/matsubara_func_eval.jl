@@ -243,25 +243,7 @@ function (:: MatsubaraFunction{0, SD, DD, Q})(
     error("The type MatsubaraFunction{0, SD, DD, Q} is not supported, grid dimension cannot be zero") 
 end
 
-function (:: Core.var"#Any##kw")(
-    :: Any, 
-    :: MatsubaraFunction{0, SD, DD, Q}, 
-    :: Tuple{}, 
-    :: Vararg{Int64, SD}
-    ) where {SD, DD, Q<:Number}
-
-    error("The type MatsubaraFunction{0, SD, DD, Q} is not supported, grid dimension cannot be zero") 
-end
-
 function (:: MatsubaraFunction{0, 1, DD, Q})() where {DD, Q <: Number}
-    error("The type MatsubaraFunction{0, 1, DD, Q} is not supported, grid dimension cannot be zero")
-end
-
-function (:: Core.var"#Any##kw")(
-    :: Any, 
-    :: MatsubaraFunction{0, 1, DD, Q}
-    ) where {DD, Q<:Number}
-
     error("The type MatsubaraFunction{0, 1, DD, Q} is not supported, grid dimension cannot be zero")
 end
 
