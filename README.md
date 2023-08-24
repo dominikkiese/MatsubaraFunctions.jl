@@ -5,7 +5,7 @@
 # MatsubaraFunctions.jl
 
 This package aims at providing a convenient interface to rapidly prototype algorithms for multivariable Green's functions of the form $G_{i_1 ... i_n}(i\omega_1, ..., i\omega_m)$,
-where $i_k$ denote lattice or orbital indices and $\omega_l$ are fermionic/bosonic Matsubara frequencies.
+where $i_k$ could denote lattice or orbital indices and $\omega_l$ are fermionic/bosonic Matsubara frequencies.
 
 # Installation
 
