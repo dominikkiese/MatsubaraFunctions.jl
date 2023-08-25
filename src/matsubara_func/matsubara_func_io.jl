@@ -2,16 +2,16 @@
     function save_matsubara_function!(
         h :: HDF5.File,
         l :: String,
-        f :: MatsubaraFunction{Dg, Ds, Dt, Q}
-        ) :: Nothing where {Dg, Ds, Dt, Q <: Number} 
+        f :: MatsubaraFunction{GD, SD, DD, Q}
+        ) :: Nothing where {GD, SD, DD, Q <: Number} 
 
 Save MatsubaraFunction `f` with label `l` to file `h`  
 """
 function save_matsubara_function!(
     h :: HDF5.File,
     l :: String,
-    f :: MatsubaraFunction{Dg, Ds, Dt, Q}
-    ) :: Nothing where {Dg, Ds, Dt, Q <: Number}
+    f :: MatsubaraFunction{GD, SD, DD, Q}
+    ) :: Nothing where {GD, SD, DD, Q <: Number}
 
     # create new group and tag it
     grp                    = create_group(h, l)

@@ -40,7 +40,17 @@ end
 
 # unsafe method for converting MatsubaraFrequency or MatsubaraIndex to grid index (no bounds check)
 function grid_index(
-    w    :: Union{MatsubaraFrequency, MatsubaraIndex},
+    w    :: MatsubaraFrequency,
+    grid :: MatsubaraGrid
+    )    :: Int64 
+
+    @check temperature(w) ≈ temperature(grid) "Temperature must be equal between frequency and grid"
+    @check type(w) === type(grid) "Particle type must be equal between frequency and grid"
+    return index(w) - first_index(grid) + 1
+end
+
+function grid_index(
+    w    :: MatsubaraIndex,
     grid :: MatsubaraGrid
     )    :: Int64 
 
