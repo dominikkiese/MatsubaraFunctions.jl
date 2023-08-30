@@ -1,4 +1,3 @@
-# convenience accessor for grids
 """
     struct MatsubaraIndex 
 
@@ -7,7 +6,8 @@ MatsubaraIndex type with fields:
 """
 struct MatsubaraIndex 
     idx :: Int64
-
+    
+    # default constructor
     function MatsubaraIndex(
         idx :: Int64
         )   :: MatsubaraIndex 
@@ -15,6 +15,7 @@ struct MatsubaraIndex
         return new(idx)
     end
 
+    # convenience constructor
     function MatsubaraIndex(
         w :: MatsubaraFrequency
         ) :: MatsubaraIndex 
@@ -39,11 +40,21 @@ end
 
 # unsafe method for converting MatsubaraFrequency or MatsubaraIndex to grid index (no bounds check)
 function grid_index(
-    w    :: Union{MatsubaraFrequency, MatsubaraIndex},
+    w    :: MatsubaraFrequency,
     grid :: MatsubaraGrid
     )    :: Int64 
 
-    return index(w) - index(grid[1]) + 1
+    @check temperature(w) ≈ temperature(grid) "Temperature must be equal between frequency and grid"
+    @check type(w) === type(grid) "Particle type must be equal between frequency and grid"
+    return index(w) - first_index(grid) + 1
+end
+
+function grid_index(
+    w    :: MatsubaraIndex,
+    grid :: MatsubaraGrid
+    )    :: Int64 
+
+    return index(w) - first_index(grid) + 1
 end
 
 # safer method for converting MatsubaraFrequency or MatsubaraIndex to grid index
@@ -93,7 +104,7 @@ function Base.:getindex(
     )    :: MatsubaraFrequency
 
     # bounds check performed by Base
-    return grid.data[grid_index(x, g)]
+    return grid[grid_index(x, grid)]
 end
 
 function Base.:getindex(
@@ -104,8 +115,6 @@ function Base.:getindex(
     # bounds check performed by Base
     return @view grid.data[idxs]
 end  
-
-
 
 # make MatsubaraGrid callable with MatsubaraFrequency or MatsubaraIndex
 # returns index to data array corresponding to this frequency if in grid
@@ -150,8 +159,6 @@ function (f :: MatsubaraGrid)(
         error("Frequency not in grid")
     end 
 end
-
-
 
 # make Matsubara grid iterable
 function Base.:iterate(
