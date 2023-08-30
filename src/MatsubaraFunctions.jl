@@ -24,6 +24,7 @@ module MatsubaraFunctions
     include("matsubara_func/matsubara_func.jl")
     include("misc/mpi_helpers.jl")
     include("misc/pade.jl")
+    include("misc/pulay.jl")
 
     export
         # mpi_helpers
@@ -41,6 +42,10 @@ module MatsubaraFunctions
         PadeApprox,
         coeffs, 
         xdat,
+
+        # pulay 
+        PeriodicPulay,
+        solve!,
 
         # matsubara_freq
         AbstractParticle,
