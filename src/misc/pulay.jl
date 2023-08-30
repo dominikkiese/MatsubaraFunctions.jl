@@ -35,7 +35,7 @@ end
         f!      :: Function,
         P       :: PeriodicPulay{Q}
         ;
-        p       :: Int64   = 2,
+        p       :: Int64   = 3,
         iters   :: Int64   = 100,
         α       :: Float64 = 0.25,
         atol    :: Float64 = 1e-8,
@@ -57,7 +57,7 @@ function solve!(
     f!      :: Function,
     P       :: PeriodicPulay{Q}
     ;
-    p       :: Int64   = 2,
+    p       :: Int64   = 3,
     iters   :: Int64   = 100,
     α       :: Float64 = 0.25,
     atol    :: Float64 = 1e-8,
