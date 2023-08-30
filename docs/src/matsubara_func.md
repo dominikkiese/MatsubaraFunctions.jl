@@ -180,10 +180,6 @@ MatsubaraSymmetryGroup
 MatsubaraInitFunction
 ```
 
-```@docs
-PadeApprox
-```
-
 # Functions
 
 ```@docs
@@ -208,42 +204,6 @@ absmax
 
 ```@docs
 argmax
-```
-
-```@docs
-mpi_comm
-```
-
-```@docs
-mpi_rank
-```
-
-```@docs
-mpi_size
-```
-
-```@docs
-mpi_split
-```
-
-```@docs
-mpi_allreduce!
-```
-
-```@docs
-mpi_ismain
-```
-
-```@docs
-mpi_println
-```
-
-```@docs
-mpi_info
-```
-
-```@docs
-mpi_barrier
 ```
 
 ```@docs
@@ -332,12 +292,4 @@ save_matsubara_symmetry_group!
 
 ```@docs
 load_matsubara_symmetry_group
-```    
-
-```@docs
-coeffs
-```    
-
-```@docs
-xdat
-```    
+```     
