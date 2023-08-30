@@ -32,7 +32,7 @@ end
 
 """
     function solve!(
-        f       :: Function,
+        f!      :: Function,
         P       :: PeriodicPulay{Q}
         ;
         p       :: Int64   = 2,
@@ -43,7 +43,8 @@ end
         verbose :: Bool    = false
         )       :: Nothing where {Q <: Number}
 
-Runs the periodic Pulay solver. Here, f(x) = g(x) - x is the residue for the fixed-point equation g(x) = x.
+Runs the periodic Pulay solver. Here, f(x) = g(x) - x computes the residue for the fixed-point equation g(x) = x.
+`f!` should have the form `(F, x) -> f!(F, x)`, such that the residue can be written into a pre-allocated array `F`. 
 The following keyword arguments are supported:
 * `p`       : Pulay period (every p-th iteration Pulay mixing is used)
 * `iters`   : maximum number of iterations
@@ -53,7 +54,7 @@ The following keyword arguments are supported:
 * `verbose` : show intermediate results?
 """
 function solve!(
-    f       :: Function,
+    f!      :: Function,
     P       :: PeriodicPulay{Q}
     ;
     p       :: Int64   = 2,
@@ -75,15 +76,20 @@ function solve!(
     # throw warning if not in comfort zone
     mdiv2 = iseven(m) ? Int64(m / 2) : Int64((m + 1) / 2)
     
-    if !(2 <= p <= mdiv2)
+    if !(2 <= p <= mdiv2) && mpi_ismain()
         @warn "Pulay period not in (2, $(mdiv2)), convergence might be suboptimal"
     end
 
-    verbose && println("Running periodic Pulay solver ...")
+    verbose && mpi_println("Running periodic Pulay solver ...")
     ti = time()
+
+    # allocate buffers 
+    F  = copy(x)
+    Fp = copy(x)
+    xp = copy(x)
     
     # initial iteration 
-    Fp = f(x); xp = copy(x); x .+= α .* Fp
+    f!(Fp, x); x .+= α .* Fp
 
     # init errors, iteration count and memory index
     aerr = Inf 
@@ -94,10 +100,10 @@ function solve!(
     # can we avoid the copies somehow?
     while (aerr > atol) && (rerr > rtol) && (iter < iters)
         if (iter + 1) % p > 0
-            verbose && println()
-            verbose && println("iteration $(iter) | linear")
+            verbose && mpi_println("")
+            verbose && mpi_println("iteration $(iter) | linear")
             
-            F            = f(x)
+            f!(F, x)
             Fs[:, midx] .= F .- Fp
             Xs[:, midx] .= x .- xp
             
@@ -107,10 +113,10 @@ function solve!(
             # linear mixing
             Fp .= F; xp .= x; x .+= α .* F
         else 
-            verbose && println()
-            verbose && println("iteration $(iter) | Pulay")
+            verbose && mpi_println("")
+            verbose && mpi_println("iteration $(iter) | Pulay")
             
-            F            = f(x)
+            f!(F, x)
             Fs[:, midx] .= F .- Fp
             Xs[:, midx] .= x .- xp
             
@@ -127,15 +133,15 @@ function solve!(
         
         push!(aerrs, aerr)
         push!(rerrs, rerr)
-        verbose && println("=> aerr = $(aerr)")
-        verbose && println("=> rerr = $(rerr)")
+        verbose && mpi_println("=> aerr = $(aerr)")
+        verbose && mpi_println("=> rerr = $(rerr)")
         iter += 1
         midx += 1
         
-        # shift solutions in the history kernel once its full (can we circumvent this somehow?)
+        # shift results in history kernel to the left once its full
         if midx > m
             midx = m
-            
+
             for i in 1 : m - 1
                 Fs[:, i] .= view(Fs, :, i + 1)
                 Xs[:, i] .= view(Xs, :, i + 1)
@@ -144,8 +150,8 @@ function solve!(
     end
     
     dt = time() - ti
-    verbose && println()
-    verbose && println("Done. Time elapsed $(dt)s.")
+    verbose && mpi_println("")
+    verbose && mpi_println("Done. Time elapsed $(dt)s.")
             
     return nothing
 end
