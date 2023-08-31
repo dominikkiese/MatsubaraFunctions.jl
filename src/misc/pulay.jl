@@ -37,7 +37,7 @@ end
         ;
         p       :: Int64   = 3,
         iters   :: Int64   = 100,
-        α       :: Float64 = 0.25,
+        α       :: Float64 = 0.5,
         atol    :: Float64 = 1e-8,
         rtol    :: Float64 = 1e-8,
         verbose :: Bool    = false
@@ -59,7 +59,7 @@ function solve!(
     ;
     p       :: Int64   = 3,
     iters   :: Int64   = 100,
-    α       :: Float64 = 0.25,
+    α       :: Float64 = 0.5,
     atol    :: Float64 = 1e-8,
     rtol    :: Float64 = 1e-8,
     verbose :: Bool    = false
@@ -80,9 +80,6 @@ function solve!(
         @warn "Pulay period not in (2, $(mdiv2)), convergence might be suboptimal"
     end
 
-    verbose && mpi_println("Running periodic Pulay solver ...")
-    ti = time()
-
     # allocate buffers 
     F  = copy(x)
     Fp = copy(x)
@@ -96,13 +93,12 @@ function solve!(
     rerr = Inf
     iter = 0
     midx = 1
+
+    verbose && mpi_println("   Iter   |   type   |   abs. error   |   rel. error   ")
+    verbose && mpi_println("-------------------------------------------------------")
     
-    # can we avoid the copies somehow?
     while (aerr > atol) && (rerr > rtol) && (iter < iters)
         if (iter + 1) % p > 0
-            verbose && mpi_println("")
-            verbose && mpi_println("iteration $(iter) | linear")
-            
             f!(F, x)
             Fs[:, midx] .= F .- Fp
             Xs[:, midx] .= x .- xp
@@ -113,9 +109,6 @@ function solve!(
             # linear mixing
             Fp .= F; xp .= x; x .+= α .* F
         else 
-            verbose && mpi_println("")
-            verbose && mpi_println("iteration $(iter) | Pulay")
-            
             f!(F, x)
             Fs[:, midx] .= F .- Fp
             Xs[:, midx] .= x .- xp
@@ -127,14 +120,23 @@ function solve!(
             Fmat = view(Fs, :, 1 : midx)
             Xmat = view(Xs, :, 1 : midx)
             
-            # use Moore-Penrose pseudoinverse from Base for stability
+            # use Moore-Penrose pseudoinverse for better stability
             Fp .= F; xp .= x; x .+= α .* F .- (Xmat .+ α .* Fmat) * pinv(Fmat) * F
         end
         
         push!(aerrs, aerr)
         push!(rerrs, rerr)
-        verbose && mpi_println("=> aerr = $(aerr)")
-        verbose && mpi_println("=> rerr = $(rerr)")
+
+        if mpi_ismain()
+            if (iter + 1) % p > 0
+                verbose && @printf "    %5d |    LM    |  %5e  |  %5e  \n" iter aerr rerr
+                verbose && mpi_println("-------------------------------------------------------")
+            else
+                verbose && @printf "    %5d |    PM    |  %5e  |  %5e  \n" iter aerr rerr
+                verbose && mpi_println("-------------------------------------------------------")
+            end
+        end
+
         iter += 1
         midx += 1
         
@@ -148,10 +150,6 @@ function solve!(
             end
         end
     end
-    
-    dt = time() - ti
-    verbose && mpi_println("")
-    verbose && mpi_println("Done. Time elapsed $(dt)s.")
             
     return nothing
 end

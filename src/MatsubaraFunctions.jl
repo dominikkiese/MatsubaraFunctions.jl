@@ -3,6 +3,7 @@ module MatsubaraFunctions
     using PrecompileTools
 
     @recompile_invalidations begin
+        using Printf
         using LinearAlgebra
         using FunctionWrappers
         using MPI
