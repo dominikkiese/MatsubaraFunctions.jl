@@ -86,7 +86,8 @@ function solve!(
     xp = copy(x)
     
     # initial iteration 
-    f!(Fp, x); x .+= α .* Fp
+    f!(Fp, x)
+    x .+= α .* Fp
 
     # init errors, iteration count and memory index
     aerr = Inf 
@@ -98,30 +99,25 @@ function solve!(
     verbose && mpi_println("-------------------------------------------------------")
     
     while (aerr > atol) && (rerr > rtol) && (iter < iters)
+        f!(F, x)
+        Fs[:, midx] .= F .- Fp
+        Xs[:, midx] .= x .- xp
+        Fp          .= F
+        xp          .= x
+
+        aerr = norm(F)
+        rerr = aerr / norm(x)
+
         if (iter + 1) % p > 0
-            f!(F, x)
-            Fs[:, midx] .= F .- Fp
-            Xs[:, midx] .= x .- xp
-            
-            aerr = norm(F)
-            rerr = aerr / norm(x)
-            
             # linear mixing
-            Fp .= F; xp .= x; x .+= α .* F
+            x .+= α .* F
         else 
-            f!(F, x)
-            Fs[:, midx] .= F .- Fp
-            Xs[:, midx] .= x .- xp
-            
-            aerr = norm(F)
-            rerr = aerr / norm(x)
-            
             # Pulay mixing (use whole history thus far)
             Fmat = view(Fs, :, 1 : midx)
             Xmat = view(Xs, :, 1 : midx)
             
             # use Moore-Penrose pseudoinverse for better stability
-            Fp .= F; xp .= x; x .+= α .* F .- (Xmat .+ α .* Fmat) * pinv(Fmat) * F
+            x .+= α .* F .- (Xmat .+ α .* Fmat) * pinv(Fmat) * F
         end
         
         push!(aerrs, aerr)
