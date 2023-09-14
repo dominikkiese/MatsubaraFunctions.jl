@@ -95,10 +95,12 @@ function solve!(
     iter = 0
     midx = 1
 
-    verbose && mpi_println("   Iter   |   type   |   abs. error   |   rel. error   ")
-    verbose && mpi_println("-------------------------------------------------------")
+    verbose && mpi_println("   iter   |   type   |   abs. error   |   rel. error   |   time elapsed (s)   ")
+    verbose && mpi_println("------------------------------------------------------------------------------")
     
     while (aerr > atol) && (rerr > rtol) && (iter < iters)
+        ti = time()
+
         f!(F, x)
         Fs[:, midx] .= F .- Fp
         Xs[:, midx] .= x .- xp
@@ -116,8 +118,8 @@ function solve!(
             Fmat = view(Fs, :, 1 : midx)
             Xmat = view(Xs, :, 1 : midx)
             
-            # use Moore-Penrose pseudoinverse for better stability
-            x .+= α .* F .- (Xmat .+ α .* Fmat) * pinv(Fmat) * F
+            # use Moore-Penrose pseudoinverse for better stability, prefer matrix * vector for performance
+            x .+= α .* F .- (Xmat .+ α .* Fmat) * (pinv(Fmat) * F)
         end
         
         push!(aerrs, aerr)
@@ -125,11 +127,11 @@ function solve!(
 
         if mpi_ismain()
             if (iter + 1) % p > 0
-                verbose && @printf "    %5d |    LM    |  %5e  |  %5e  \n" iter aerr rerr
-                verbose && mpi_println("-------------------------------------------------------")
+                verbose && @printf "    %5d |    LM    |  %5e  |  %5e  |     %5e   \n" iter aerr rerr time() - ti
+                verbose && println("------------------------------------------------------------------------------")
             else
-                verbose && @printf "    %5d |    PM    |  %5e  |  %5e  \n" iter aerr rerr
-                verbose && mpi_println("-------------------------------------------------------")
+                verbose && @printf "    %5d |    PM    |  %5e  |  %5e  |     %5e   \n" iter aerr rerr time() - ti
+                verbose && println("------------------------------------------------------------------------------")
             end
         end
 
