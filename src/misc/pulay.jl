@@ -105,8 +105,8 @@ function solve!(
         Fp          .= F
         xp          .= x
 
-        aerr = norm(F)
-        rerr = aerr / norm(x)
+        aerr = norm(F, Inf)
+        rerr = aerr / norm(x, Inf)
 
         if (iter + 1) % p > 0
             # linear mixing
