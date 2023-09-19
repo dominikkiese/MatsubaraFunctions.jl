@@ -18,8 +18,14 @@ struct MatsubaraOperation
         return new(sgn, con)
     end 
 
-    # convenience constructor for identity 
-    MatsubaraOperation() :: MatsubaraOperation = MatsubaraOperation(false, false)
+    # convenience constructor using kwargs
+    function MatsubaraOperation(; 
+        sgn :: Bool = false,
+        con :: Bool = false
+        )   :: MatsubaraOperation
+        
+        return MatsubaraOperation(sgn, con)
+    end
 end
  
 """
