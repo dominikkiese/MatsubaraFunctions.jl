@@ -38,6 +38,7 @@ end
         p       :: Int64   = 3,
         iters   :: Int64   = 100,
         α       :: Float64 = 0.5,
+        penalty :: Float64 = 1.0,
         atol    :: Float64 = 1e-8,
         rtol    :: Float64 = 1e-8,
         verbose :: Bool    = false
@@ -49,6 +50,7 @@ The following keyword arguments are supported:
 * `p`       : Pulay period (every p-th iteration Pulay mixing is used)
 * `iters`   : maximum number of iterations
 * `α`       : mixing factor
+* `penalty` : penalty factor. If the error has grown in the current step, `penalty * α` is used as the mixing factor for this step
 * `atol`    : absolute error tolerance
 * `rtol`    : relative error tolerance
 * `verbose` : show intermediate results?
@@ -60,6 +62,7 @@ function solve!(
     p       :: Int64   = 3,
     iters   :: Int64   = 100,
     α       :: Float64 = 0.5,
+    penalty :: Float64 = 1.0,
     atol    :: Float64 = 1e-8,
     rtol    :: Float64 = 1e-8,
     verbose :: Bool    = false
@@ -72,6 +75,7 @@ function solve!(
     aerrs = P.aerrs 
     rerrs = P.rerrs
     m     = size(Fs, 2)
+    β     = α
     
     # throw warning if not in comfort zone
     mdiv2 = iseven(m) ? Int64(m / 2) : Int64((m + 1) / 2)
@@ -87,7 +91,7 @@ function solve!(
     
     # initial iteration 
     f!(Fp, x)
-    x .+= α .* Fp
+    x .+= β .* Fp
 
     # init errors, iteration count and memory index
     aerr = Inf 
@@ -110,16 +114,25 @@ function solve!(
         aerr = norm(F, Inf)
         rerr = aerr / norm(x, Inf)
 
+        # additional penalty if the error has grown
+        if iter > 0
+            if (aerr > aerrs[end]) && (rerr > rerrs[end])
+                β = penalty * α
+            else 
+                β = α 
+            end 
+        end
+
         if (iter + 1) % p > 0
             # linear mixing
-            x .+= α .* F
+            x .+= β .* F
         else 
             # Pulay mixing (use whole history thus far)
             Fmat = view(Fs, :, 1 : midx)
             Xmat = view(Xs, :, 1 : midx)
             
             # use Moore-Penrose pseudoinverse for better stability, prefer matrix * vector for performance
-            x .+= α .* F .- (Xmat .+ α .* Fmat) * (pinv(Fmat) * F)
+            x .+= β .* F .- (Xmat .+ β .* Fmat) * (pinv(Fmat) * F)
         end
         
         push!(aerrs, aerr)
