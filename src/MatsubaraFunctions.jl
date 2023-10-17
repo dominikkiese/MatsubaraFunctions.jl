@@ -20,13 +20,17 @@ module MatsubaraFunctions
         esc(:(if $(@__MODULE__).sanity_checks() @assert($expr, $msgs...) end))
     end
 
-    include("matsubara_freq/matsubara_freq.jl")
-    include("matsubara_grid/matsubara_grid.jl")
-    include("matsubara_func/matsubara_func.jl")
-    include("misc/mpi_helpers.jl")
-    include("misc/pade.jl")
-    include("misc/pulay.jl")
+    include("mesh/mesh_point.jl")
+    include("mesh/mesh.jl")
 
+    # include("matsubara_freq/matsubara_freq.jl")
+    # include("matsubara_grid/matsubara_grid.jl")
+    # include("matsubara_func/matsubara_func.jl")
+    # include("misc/mpi_helpers.jl")
+    # include("misc/pade.jl")
+    # include("misc/pulay.jl")
+    
+    #==
     export
         # mpi_helpers
         mpi_comm,
@@ -108,4 +112,5 @@ module MatsubaraFunctions
         load_matsubara_function,
         save_matsubara_symmetry_group!,
         load_matsubara_symmetry_group
+    ==#
 end
