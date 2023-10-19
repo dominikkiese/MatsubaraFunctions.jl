@@ -3,13 +3,12 @@
 
 MatsubaraOperation type with fields:
 * `sgn :: Bool` : change sign?
-* `con :: Bool` : do complex conjugation?
+* `con :: Bool` : complex conjugation?
 """
 struct MatsubaraOperation 
     sgn :: Bool 
     con :: Bool
 
-    # default constructor 
     function MatsubaraOperation(
         sgn :: Bool,
         con :: Bool
@@ -18,7 +17,6 @@ struct MatsubaraOperation
         return new(sgn, con)
     end 
 
-    # convenience constructor using kwargs
     function MatsubaraOperation(; 
         sgn :: Bool = false,
         con :: Bool = false
@@ -42,7 +40,6 @@ Return `op.con`
 """
 con(op :: MatsubaraOperation) :: Bool = op.con
 
-# basic operations 
 function Base.:*(
     op1 :: MatsubaraOperation,
     op2 :: MatsubaraOperation
@@ -59,21 +56,20 @@ function (op :: MatsubaraOperation)(
     return con(op) ? conj(x) : x
 end
 
-# a symmetry should be defined such that it takes some 
-# MatsubaraFrequency arguments and tensor indices and returns a new set 
-# of MatsubaraFrequency and tensor indices together with a MatsubaraOperation 
+#----------------------------------------------------------------------------------------------#
+
+# a symmetry takes Matsubara frequencies / indices & tensor indices and 
+# returns Matsubara frequencies / indices & tensor indices & operation
 """
     struct MatsubaraSymmetry{GD, SD}
 
 MatsubaraSymmetry type with fields:
-* `f :: FunctionWrappers.FunctionWrapper{Tuple{NTuple{GD, MatsubaraFrequency}, NTuple{SD, Int64}, MatsubaraOperation}, Tuple{NTuple{GD, MatsubaraFrequency}, NTuple{SD, Int64}}}`
-`MatsubaraSymmetry` takes grid coordinates and tensor indices as input and returns a new set of coordinates and indices together with a MatsubaraOperation
+* `f :: Function`
 """
 struct MatsubaraSymmetry{GD, SD}
-    f :: FunctionWrappers.FunctionWrapper{Tuple{NTuple{GD, MatsubaraFrequency}, NTuple{SD, Int64}, MatsubaraOperation}, Tuple{NTuple{GD, MatsubaraFrequency}, NTuple{SD, Int64}}}
+    f :: Function
 end
 
-# make MatsubaraSymmetry callable
 function (S :: MatsubaraSymmetry{GD, SD})(
     w :: NTuple{GD, MatsubaraFrequency},
     x :: NTuple{SD, Int64}
@@ -82,7 +78,6 @@ function (S :: MatsubaraSymmetry{GD, SD})(
     return S.f(w, x)
 end
 
-# implementation of the symmetry reduction 
 function reduce(
     w           :: NTuple{GD, MatsubaraFrequency},
     x           :: NTuple{SD, Int64},
@@ -95,131 +90,118 @@ function reduce(
     ;
     max_length  :: Int64 = 0
     )           :: Nothing where {GD, SD, DD, Q <: Number}
-
-    # loop over all symmetries 
+ 
     for S in symmetries 
-        # apply the symmetry operation
         wp, xp, opp = S(w, x)
+        new_op      = opp * op
 
-        # compute new operation
-        new_op = opp * op
+        if !any(ntuple(i -> !is_inbounds(wp[i], grids(f, i)), GD))
+            idx = LinearIndex(f, ntuple(i -> grid_index(wp[i], grids(f, i)), GD)..., xp...)
 
-        # check if index is valid, reset path_length iff we start from valid & unchecked index
-        if !any(ntuple(i -> !is_inbounds(wp[i], f.grids[i]), GD))
-            # convert to linear index (grid_index method to avoid duplicate inbounds check)
-            idx = LinearIndex(f, ntuple(i -> grid_index(wp[i], f.grids[i]), GD)..., xp...)
-
-            # check if index has been used already 
             if !checked[idx]
-                # this index is now checked 
                 checked[idx] = true 
 
-                # add to symmetry class and keep going 
+                # add to symmetry class, reset path length and keep going 
                 push!(class, (idx, new_op))
                 reduce(wp, xp, new_op, f, checked, symmetries, class, 0; max_length)
             end 
 
-        # if index is invalid, increment path length and keep going 
+        # if index not valid, increment path length and keep going 
         elseif path_length < max_length
             reduce(wp, xp, new_op, f, checked, symmetries, class, path_length + 1; max_length)
         end 
     end 
 end
 
+#----------------------------------------------------------------------------------------------#
+
 """
-    MatsubaraSymmetryGroup
+    MatsubaraSymmetryGroup{GD, SD, DD, Q <: Number}
 
 MatsubaraSymmetryGroup type with fields:
-* `classes :: Vector{Vector{Tuple{Int64, MatsubaraOperation}}}` : list of collections of symmetry equivalent elements
+* `classes :: Vector{Vector{Tuple{Int64, MatsubaraOperation}}}` : collections of symmetry equivalent elements
 * `speedup :: Float64`                                          : expected speedup from the symmetry reduction
 """
-struct MatsubaraSymmetryGroup
+struct MatsubaraSymmetryGroup{GD, SD, DD, Q <: Number}
     classes :: Vector{Vector{Tuple{Int64, MatsubaraOperation}}}
     speedup :: Float64
 
-    # default constructor 
-    function MatsubaraSymmetryGroup(
+    function MatsubaraSymmetryGroup{GD, SD, DD, Q}(
         classes :: Vector{Vector{Tuple{Int64, MatsubaraOperation}}},
         speedup :: Float64
-        )       :: MatsubaraSymmetryGroup
+        )       :: MatsubaraSymmetryGroup{GD, SD, DD, Q} where {GD, SD, DD, Q <: Number}
 
-        return new(classes, speedup)
+        return new{GD, SD, DD, Q}(classes, speedup)
     end 
 
-    # identity constructor 
     function MatsubaraSymmetryGroup(
         f :: MatsubaraFunction{GD, SD, DD, Q}
-        ) :: MatsubaraSymmetryGroup where {GD, SD, DD, Q <: Number}
+        ) :: MatsubaraSymmetryGroup{GD, SD, DD, Q} where {GD, SD, DD, Q <: Number}
 
-        classes = Vector{Tuple{Int64, MatsubaraOperation}}[[(idx, MatsubaraOperation())] for idx in eachindex(f.data)]
-        return MatsubaraSymmetryGroup(classes, 1.0)
+        return new{GD, SD, DD, Q}([[(idx, MatsubaraOperation())] for idx in eachindex(f.data)], 1.0)
     end
-
-    # convenience constructor from MatsubaraFunction and list of symmetries 
+ 
     function MatsubaraSymmetryGroup(
         symmetries :: Vector{MatsubaraSymmetry{GD, SD}},
         f          :: MatsubaraFunction{GD, SD, DD, Q}
         ;
         max_length :: Int64 = 0
-        )          :: MatsubaraSymmetryGroup where {GD, SD, DD, Q <: Number}
+        )          :: MatsubaraSymmetryGroup{GD, SD, DD, Q} where {GD, SD, DD, Q <: Number}
 
-        # array to check whether index has been sorted into a symmetry class already 
-        checked  = Array{Bool, DD}(undef, data_shape(f))
+        checked  = Array{Bool, DD}(undef, data_shape(f)) 
+        classes  = Vector{Tuple{Int64, MatsubaraOperation}}[]
         checked .= false
 
-        # list to store classes of symmetry equivalent elements
-        classes = Vector{Tuple{Int64, MatsubaraOperation}}[]
-
-        # loop over elements of f and sort them into symmetry classes 
         for idx in eachindex(f.data)
             if !checked[idx]
-                # this index is now checked and generates a new symmetry class
                 checked[idx] = true
                 w, x         = to_Matsubara(f, idx)
-                class        = Tuple{Int64, MatsubaraOperation}[(idx, MatsubaraOperation())]
+                class        = [(idx, MatsubaraOperation())]
 
-                # apply all symmetries to current element
                 reduce(w, x, MatsubaraOperation(), f, checked, symmetries, class, 0; max_length)
-
-                # add class to list 
                 push!(classes, class)
             end 
         end
 
-        return MatsubaraSymmetryGroup(classes, length(f.data) / length(classes))
+        return new{GD, SD, DD, Q}(classes, length(f.data) / length(classes))
     end 
 end
 
-# make MatsubaraSymmetryGroup callable with MatsubaraFunction. This will iterate 
-# over all symmetry classes and symmetrize the data array of the MatsubaraFunction
-function (SG :: MatsubaraSymmetryGroup)(
+# symmetrize data array of the MatsubaraFunction, return error estimate
+function (SG :: MatsubaraSymmetryGroup{GD, SD, DD, Q})(
     f :: MatsubaraFunction{GD, SD, DD, Q}
-    ) :: Nothing where {GD, SD, DD, Q <: Number}
+    ) :: Float64 where {GD, SD, DD, Q <: Number}
+
+    err = 0.0
 
     for class in SG.classes
         ref = f[class[1][1]]
 
         for idx in 2 : length(class)
             idx, op = class[idx]
-            f[idx]  = op(ref)
+            new_val = op(ref)
+            new_err = abs(f[idx] - new_val)
+
+            if new_err > err err = new_err end
+            f[idx] = new_val
         end 
     end 
 
-    return nothing 
+    return err
 end
+
+#----------------------------------------------------------------------------------------------#
 
 """
     struct MatsubaraInitFunction{GD, SD, Q <: Number}
 
 MatsubaraInitFunction type with fields:
-* `f :: FunctionWrappers.FunctionWrapper{Q, Tuple{NTuple{GD, MatsubaraFrequency}, NTuple{SD, Int64}}}` 
-`MatsubaraInitFunction` takes grid coordinates and tensor indices as input and returns value of type Q
+* `f :: Function` 
 """
 struct MatsubaraInitFunction{GD, SD, Q <: Number}
-    f :: FunctionWrappers.FunctionWrapper{Q, Tuple{NTuple{GD, MatsubaraFrequency}, NTuple{SD, Int64}}}
+    f :: Function
 end
 
-# make MatsubaraInitFunction callable
 function (I :: MatsubaraInitFunction{GD, SD, Q})(
     w :: NTuple{GD, MatsubaraFrequency},
     x :: NTuple{SD, Int64}
@@ -228,10 +210,8 @@ function (I :: MatsubaraInitFunction{GD, SD, Q})(
     return I.f(w, x)
 end
 
-# make MatsubaraSymmetryGroup callable with MatsubaraFunction and MatsubaraInitFunction. This will iterate 
-# over all symmetry classes and symmetrize the data array of the MatsubaraFunction starting from an 
-# evaluation of the MatsubaraInitFunction
-function (SG :: MatsubaraSymmetryGroup)(
+# symmetrize MatsubaraFunction from evaluation of MatsubaraInitFunction
+function (SG :: MatsubaraSymmetryGroup{GD, SD, DD, Q})(
     f        :: MatsubaraFunction{GD, SD, DD, Q},
     I        :: MatsubaraInitFunction{GD, SD, Q}
     ;
@@ -241,37 +221,43 @@ function (SG :: MatsubaraSymmetryGroup)(
 
     if mode === :serial 
         for class in SG.classes
-            lidx    = class[1][1]
-            f[lidx] = I(to_Matsubara(f, lidx)...)
+            f[class[1][1]] = I(to_Matsubara(f, class[1][1])...)
         end 
 
     elseif mode === :polyester
         @batch minbatch = minbatch for class in SG.classes
-            lidx    = class[1][1]
-            f[lidx] = I(to_Matsubara(f, lidx)...)
+            f[class[1][1]] = I(to_Matsubara(f, class[1][1])...)
         end
 
     elseif mode === :threads
         Threads.@threads for class in SG.classes
-            lidx    = class[1][1]
-            f[lidx] = I(to_Matsubara(f, lidx)...)
+            f[class[1][1]] = I(to_Matsubara(f, class[1][1])...)
         end
 
     elseif mode === :hybrid 
         set!(f, 0.0)
 
         Threads.@threads for clidx in mpi_split(1 : length(SG.classes))
-            lidx    = SG.classes[clidx][1][1]
-            f[lidx] = I(to_Matsubara(f, lidx)...)
+            f[SG.classes[clidx][1][1]] = I(to_Matsubara(f, SG.classes[clidx][1][1])...)
         end
 
         mpi_allreduce!(f)
 
     else 
-        error("Calculation mode $(mode) unknown. Possible options are: serial, polyester, threads and hybrid.")
+        error("Mode $(mode) unknown. Possible options are: serial, polyester, threads and hybrid")
     end
 
     SG(f)
 
     return nothing 
 end
+
+#----------------------------------------------------------------------------------------------#
+
+export
+    MatsubaraOperation,
+    sgn,
+    con,
+    MatsubaraSymmetry,
+    MatsubaraSymmetryGroup,
+    MatsubaraInitFunction

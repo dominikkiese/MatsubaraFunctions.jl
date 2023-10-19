@@ -15,11 +15,34 @@ function eval_test(
 end
 
 @testset "Evaluate" begin 
-    g = MatsubaraGrid(1.0, 10, Fermion)
-    n = length(g)
+    gf = MatsubaraGrid(1.0, 5, Fermion)
+    gb = MatsubaraGrid(1.0, 5, Boson)
+    nf = length(gf)
+    nb = length(gb)
 
-    eval_test(MatsubaraFunction((g,), (1,), rand(n, 1)))
-    eval_test(MatsubaraFunction((g,), (10,), rand(n, 10)))
-    eval_test(MatsubaraFunction((g, g), (10,), rand(n, n, 10)))
-    eval_test(MatsubaraFunction((g, g), (10, 10), rand(n, n, 10, 10)))
+    # scalar-valued
+    f1 = MatsubaraFunction(gf)
+    set!(f1, rand(nf))
+    eval_test(f1)
+
+    f2 = MatsubaraFunction((gf, gb))
+    set!(f2, rand(nf, nb))
+    eval_test(f2)
+
+    # tensor-valued
+    f3 = MatsubaraFunction(gf, 5)
+    set!(f3, rand(nf, 5))
+    eval_test(f3)
+
+    f4 = MatsubaraFunction(gf, 5, 5)
+    set!(f4, rand(nf, 5, 5))
+    eval_test(f4)
+
+    f5 = MatsubaraFunction((gf, gb), 5)
+    set!(f5, rand(nf, nb, 5))
+    eval_test(f5)
+
+    f6 = MatsubaraFunction((gf, gb), 5, 5)
+    set!(f6, rand(nf, nb, 5, 5))
+    eval_test(f6)
 end

@@ -1,8 +1,8 @@
 @testset "Extrapolation" begin 
     g  = MatsubaraGrid(0.1, 5000, Fermion)
-    f1 = MatsubaraFunction(g, 1)
-    f2 = MatsubaraFunction(g, 1)
-    f3 = MatsubaraFunction((g, g), 1)
+    f1 = MatsubaraFunction(g)
+    f2 = MatsubaraFunction(g)
+    f3 = MatsubaraFunction(g, g)
 
     for v in g
         f1[v] = 1.0 / (im * value(v) - 0.5)

@@ -123,3 +123,16 @@ function mpi_barrier() :: Nothing
     MPI.Barrier(mpi_comm())
     return nothing 
 end
+
+#----------------------------------------------------------------------------------------------#
+
+export 
+    mpi_comm,
+    mpi_rank,
+    mpi_size,
+    mpi_split,
+    mpi_allreduce!,
+    mpi_ismain,
+    mpi_println,
+    mpi_info,
+    mpi_barrier

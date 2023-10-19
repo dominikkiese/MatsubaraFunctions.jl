@@ -56,10 +56,26 @@ function index_test(
 end
 
 @testset "Index" begin 
-    g = MatsubaraGrid(1.0, 100, Fermion)
-   
-    index_test(MatsubaraFunction(g, 1))
-    index_test(MatsubaraFunction(g, 10))
-    index_test(MatsubaraFunction((g, g), 10))
-    index_test(MatsubaraFunction((g, g), (10, 10)))
+    gf = MatsubaraGrid(1.0, 5, Fermion)
+    gb = MatsubaraGrid(1.0, 5, Boson)
+
+    # scalar-valued
+    f1 = MatsubaraFunction(gf)
+    index_test(f1)
+
+    f2 = MatsubaraFunction((gf, gb))
+    index_test(f2)
+
+    # tensor-valued
+    f3 = MatsubaraFunction(gf, 5)
+    index_test(f3)
+
+    f4 = MatsubaraFunction(gf, 5, 5)
+    index_test(f4)
+
+    f5 = MatsubaraFunction((gf, gb), 5)
+    index_test(f5)
+
+    f6 = MatsubaraFunction((gf, gb), 5, 5)
+    index_test(f6)
 end

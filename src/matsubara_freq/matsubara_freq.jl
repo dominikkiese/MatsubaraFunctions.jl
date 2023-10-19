@@ -1,71 +1,42 @@
 """
-    abstract type AbstractParticle
-
-AbstractParticle type
-"""
-abstract type AbstractParticle end 
-
-"""
-    struct Fermion <: AbstractParticle
-
-Fermionic particle type, used for MatsubaraFrequency and MatsubaraGrid constructors
-"""
-struct Fermion <: AbstractParticle end 
-
-"""
-    struct Boson <: AbstractParticle
-
-Bosonic particle type, used for MatsubaraFrequency and MatsubaraGrid constructors
-"""
-struct Boson <: AbstractParticle end
-
-# we do not allow MatsubaraFrequency to be dispatched on the particle type 
-# to allow for mixed grids in the construction of MatsubaraFunctions
-"""
-    struct MatsubaraFrequency
+    struct MatsubaraFrequency{PT <: AbstractParticle} <: AbstractMatsubaraFrequency
 
 MatsubaraFrequency type with fields:
-* `T    :: Float64` : temperature
-* `val  :: Float64` : position on the imaginary axis
-* `idx  :: Int64`   : Matsubara index
-* `type :: Symbol`  : particle type
+* `T   :: Float64` : temperature
+* `val :: Float64` : position on the imaginary axis
+* `idx :: Int64`   : Matsubara index
 """
-struct MatsubaraFrequency 
-    T    :: Float64 
-    val  :: Float64
-    idx  :: Int64 
-    type :: Symbol 
+struct MatsubaraFrequency{PT <: AbstractParticle} <: AbstractMatsubaraFrequency
+    T   :: Float64 
+    val :: Float64
+    idx :: Int64  
 
-    # default constructor
     function MatsubaraFrequency(
-        T    :: Float64, 
-        val  :: Float64, 
-        idx  :: Int64, 
-        type :: Symbol 
-        )    :: MatsubaraFrequency
+        T   :: Float64, 
+        val :: Float64, 
+        idx :: Int64,
+            :: Type{PT}
+        )   :: MatsubaraFrequency{PT} where {PT <: AbstractParticle}
         
-        @check (type === :Fermion || type === :Boson) "MatsubaraFrequency type must be Fermion or Boson"
-        return new(T, val, idx, type)
+        return new{PT}(T, val, idx)
     end 
 
-    # convenience constructor for fermionic frequencies 
     function MatsubaraFrequency(
         T   :: Float64, 
         idx :: Int64, 
             :: Type{Fermion}
-        )   :: MatsubaraFrequency 
+        )   :: MatsubaraFrequency{Fermion}
 
-        return new(T, pi * T * (2 * idx + 1), idx, :Fermion)
+        return new{Fermion}(T, pi * T * (2 * idx + 1), idx)
     end 
-
-    # convenience constructor for bosonic frequencies 
+ 
     function MatsubaraFrequency(
         T   :: Float64, 
         idx :: Int64, 
             :: Type{Boson}
-        )   :: MatsubaraFrequency 
+        )   :: MatsubaraFrequency{Boson}
 
-        return new(T, 2 * pi * T * idx, idx, :Boson)
+        return new{Boson}(T, 2 * pi * T * idx, idx)
     end 
 end 
 
@@ -78,7 +49,7 @@ Returns `w.T`
 """
 function temperature(
     w :: MatsubaraFrequency
-    ) :: Float64 
+    ) :: Float64
 
     return w.T 
 end 
@@ -92,7 +63,7 @@ Returns `w.val`
 """
 function value(
     w :: MatsubaraFrequency
-    ) :: Float64 
+    ) :: Float64
 
     return w.val 
 end 
@@ -111,19 +82,236 @@ function index(
     return w.idx
 end 
 
+#----------------------------------------------------------------------------------------------#
+
+function Base.:+(
+    w1 :: MatsubaraFrequency{Fermion}, 
+    w2 :: MatsubaraFrequency{Fermion}
+    )  :: MatsubaraFrequency{Boson}
+
+    T = temperature(w1)
+    @check temperature(w2) ≈ T "Temperatures must be equal for addition"
+    return MatsubaraFrequency(T, index(w1) + index(w2) + 1, Boson)
+end
+
+function Base.:+(
+    w1 :: MatsubaraFrequency{Boson}, 
+    w2 :: MatsubaraFrequency{Boson}
+    )  :: MatsubaraFrequency{Boson}
+
+    T = temperature(w1)
+    @check temperature(w2) ≈ T "Temperatures must be equal for addition"
+    return MatsubaraFrequency(T, index(w1) + index(w2), Boson)
+end
+
+function Base.:+(
+    w1 :: MatsubaraFrequency{Fermion}, 
+    w2 :: MatsubaraFrequency{Boson}
+    )  :: MatsubaraFrequency{Fermion}
+
+    T = temperature(w1)
+    @check temperature(w2) ≈ T "Temperatures must be equal for addition"
+    return MatsubaraFrequency(T, index(w1) + index(w2), Fermion)
+end
+
+function Base.:+(
+    w1 :: MatsubaraFrequency{Boson}, 
+    w2 :: MatsubaraFrequency{Fermion}
+    )  :: MatsubaraFrequency{Fermion}
+
+    T = temperature(w1)
+    @check temperature(w2) ≈ T "Temperatures must be equal for addition"
+    return MatsubaraFrequency(T, index(w1) + index(w2), Fermion)
+end
+
+function Base.:-(
+    w1 :: MatsubaraFrequency{Fermion}, 
+    w2 :: MatsubaraFrequency{Fermion}
+    )  :: MatsubaraFrequency{Boson}
+
+    T = temperature(w1)
+    @check temperature(w2) ≈ T "Temperatures must be equal for subtraction"
+    return MatsubaraFrequency(T, index(w1) - index(w2), Boson)
+end
+
+function Base.:-(
+    w1 :: MatsubaraFrequency{Boson}, 
+    w2 :: MatsubaraFrequency{Boson}
+    )  :: MatsubaraFrequency{Boson}
+
+    T = temperature(w1)
+    @check temperature(w2) ≈ T "Temperatures must be equal for subtraction"
+    return MatsubaraFrequency(T, index(w1) - index(w2), Boson)
+end
+
+function Base.:-(
+    w1 :: MatsubaraFrequency{Fermion}, 
+    w2 :: MatsubaraFrequency{Boson}
+    )  :: MatsubaraFrequency{Fermion}
+
+    T = temperature(w1)
+    @check temperature(w2) ≈ T "Temperatures must be equal for subtraction"
+    return MatsubaraFrequency(T, index(w1) - index(w2), Fermion)
+end
+
+function Base.:-(
+    w1 :: MatsubaraFrequency{Boson}, 
+    w2 :: MatsubaraFrequency{Fermion}
+    )  :: MatsubaraFrequency{Fermion}
+
+    T = temperature(w1)
+    @check temperature(w2) ≈ T "Temperatures must be equal for subtraction"
+    return MatsubaraFrequency(T, index(w1) - index(w2) - 1, Fermion)
+end
+
+function Base.:-(
+    w :: MatsubaraFrequency{Fermion}, 
+    ) :: MatsubaraFrequency{Fermion}
+
+    return MatsubaraFrequency(temperature(w), -index(w) - 1, Fermion)
+end
+
+function Base.:-(
+    w :: MatsubaraFrequency{Boson}, 
+    ) :: MatsubaraFrequency{Boson}
+
+    return MatsubaraFrequency(temperature(w), -index(w), Boson)
+end
+
+#----------------------------------------------------------------------------------------------#
+
 """
-    function type(
-        w :: MatsubaraFrequency
-        ) :: Symbol
+    struct MatsubaraIndex{PT <: AbstractParticle} <: AbstractMatsubaraFrequency
 
-Returns `w.type`
+MatsubaraIndex type with fields:
+* `idx :: Int64` : Matsubara index
 """
-function type(
-    w :: MatsubaraFrequency
-    ) :: Symbol
+struct MatsubaraIndex{PT <: AbstractParticle} <: AbstractMatsubaraFrequency
+    idx :: Int64
+    
+    function MatsubaraIndex(
+        idx :: Int64,
+            :: Type{PT}
+        )   :: MatsubaraIndex{PT} where {PT <: AbstractParticle}
 
-    return w.type
-end 
+        return new{PT}(idx)
+    end
 
-# load methods
-include("matsubara_freq_ops.jl")
+    function MatsubaraIndex(
+        w :: MatsubaraFrequency{PT}
+        ) :: MatsubaraIndex{PT} where {PT <: AbstractParticle}
+
+        return new{PT}(index(w))
+    end
+end
+
+function MatsubaraFrequency(
+    T :: Float64, 
+    x :: MatsubaraIndex{PT}
+    ) :: MatsubaraFrequency{PT} where {PT <: AbstractParticle}
+
+    return MatsubaraFrequency(T, index(x), PT)
+end
+
+"""
+    function index( 
+        x :: MatsubaraIndex
+        ) :: Int64 
+
+Returns `x.idx`
+"""
+function index( 
+    x :: MatsubaraIndex
+    ) :: Int64 
+
+    return x.idx 
+end
+
+#----------------------------------------------------------------------------------------------#
+
+function Base.:+(
+    w1 :: MatsubaraIndex{Fermion}, 
+    w2 :: MatsubaraIndex{Fermion}
+    )  :: MatsubaraIndex{Boson}
+
+    return MatsubaraIndex(index(w1) + index(w2) + 1, Boson)
+end
+
+function Base.:+(
+    w1 :: MatsubaraIndex{Boson}, 
+    w2 :: MatsubaraIndex{Boson}
+    )  :: MatsubaraIndex{Boson}
+
+    return MatsubaraIndex(index(w1) + index(w2), Boson)
+end
+
+function Base.:+(
+    w1 :: MatsubaraIndex{Fermion}, 
+    w2 :: MatsubaraIndex{Boson}
+    )  :: MatsubaraIndex{Fermion}
+
+    return MatsubaraIndex(index(w1) + index(w2), Fermion)
+end
+
+function Base.:+(
+    w1 :: MatsubaraIndex{Boson}, 
+    w2 :: MatsubaraIndex{Fermion}
+    )  :: MatsubaraIndex{Fermion}
+
+    return MatsubaraIndex(index(w1) + index(w2), Fermion)
+end
+
+function Base.:-(
+    w1 :: MatsubaraIndex{Fermion}, 
+    w2 :: MatsubaraIndex{Fermion}
+    )  :: MatsubaraIndex{Boson}
+
+    return MatsubaraIndex(index(w1) - index(w2), Boson)
+end
+
+function Base.:-(
+    w1 :: MatsubaraIndex{Boson}, 
+    w2 :: MatsubaraIndex{Boson}
+    )  :: MatsubaraIndex{Boson}
+
+    return MatsubaraIndex(index(w1) - index(w2), Boson)
+end
+
+function Base.:-(
+    w1 :: MatsubaraIndex{Fermion}, 
+    w2 :: MatsubaraIndex{Boson}
+    )  :: MatsubaraIndex{Fermion}
+
+    return MatsubaraIndex(index(w1) - index(w2), Fermion)
+end
+
+function Base.:-(
+    w1 :: MatsubaraIndex{Boson}, 
+    w2 :: MatsubaraIndex{Fermion}
+    )  :: MatsubaraIndex{Fermion}
+
+    return MatsubaraIndex(index(w1) - index(w2) - 1, Fermion)
+end
+
+function Base.:-(
+    w :: MatsubaraIndex{Fermion}, 
+    ) :: MatsubaraIndex{Fermion}
+
+    return MatsubaraIndex(-index(w) - 1, Fermion)
+end
+
+function Base.:-(
+    w :: MatsubaraIndex{Boson}, 
+    ) :: MatsubaraIndex{Boson}
+
+    return MatsubaraIndex(-index(w), Boson)
+end
+
+#----------------------------------------------------------------------------------------------#
+
+export 
+    MatsubaraFrequency,
+    temperature,
+    value,
+    index,
+    MatsubaraIndex

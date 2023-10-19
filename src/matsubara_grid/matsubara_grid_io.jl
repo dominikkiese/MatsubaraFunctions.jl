@@ -2,7 +2,7 @@
     function save_matsubara_grid!(
         h :: HDF5.File,
         l :: String,
-        g :: MatsubaraGrid
+        g :: AbstractMatsubaraGrid
         ) :: Nothing
 
 Save MatsubaraGrid `g` with label `l` to file `h`
@@ -10,20 +10,15 @@ Save MatsubaraGrid `g` with label `l` to file `h`
 function save_matsubara_grid!(
     h :: HDF5.File,
     l :: String,
-    g :: MatsubaraGrid
+    g :: AbstractMatsubaraGrid
     ) :: Nothing
 
-    # create new group and tag it
-    grp                    = create_group(h, l)
-    attributes(grp)["tag"] = "MatsubaraGrid"
+    grp = create_group(h, l)
 
-    # add metadata
+    # save only metadata to minimize memory footprint
+    attributes(grp)["type"] = string(typeof(g))
     attributes(grp)["T"]    = temperature(g)
-    attributes(grp)["type"] = "$(type(g))"
-
-    # add data
-    grp["frequency/vals"] = values(g)
-    grp["frequency/idxs"] = indices(g)
+    attributes(grp)["N"]    = N(g)
 
     return nothing 
 end 
@@ -32,7 +27,7 @@ end
     function load_matsubara_grid(
         h :: HDF5.File,
         l :: String
-        ) :: MatsubaraGrid
+        ) :: AbstractMatsubaraGrid
 
 Load MatsubaraGrid with label `l` from file `h`
 """
@@ -41,18 +36,23 @@ function load_matsubara_grid(
     l :: String
     ) :: MatsubaraGrid 
 
-    # check if group has correct tag 
-    @check haskey(attributes(h[l]), "tag") "Group $(l) not compatible with MatsubaraFunctions"
-    @check read_attribute(h[l], "tag") == "MatsubaraGrid" "Group $(l) not tagged as MatsubaraGrid"
-
-    # read the metadata
-    T    = read_attribute(h[l], "T")
+    # load the metadata
     type = read_attribute(h[l], "type")
+    T    = read_attribute(h[l], "T")
+    N    = read_attribute(h[l], "N")
 
-    # read the data 
-    vals = read(h, l * "/frequency/vals")
-    idxs = read(h, l * "/frequency/idxs")
-    data = MatsubaraFrequency[MatsubaraFrequency(T, val, idx, Symbol(type)) for (val, idx) in zip(vals, idxs)]
-
-    return MatsubaraGrid(T, data, Symbol(type))
+    # generate the grid
+    if type == "MatsubaraGrid{Fermion}"
+        return MatsubaraGrid(T, N, Fermion)
+    elseif type == "MatsubaraGrid{Boson}"
+        return MatsubaraGrid(T, N, Boson)
+    else 
+        error("Type $(type) unknown")
+    end
 end
+
+#----------------------------------------------------------------------------------------------#
+
+export 
+    save_matsubara_grid!,
+    load_matsubara_grid

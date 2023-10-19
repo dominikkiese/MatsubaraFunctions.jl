@@ -151,3 +151,9 @@ function solve!(
             
     return nothing
 end
+
+#----------------------------------------------------------------------------------------------#
+
+export 
+    PeriodicPulay,
+    solve!

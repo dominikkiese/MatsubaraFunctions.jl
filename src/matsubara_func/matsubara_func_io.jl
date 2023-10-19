@@ -2,30 +2,29 @@
     function save_matsubara_function!(
         h :: HDF5.File,
         l :: String,
-        f :: MatsubaraFunction{GD, SD, DD, Q}
-        ) :: Nothing where {GD, SD, DD, Q <: Number} 
+        f :: MatsubaraFunction
+        ) :: Nothing
 
 Save MatsubaraFunction `f` with label `l` to file `h`  
 """
 function save_matsubara_function!(
     h :: HDF5.File,
     l :: String,
-    f :: MatsubaraFunction{GD, SD, DD, Q}
-    ) :: Nothing where {GD, SD, DD, Q <: Number}
+    f :: MatsubaraFunction
+    ) :: Nothing
 
-    # create new group and tag it
-    grp                    = create_group(h, l)
-    attributes(grp)["tag"] = "MatsubaraFunction"
+    grp = create_group(h, l)
 
-    # add metadata 
+    # save metadata
+    attributes(grp)["type"]  = "MatsubaraFunction"
     attributes(grp)["shape"] = Int64[f.shape...]
 
-    # add data
-    grp["data"] = f.data
-
-    for i in eachindex(f.grids)
-        save_matsubara_grid!(h, l * "/grids/grid_$i", f.grids[i])
+    for i in eachindex(grids(f))
+        save_matsubara_grid!(h, l * "/grids/grid_$i", grids(f, i))
     end
+
+    # save data
+    grp["data"] = f.data
 
     return nothing 
 end
@@ -43,20 +42,19 @@ function load_matsubara_function(
     l :: String
     ) :: MatsubaraFunction
 
-    # check if group has correct tag 
-    @check haskey(attributes(h[l]), "tag") "Group $(l) not compatible with MatsubaraFunctions"
-    @check read_attribute(h[l], "tag") == "MatsubaraFunction" "Group $(l) not tagged as MatsubaraFunction"
-
-    # read the metadata 
+    # load the metadata 
+    type  = read_attribute(h[l], "type")
     shape = read_attribute(h[l], "shape")
+    @check type == "MatsubaraFunction" "Type $(l) unknown"
 
-    # read the data
+    # load the data
     idxs  = eachindex(keys(h[l * "/grids"]))
-    grids = MatsubaraGrid[load_matsubara_grid(h, l * "/grids/grid_$i") for i in idxs]
-    data  = read(h, l * "/data")
-    
-    return MatsubaraFunction((grids...,), (shape...,), data)
+    grids = [load_matsubara_grid(h, l * "/grids/grid_$i") for i in idxs]
+
+    return MatsubaraFunction((grids...,), (shape...,), read(h, l * "/data"))
 end
+
+#----------------------------------------------------------------------------------------------#
 
 """
     function save_matsubara_symmetry_group!(
@@ -73,16 +71,15 @@ function save_matsubara_symmetry_group!(
     SG :: MatsubaraSymmetryGroup
     )  :: Nothing
 
-    # create new group and tag it
-    grp                    = create_group(h, l)
-    attributes(grp)["tag"] = "MatsubaraSymmetryGroup"
+    grp = create_group(h, l)
 
-    # add metadata 
+    # save metadata
+    attributes(grp)["type"]        = string(typeof(SG))
     attributes(grp)["speedup"]     = SG.speedup
     attributes(grp)["num_classes"] = length(SG.classes)
 
-    # add data 
-    num_in_classes        = Int64[length(class) for class in SG.classes]
+    # save data 
+    num_in_classes        = [length(class) for class in SG.classes]
     grp["num_in_classes"] = num_in_classes
 
     # convert classes to matrix for fast write to disk
@@ -105,27 +102,27 @@ function save_matsubara_symmetry_group!(
 end
 
 """
-    function load_matsubara_symmetry_group(
+    function MatsubaraSymmetryGroup{GD, SD, DD, Q}(
         h :: HDF5.File,
-        l :: String
-        ) :: MatsubaraSymmetryGroup
+        l :: String,
+        ) :: MatsubaraSymmetryGroup{GD, SD, DD, Q} where {GD, SD, DD, Q <: Number}
 
-Load MatsubaraSymmetryGroup with label `l` from file `h`
+Load MatsubaraSymmetryGroup with label `l` from file `h`. If `l` was generated using 
+`save_matsubara_symmetry_group!`, the type parameters can be obtained from `h` as 
+`read_attribute(h[l], "type")`.
 """
-function load_matsubara_symmetry_group(
+function MatsubaraSymmetryGroup{GD, SD, DD, Q}(
     h :: HDF5.File,
-    l :: String
-    ) :: MatsubaraSymmetryGroup
+    l :: String,
+    ) :: MatsubaraSymmetryGroup{GD, SD, DD, Q} where {GD, SD, DD, Q <: Number}
 
-    # check if group has correct tag 
-    @check haskey(attributes(h[l]), "tag") "Group $(l) not compatible with MatsubaraFunctions"
-    @check read_attribute(h[l], "tag") == "MatsubaraSymmetryGroup" "Group $(l) not tagged as MatsubaraSymmetryGroup"
-
-    # read the metadata 
+    # load the metadata 
+    type        = read_attribute(h[l], "type")
     speedup     = read_attribute(h[l], "speedup")
     num_classes = read_attribute(h[l], "num_classes")
+    @check startswith(type, "MatsubaraSymmetryGroup") "Type $(l) unknown"
 
-    # read the data 
+    # load the data 
     num_in_classes = read(h, l * "/num_in_classes")
     mat            = read(h, l * "/classes")
     classes        = Vector{Vector{Tuple{Int64, MatsubaraOperation}}}(undef, num_classes)
@@ -141,5 +138,12 @@ function load_matsubara_symmetry_group(
         classes[cl_idx] = class; offset += num_in_classes[cl_idx]
     end 
 
-    return MatsubaraSymmetryGroup(classes, speedup)
+    return MatsubaraSymmetryGroup{GD, SD, DD, Q}(classes, speedup)
 end
+
+#----------------------------------------------------------------------------------------------#
+
+export 
+    save_matsubara_function!,
+    load_matsubara_function,
+    save_matsubara_symmetry_group!
