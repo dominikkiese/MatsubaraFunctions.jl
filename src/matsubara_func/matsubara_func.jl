@@ -50,7 +50,7 @@ struct MatsubaraFunction{GD, SD, DD, Q <: Number}
         shape  :: Vararg{Int64, SD}
         ;
         data_t :: DataType = ComplexF64
-        )      :: MatsubaraFunction{1, SD, 1 + SD, Type{data_t}} where {SD}
+        )      :: MatsubaraFunction{1, SD, 1 + SD, data_t} where {SD}
 
         return MatsubaraFunction((grid,), shape...; data_t)
     end
@@ -59,7 +59,7 @@ struct MatsubaraFunction{GD, SD, DD, Q <: Number}
         grids  :: Vararg{AbstractMatsubaraGrid, GD},
         ;
         data_t :: DataType = ComplexF64
-        )      :: MatsubaraFunction{GD, 0, GD, Type{data_t}} where {GD}
+        )      :: MatsubaraFunction{GD, 0, GD, data_t} where {GD}
 
         return MatsubaraFunction(ntuple(i -> grids[i], GD); data_t)
     end
@@ -76,7 +76,7 @@ struct MatsubaraFunction{GD, SD, DD, Q <: Number}
         grid   :: AbstractMatsubaraGrid
         ;
         data_t :: DataType = ComplexF64
-        )      :: MatsubaraFunction{1, 0, 1, Type{data_t}}
+        )      :: MatsubaraFunction{1, 0, 1, data_t}
 
         return MatsubaraFunction((grid,); data_t)
     end
