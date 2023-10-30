@@ -34,14 +34,14 @@ end
 
 """
     function index(
-        x :: MeshPoint{T}
-        ) :: Int64 where {T <: AbstractValue} 
+        x :: AbstractMeshPoint
+        ) :: Int64
 
 Returns `x.index`
 """
 function index(
-    x :: MeshPoint{T}
-    ) :: Int64 where {T <: AbstractValue} 
+    x :: AbstractMeshPoint
+    ) :: Int64
 
     return x.index
 end 
@@ -86,6 +86,21 @@ function Base.:-(
     ) :: T where {T <: AbstractValue}
 
     return -value(x)
+end
+
+# comparison operator
+#-------------------------------------------------------------------------------#
+
+function Base.:(==)(
+    x1 :: MeshPoint{T},
+    x2 :: MeshPoint{T}
+    )  :: Bool where {T <: AbstractValue}
+
+    if (x1.hash != x2.hash) || (index(x1) != index(x2)) || (value(x1) != value(x2))
+        return false
+    end
+
+    return true
 end
 
 # export

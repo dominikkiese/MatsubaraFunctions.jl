@@ -1,15 +1,27 @@
+include("mesh_point.jl")
+
+# abstract types
+#-------------------------------------------------------------------------------#
+
+"""
+    abstract type AbstractMesh
+
+AbstractMesh type
+"""
+abstract type AbstractMesh end
+
 # type def and accessors
 #-------------------------------------------------------------------------------#
 
 """
-    struct Mesh{T <: AbstractMeshPoint}
+    struct Mesh{T <: AbstractMeshPoint} <: AbstractMesh
 
 Mesh type with fields:
 * `hash   :: UInt64`    : mesh identifier
 * `points :: Vector{T}` : mesh points
 * `domain :: Dict`      : T-specific details
 """
-struct Mesh{T <: AbstractMeshPoint}
+struct Mesh{T <: AbstractMeshPoint} <: AbstractMesh
     hash   :: UInt64
     points :: Vector{T}  
     domain :: Dict  
@@ -42,27 +54,26 @@ function point(
     idx :: Int64
     )   :: T where {T <: AbstractMeshPoint}
 
-    # bounds check performed by Base
     return m.points[idx]
 end
 
 """
     function domain(
-        m :: Mesh{T}
-        ) :: Dict where {T <: AbstractMeshPoint}
+        m :: AbstractMesh
+        ) :: Dict
 
 Returns `m.domain`
 """
 function domain(
-    m :: Mesh{T}
-    ) :: Dict where {T <: AbstractMeshPoint} 
+    m :: AbstractMesh
+    ) :: Dict
 
     return m.domain 
 end
 
 function Base.:length(
-    m :: Mesh{T}
-    ) :: Int64 where {T <: AbstractMeshPoint} 
+    m :: AbstractMesh
+    ) :: Int64
 
     return length(points(m))
 end
@@ -71,22 +82,22 @@ end
 #-------------------------------------------------------------------------------#
 
 function Base.:eachindex(
-    m :: Mesh{T},
-    ) :: Base.OneTo{Int64} where {T <: AbstractMeshPoint}
+    m :: AbstractMesh
+    ) :: Base.OneTo{Int64}
 
     return eachindex(points(m))
 end
 
 function Base.:firstindex(
-    m :: Mesh{T},
-    ) :: Int64 where {T <: AbstractMeshPoint}
+    m :: AbstractMesh
+    ) :: Int64
 
     return firstindex(points(m))
 end
 
 function Base.:lastindex(
-    m :: Mesh{T},
-    ) :: Int64 where {T <: AbstractMeshPoint}
+    m :: AbstractMesh
+    ) :: Int64
 
     return lastindex(points(m))
 end
@@ -111,8 +122,8 @@ end
 #-------------------------------------------------------------------------------#
  
 function Base.:iterate(
-    m :: Mesh{T}
-    ) :: Tuple{T, Int64} where {T <: AbstractMeshPoint}
+    m :: AbstractMesh
+    ) :: Tuple{T, Int64}
 
     return m[1], 1 
 end 
@@ -132,7 +143,7 @@ end
 # call
 #-------------------------------------------------------------------------------#
 
-# make Mesh callable with MeshPoint, checks if the point is valid
+# checks if the mesh point is valid
 function (m :: Mesh{T})(
     x :: T
     ) :: Bool where {T <: AbstractMeshPoint}
@@ -140,16 +151,18 @@ function (m :: Mesh{T})(
     return x.hash == m.hash
 end
 
-# load implementation and export
+# load implementations and export
 #-------------------------------------------------------------------------------#
 
 # for each value type the respective mesh must implement:
 # - outer constructor
+# - comparison operator
 # - method to call mesh with value type for mapping to mesh index
 
 include("matsubara/matsubara.jl")
 
 export
+    AbstractMesh,
     Mesh,
     points,
     point,

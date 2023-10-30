@@ -1,11 +1,13 @@
 using Test
-using MPI; MPI.Init()
-using HDF5
-using MatsubaraFunctions 
 using Aqua
+using HDF5
+using MPI
+using MatsubaraFunctions 
 
+MPI.Init()
+MatsubaraFunctions.DEBUG() = true
 Aqua.test_all(MatsubaraFunctions)
 
-for file in readdir("tests")
-    include("tests/" * file)
+for test in readdir("tests")
+    include(joinpath("tests", test))
 end
