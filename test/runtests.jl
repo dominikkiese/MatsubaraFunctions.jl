@@ -5,7 +5,7 @@ using MPI
 using MatsubaraFunctions 
 
 MPI.Init()
-MatsubaraFunctions.DEBUG() = true
+MatsubaraFunctions.DEBUG() = true # enable all checks for testing
 Aqua.test_all(MatsubaraFunctions)
 
 for test in readdir("tests")

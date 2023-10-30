@@ -14,7 +14,7 @@ module MatsubaraFunctions
     DEBUG() = false
 
     macro DEBUG(expr, msgs)
-        esc(:(if !$(@__MODULE__).DEBUG() @assert($expr, $msgs...) end))
+        esc(:(if $(@__MODULE__).DEBUG() @assert($expr, $msgs...) end))
     end
 
     include("mesh/mesh.jl")
