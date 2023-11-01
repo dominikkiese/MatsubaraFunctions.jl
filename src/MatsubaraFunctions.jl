@@ -18,4 +18,5 @@ module MatsubaraFunctions
     end
 
     include("mesh/mesh.jl")
+    include("func/func.jl")
 end

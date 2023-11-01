@@ -25,6 +25,19 @@ struct Mesh{T <: AbstractMeshPoint} <: AbstractMesh
     hash   :: UInt64
     points :: Vector{T}  
     domain :: Dict  
+
+    function Mesh(
+        hash   :: UInt64,
+        points :: Vector{T},
+        domain :: Dict  
+        )      :: Mesh{T} where {T <: AbstractMeshPoint}
+
+        return new{T}(hash, points, domain)
+    end
+
+    function Mesh(m :: Mesh) :: Mesh
+        return Mesh(m.hash, copy(points(m)), copy(domain(m)))
+    end
 end
 
 """
@@ -116,6 +129,10 @@ function Base.:getindex(
     )    :: SubArray{T, 1, Vector{T}, Tuple{UnitRange{Int64}}, true} where {T <: AbstractMeshPoint}
 
     return @view points(m)[idxs]
+end
+
+function Base.:copy(m :: Mesh) :: Mesh
+    return Mesh(m)
 end
 
 # iterate
