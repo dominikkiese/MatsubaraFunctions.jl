@@ -29,6 +29,11 @@
     @test f2 == f1
     @test SG(f1) < 1e-14
 
+    # reduce f1, then init f2 and compare
+    f1vec = get_reduced(SG, f1) 
+    init_from_reduced!(SG, f2, f1vec)
+    @test f2 == f1
+
     # symmetrize f3 and compare to f1 using MatsubaraInitFunction
     function init(
         w :: Tuple{MatsubaraFrequency},

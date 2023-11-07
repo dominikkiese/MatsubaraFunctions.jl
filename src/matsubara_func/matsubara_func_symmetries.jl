@@ -190,6 +190,45 @@ function (SG :: MatsubaraSymmetryGroup{GD, SD, DD, Q})(
     return err
 end
 
+"""
+    function get_reduced(
+        SG :: MatsubaraSymmetryGroup{GD, SD, DD, Q},
+        f  :: MatsubaraFunction{GD, SD, DD, Q}
+        )  :: Vector{Q} where {GD, SD, DD, Q <: Number}
+
+Calculate symmetry reduced representation of MatsubaraFunction
+"""
+function get_reduced(
+    SG :: MatsubaraSymmetryGroup{GD, SD, DD, Q},
+    f  :: MatsubaraFunction{GD, SD, DD, Q}
+    )  :: Vector{Q} where {GD, SD, DD, Q <: Number}
+
+    return Q[f[first(first(SG.classes[cl]))] for cl in eachindex(SG.classes)] 
+end
+
+"""
+    function init_from_reduced!(
+        SG   :: MatsubaraSymmetryGroup{GD, SD, DD, Q},
+        f    :: MatsubaraFunction{GD, SD, DD, Q},
+        fvec :: Vector{Q}
+        )    :: Nothing where {GD, SD, DD, Q <: Number}
+
+Initialize MatsubaraFunction from symmetry reduced representation
+""" 
+function init_from_reduced!(
+    SG   :: MatsubaraSymmetryGroup{GD, SD, DD, Q},
+    f    :: MatsubaraFunction{GD, SD, DD, Q},
+    fvec :: Vector{Q}
+    )    :: Nothing where {GD, SD, DD, Q <: Number}
+
+    for cl in eachindex(fvec)
+        f[first(first(SG.classes[cl]))] = fvec[cl]
+    end 
+
+    SG(f)
+    return nothing 
+end
+
 #----------------------------------------------------------------------------------------------#
 
 """
@@ -260,4 +299,6 @@ export
     con,
     MatsubaraSymmetry,
     MatsubaraSymmetryGroup,
+    get_reduced,
+    init_from_reduced!,
     MatsubaraInitFunction
