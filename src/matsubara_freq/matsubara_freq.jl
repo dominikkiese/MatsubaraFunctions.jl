@@ -90,7 +90,7 @@ function Base.:+(
     )  :: MatsubaraFrequency{Boson}
 
     T = temperature(w1)
-    @check temperature(w2) ≈ T "Temperatures must be equal for addition"
+    @DEBUG temperature(w2) ≈ T "Temperatures must be equal for addition"
     return MatsubaraFrequency(T, index(w1) + index(w2) + 1, Boson)
 end
 
@@ -100,7 +100,7 @@ function Base.:+(
     )  :: MatsubaraFrequency{Boson}
 
     T = temperature(w1)
-    @check temperature(w2) ≈ T "Temperatures must be equal for addition"
+    @DEBUG temperature(w2) ≈ T "Temperatures must be equal for addition"
     return MatsubaraFrequency(T, index(w1) + index(w2), Boson)
 end
 
@@ -110,7 +110,7 @@ function Base.:+(
     )  :: MatsubaraFrequency{Fermion}
 
     T = temperature(w1)
-    @check temperature(w2) ≈ T "Temperatures must be equal for addition"
+    @DEBUG temperature(w2) ≈ T "Temperatures must be equal for addition"
     return MatsubaraFrequency(T, index(w1) + index(w2), Fermion)
 end
 
@@ -120,7 +120,7 @@ function Base.:+(
     )  :: MatsubaraFrequency{Fermion}
 
     T = temperature(w1)
-    @check temperature(w2) ≈ T "Temperatures must be equal for addition"
+    @DEBUG temperature(w2) ≈ T "Temperatures must be equal for addition"
     return MatsubaraFrequency(T, index(w1) + index(w2), Fermion)
 end
 
@@ -130,7 +130,7 @@ function Base.:-(
     )  :: MatsubaraFrequency{Boson}
 
     T = temperature(w1)
-    @check temperature(w2) ≈ T "Temperatures must be equal for subtraction"
+    @DEBUG temperature(w2) ≈ T "Temperatures must be equal for subtraction"
     return MatsubaraFrequency(T, index(w1) - index(w2), Boson)
 end
 
@@ -140,7 +140,7 @@ function Base.:-(
     )  :: MatsubaraFrequency{Boson}
 
     T = temperature(w1)
-    @check temperature(w2) ≈ T "Temperatures must be equal for subtraction"
+    @DEBUG temperature(w2) ≈ T "Temperatures must be equal for subtraction"
     return MatsubaraFrequency(T, index(w1) - index(w2), Boson)
 end
 
@@ -150,7 +150,7 @@ function Base.:-(
     )  :: MatsubaraFrequency{Fermion}
 
     T = temperature(w1)
-    @check temperature(w2) ≈ T "Temperatures must be equal for subtraction"
+    @DEBUG temperature(w2) ≈ T "Temperatures must be equal for subtraction"
     return MatsubaraFrequency(T, index(w1) - index(w2), Fermion)
 end
 
@@ -160,7 +160,7 @@ function Base.:-(
     )  :: MatsubaraFrequency{Fermion}
 
     T = temperature(w1)
-    @check temperature(w2) ≈ T "Temperatures must be equal for subtraction"
+    @DEBUG temperature(w2) ≈ T "Temperatures must be equal for subtraction"
     return MatsubaraFrequency(T, index(w1) - index(w2) - 1, Fermion)
 end
 

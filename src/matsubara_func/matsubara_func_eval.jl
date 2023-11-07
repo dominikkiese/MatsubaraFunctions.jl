@@ -19,7 +19,7 @@ function upper_tail_moments(
     # compute nodes
     dist = ceil(Int64, 1.0 / min(temperature(grids(f, 1)), 1.0))
     idx  = grids_shape(f, 1) - dist
-    @check idx > ceil(Int64, 0.75 * grids_shape(f, 1)) "Grid is too small for extrapolation"
+    @DEBUG idx > ceil(Int64, 0.75 * grids_shape(f, 1)) "Grid is too small for extrapolation"
 
     # read data
     y1, y2     = f.data[end, x...] - α0, f.data[idx, x...] - α0
@@ -51,7 +51,7 @@ function lower_tail_moments(
     # compute nodes
     dist = ceil(Int64, 1.0 / min(temperature(grids(f, 1)), 1.0))
     idx  = 1 + dist
-    @check idx < floor(Int64, 0.25 * grids_shape(f, 1)) "Grid is too small for extrapolation"
+    @DEBUG idx < floor(Int64, 0.25 * grids_shape(f, 1)) "Grid is too small for extrapolation"
 
     # read data
     y1, y2     = f.data[1, x...] - α0, f.data[idx, x...] - α0

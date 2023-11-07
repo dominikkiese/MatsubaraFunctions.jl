@@ -15,7 +15,7 @@ struct MatsubaraGrid{PT <: AbstractParticle} <: AbstractMatsubaraGrid
         )    :: MatsubaraGrid{PT} where {PT <: AbstractParticle}
 
         for w in data 
-            @check T ≈ temperature(w) "Temperature must be equal between frequencies and grid"
+            @DEBUG T ≈ temperature(w) "Temperature must be equal between frequencies and grid"
         end  
     
         return new{PT}(T, data)
@@ -130,7 +130,7 @@ function is_inbounds(
     grid :: MatsubaraGrid{PT}
     )    :: Bool where {PT <: AbstractParticle}
 
-    @check temperature(w) ≈ temperature(grid) "Temperature must be equal between frequency and grid"
+    @DEBUG temperature(w) ≈ temperature(grid) "Temperature must be equal between frequency and grid"
     return first_index(grid) <= index(w) <= last_index(grid)
 end
 

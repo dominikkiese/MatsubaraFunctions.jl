@@ -45,7 +45,7 @@ function load_matsubara_function(
     # load the metadata 
     type  = read_attribute(h[l], "type")
     shape = read_attribute(h[l], "shape")
-    @check type == "MatsubaraFunction" "Type $(l) unknown"
+    @DEBUG type == "MatsubaraFunction" "Type $(l) unknown"
 
     # load the data
     idxs  = eachindex(keys(h[l * "/grids"]))
@@ -120,7 +120,7 @@ function MatsubaraSymmetryGroup{GD, SD, DD, Q}(
     type        = read_attribute(h[l], "type")
     speedup     = read_attribute(h[l], "speedup")
     num_classes = read_attribute(h[l], "num_classes")
-    @check startswith(type, "MatsubaraSymmetryGroup") "Type $(l) unknown"
+    @DEBUG startswith(type, "MatsubaraSymmetryGroup") "Type $(l) unknown"
 
     # load the data 
     num_in_classes = read(h, l * "/num_in_classes")

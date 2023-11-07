@@ -11,12 +11,12 @@ module MatsubaraFunctions
         using Documenter
         using Aqua
     end
+    
+    # macro to unlock debug mode
+    DEBUG() = false
 
-    # macro for sanity checks
-    sanity_checks() = true 
-
-    macro check(expr, msgs)
-        esc(:(if $(@__MODULE__).sanity_checks() @assert($expr, $msgs...) end))
+    macro DEBUG(expr, msgs)
+        esc(:(if $(@__MODULE__).DEBUG() @assert($expr, $msgs...) end))
     end
 
     include("types.jl")

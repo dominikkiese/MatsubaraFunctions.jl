@@ -15,7 +15,7 @@ struct PadeApprox{Q <: Number}
         ydat :: Vector{Q}
         )    :: PadeApprox{Q} where {Q <: Number}
         
-        @check length(xdat) > 1 "More than one data point must be provided"
+        @DEBUG length(xdat) > 1 "More than one data point must be provided"
         g        = zeros(Q, length(xdat), length(xdat))
         g[1, :] .= ydat
         

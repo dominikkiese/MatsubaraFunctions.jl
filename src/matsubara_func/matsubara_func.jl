@@ -20,15 +20,15 @@ struct MatsubaraFunction{GD, SD, DD, Q <: Number}
         if Q <: Integer || Q <: Complex{Int} error("Integer data type not supported") end
         
         # check dimensions
-        @check GD > 0 "Grid dimension cannot be zero"
-        @check GD + SD == DD "Dimensions do not match"
+        @DEBUG GD > 0 "Grid dimension cannot be zero"
+        @DEBUG GD + SD == DD "Dimensions do not match"
         
         # check grids
         T = temperature(grids[1])
 
         for g in grids
-            @check temperature(g) ≈ T "Grids must have same temperature"
-            @check issorted(values(g)) "Grids must be sorted"
+            @DEBUG temperature(g) ≈ T "Grids must have same temperature"
+            @DEBUG issorted(values(g)) "Grids must be sorted"
         end
 
         return new{GD, SD, DD, Q}(grids, shape, data)

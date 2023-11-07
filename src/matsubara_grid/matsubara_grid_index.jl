@@ -4,7 +4,7 @@ function grid_index(
     grid :: MatsubaraGrid{PT}
     )    :: Int64 where {PT <: AbstractParticle}
 
-    @check temperature(w) ≈ temperature(grid) "Temperature must be equal between frequency and grid"
+    @DEBUG temperature(w) ≈ temperature(grid) "Temperature must be equal between frequency and grid"
     return index(w) - first_index(grid) + 1
 end
 

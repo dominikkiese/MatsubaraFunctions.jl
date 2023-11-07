@@ -22,7 +22,7 @@ struct PeriodicPulay{Q <: Number}
         m :: Int64 = 5
         ) :: PeriodicPulay{Q} where {Q <: Number}
         
-        @check m >= 1 "Memory size must be >= 1"
+        @DEBUG m >= 1 "Memory size must be >= 1"
         Fs = Matrix{Q}(undef, length(x), m)
         Xs = Matrix{Q}(undef, length(x), m)
         
