@@ -157,15 +157,26 @@ function Base.:iterate(
     end
 end
 
-# call
+# test if mesh point is valid
 #-------------------------------------------------------------------------------#
 
-# checks if the mesh point is valid
-function (m :: Mesh{T})(
+# check if the mesh point is valid
+function is_valid(
+    m :: Mesh{T}, 
     x :: T
     ) :: Bool where {T <: AbstractMeshPoint}
 
     return x.hash == m.hash
+end
+
+# get index of mesh point if valid
+function index_valid(
+    m :: Mesh{T}, 
+    x :: T
+    ) :: Int64 where {T <: AbstractMeshPoint}
+
+    @DEBUG is_valid(m, x) "Mesh point invalid"
+    return index(x)
 end
 
 # load implementations and export

@@ -148,6 +148,7 @@ end
 #-------------------------------------------------------------------------------#
 
 include("func_operations.jl")
+include("func_index.jl")
 
 export 
     MeshFunction, 
