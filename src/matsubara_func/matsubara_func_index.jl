@@ -5,7 +5,7 @@ function Base.:CartesianIndex(
     ) :: CartesianIndex{DD} where {GD, SD, DD, Q <: Number}
 
     idxs = ntuple(i -> grids(f, i)(w[i]), GD)
-    @DEBUG any(ntuple(i -> !(1 <= x[i] <= shape(f, i)), SD)) == false "Tensor indices invalid, shape is $(shape(f))"
+    @DEBUG all(ntuple(i -> 1 <= x[i] <= shape(f, i), SD)) "Tensor indices invalid, shape is $(shape(f))"
     return CartesianIndex(idxs..., x...)
 end
 
@@ -16,7 +16,7 @@ function CartesianIndex_extrp(
     ) :: CartesianIndex{DD} where {GD, SD, DD, Q <: Number}
 
     idxs = ntuple(i -> grid_index_extrp(w[i], grids(f, i)), GD)
-    @DEBUG any(ntuple(i -> !(1 <= x[i] <= shape(f, i)), SD)) == false "Tensor indices invalid, shape is $(shape(f))"
+    @DEBUG all(ntuple(i -> 1 <= x[i] <= shape(f, i), SD)) "Tensor indices invalid, shape is $(shape(f))"
 
     return CartesianIndex(idxs..., x...)
 end

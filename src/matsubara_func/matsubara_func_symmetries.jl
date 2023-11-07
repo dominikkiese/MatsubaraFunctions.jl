@@ -95,7 +95,7 @@ function reduce(
         wp, xp, opp = S(w, x)
         new_op      = opp * op
 
-        if !any(ntuple(i -> !is_inbounds(wp[i], grids(f, i)), GD))
+        if all(ntuple(i -> is_inbounds(wp[i], grids(f, i)), GD))
             idx = LinearIndex(f, ntuple(i -> grid_index(wp[i], grids(f, i)), GD)..., xp...)
 
             if !checked[idx]
