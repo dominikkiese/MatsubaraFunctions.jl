@@ -210,7 +210,7 @@ end
     function init_from_reduced!(
         SG   :: MatsubaraSymmetryGroup{GD, SD, DD, Q},
         f    :: MatsubaraFunction{GD, SD, DD, Q},
-        fvec :: Vector{Q}
+        fvec :: AbstractVector{Q}
         )    :: Nothing where {GD, SD, DD, Q <: Number}
 
 Initialize MatsubaraFunction from symmetry reduced representation
@@ -218,7 +218,7 @@ Initialize MatsubaraFunction from symmetry reduced representation
 function init_from_reduced!(
     SG   :: MatsubaraSymmetryGroup{GD, SD, DD, Q},
     f    :: MatsubaraFunction{GD, SD, DD, Q},
-    fvec :: Vector{Q}
+    fvec :: AbstractVector{Q}
     )    :: Nothing where {GD, SD, DD, Q <: Number}
 
     for cl in eachindex(fvec)
