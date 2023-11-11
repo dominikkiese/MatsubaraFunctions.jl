@@ -183,7 +183,7 @@ function set!(
     arr :: Array{Qp, DD},
     )   :: Nothing where {GD, SD, DD, Q <: Number, Qp <: Number}
 
-    f.data .= arr
+    OffsetArrays.no_offset_view(f.data) .= arr
 
     return nothing
 end
@@ -228,7 +228,7 @@ function flatten(
     ) :: Vector{Q} where {GD, SD, DD, Q <: Number}
 
     x  = Vector{Q}(undef, length(f))
-    x .= @view f.data[:]
+    flatten!(f, x)
 
     return x
 end
@@ -246,7 +246,8 @@ function flatten!(
     x :: AbstractVector
     ) :: Nothing
 
-    x .= @view f.data[:]
+    f_view = @view f.data[:]
+    copyto!(x, firstindex(x), f_view, firstindex(f_view), length(f_view))
     return nothing
 end
 
@@ -263,7 +264,8 @@ function unflatten!(
     x :: AbstractVector
     ) :: Nothing
     
-    f.data[:] .= x
+    f_view = @view f.data[:]
+    copyto!(f_view, firstindex(f_view), x, firstindex(x))
     return nothing
 end
 

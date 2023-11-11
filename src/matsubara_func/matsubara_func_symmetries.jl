@@ -83,7 +83,7 @@ function reduce(
     x           :: NTuple{SD, Int64},
     op          :: MatsubaraOperation,
     f           :: MatsubaraFunction{GD, SD, DD, Q},
-    checked     :: Array{Bool, DD},
+    checked     :: OffsetArray{Bool,DD,Array{Bool, DD}},
     symmetries  :: Vector{MatsubaraSymmetry{GD, SD}},
     class       :: Vector{Tuple{Int64, MatsubaraOperation}},
     path_length :: Int64
@@ -96,7 +96,7 @@ function reduce(
         new_op      = opp * op
 
         if all(ntuple(i -> is_inbounds(wp[i], grids(f, i)), GD))
-            idx = LinearIndex(f, ntuple(i -> grid_index(wp[i], grids(f, i)), GD)..., xp...)
+            idx = LinearIndex(f, ntuple(i -> grid_index(wp[i]), GD)..., xp...)
 
             if !checked[idx]
                 checked[idx] = true 
@@ -148,7 +148,7 @@ struct MatsubaraSymmetryGroup{GD, SD, DD, Q <: Number}
         max_length :: Int64 = 0
         )          :: MatsubaraSymmetryGroup{GD, SD, DD, Q} where {GD, SD, DD, Q <: Number}
 
-        checked  = Array{Bool, DD}(undef, data_shape(f)) 
+        checked  = OffsetArray(Array{Bool, DD}(undef, size(f)), data_shape(f)... )
         classes  = Vector{Tuple{Int64, MatsubaraOperation}}[]
         checked .= false
 

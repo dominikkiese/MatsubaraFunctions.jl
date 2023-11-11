@@ -1,19 +1,16 @@
 # unsafe method for to grid index
 function grid_index(
-    w    :: MatsubaraFrequency{PT},
-    grid :: MatsubaraGrid{PT}
+    w    :: MatsubaraFrequency{PT}
     )    :: Int64 where {PT <: AbstractParticle}
 
-    @DEBUG temperature(w) ≈ temperature(grid) "Temperature must be equal between frequency and grid"
-    return index(w) - first_index(grid) + 1
+    return index(w)
 end
 
 function grid_index(
-    w    :: MatsubaraIndex{PT},
-    grid :: MatsubaraGrid{PT}
+    w    :: MatsubaraIndex{PT}
     )    :: Int64 where {PT <: AbstractParticle}
 
-    return index(w) - first_index(grid) + 1
+    return index(w)
 end
 
 # safer method for converting to grid index
@@ -21,13 +18,14 @@ function grid_index_extrp(
     w    :: AbstractMatsubaraFrequency,
     grid :: AbstractMatsubaraGrid
     )    :: Int64 
-
-    return max(1, min(grid_index(w, grid), length(grid)))
+    
+    @DEBUG temperature(w) ≈ temperature(grid) "Temperature must be equal between frequency and grid"
+    return max(first_index(grid), min(grid_index(w), last_index(grid)))
 end
 
 function Base.:eachindex(
     grid :: AbstractMatsubaraGrid
-    )    :: Base.OneTo{Int64}
+    )
 
     return eachindex(grid.data)
 end
@@ -59,7 +57,7 @@ function Base.:getindex(
     x    :: AbstractMatsubaraFrequency
     )    :: MatsubaraFrequency
 
-    return grid[grid_index(x, grid)]
+    return grid[grid_index(x)]
 end
 
 function Base.:getindex(
@@ -78,7 +76,7 @@ function (f :: AbstractMatsubaraGrid)(
     ) :: Int64
 
     if is_inbounds(w, f)
-        return grid_index(w, f)
+        return grid_index(w)
     else 
         error("Frequency index not in grid")
     end 
@@ -104,7 +102,7 @@ function Base.:iterate(
     grid :: AbstractMatsubaraGrid
     )    :: Tuple{MatsubaraFrequency, Int64}
 
-    return grid[1], 1 
+    return grid[first_index(grid)], 1 
 end
 
 function Base.:iterate(
@@ -113,7 +111,7 @@ function Base.:iterate(
     )     :: Union{Nothing, Tuple{MatsubaraFrequency, Int64}}
 
     if state < length(grid)
-        return grid[state + 1], state + 1 
+        return grid[state + first_index(grid)], state + 1 
     else 
         return nothing 
     end

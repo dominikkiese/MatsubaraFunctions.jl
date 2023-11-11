@@ -15,7 +15,7 @@ end
 function index_test(
     f :: MatsubaraFunction{GD, SD, DD, Q}
     ) :: Nothing where {GD, SD, DD, Q <: Number}
-    
+
     # test for MatsubaraFrequency
     g_idxs = ntuple(i -> rand(eachindex(grids(f, i))), GD)
     x_idxs = ntuple(i -> rand(1 : shape(f, i)), SD)

@@ -7,11 +7,11 @@ MatsubaraGrid type with fields:
 """
 struct MatsubaraGrid{PT <: AbstractParticle} <: AbstractMatsubaraGrid
     T    :: Float64 
-    data :: Vector{MatsubaraFrequency{PT}}     
+    data :: OffsetVector{MatsubaraFrequency{PT}, Vector{MatsubaraFrequency{PT}}}
 
     function MatsubaraGrid(
         T    :: Float64,
-        data :: Vector{MatsubaraFrequency{PT}},
+        data :: OffsetVector{MatsubaraFrequency{PT}, Vector{MatsubaraFrequency{PT}}},
         )    :: MatsubaraGrid{PT} where {PT <: AbstractParticle}
 
         for w in data 
@@ -27,7 +27,7 @@ struct MatsubaraGrid{PT <: AbstractParticle} <: AbstractMatsubaraGrid
           :: Type{Fermion}
         ) :: MatsubaraGrid{Fermion}
 
-        return MatsubaraGrid(T, [MatsubaraFrequency(T, n, Fermion) for n in -N : N - 1])
+        return MatsubaraGrid(T, OffsetVector([MatsubaraFrequency(T, n, Fermion) for n in -N : N - 1], -N-1))
     end
 
     function MatsubaraGrid(
@@ -36,7 +36,7 @@ struct MatsubaraGrid{PT <: AbstractParticle} <: AbstractMatsubaraGrid
           :: Type{Boson}
         ) :: MatsubaraGrid{Boson}
 
-        return MatsubaraGrid(T, [MatsubaraFrequency(T, n, Boson) for n in -N + 1 : N - 1])
+        return MatsubaraGrid(T, OffsetVector([MatsubaraFrequency(T, n, Boson) for n in -N + 1 : N - 1], -N))
     end
 
     function MatsubaraGrid(
@@ -79,7 +79,7 @@ function first_index(
     grid :: AbstractMatsubaraGrid
     )    :: Int64
 
-    return index(grid.data[1])
+    return firstindex(grid.data)
 end
 
 """
@@ -93,7 +93,7 @@ function last_index(
     grid :: AbstractMatsubaraGrid
     )    :: Int64
 
-    return index(grid.data[end])
+    return lastindex(grid.data)
 end
 
 """
@@ -175,7 +175,7 @@ function first_value(
     grid :: AbstractMatsubaraGrid
     )    :: Float64
 
-    return value(grid.data[1])
+    return value(grid.data[first_index(grid)])
 end
 
 """
@@ -245,7 +245,7 @@ Returns list of values for Matsubara frequencies in grid
 """
 function Base.:values(
     grid :: AbstractMatsubaraGrid
-    )    :: Vector{Float64}
+    )
 
     return value.(grid.data)
 end 
