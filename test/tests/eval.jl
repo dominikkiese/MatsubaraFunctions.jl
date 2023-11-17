@@ -3,7 +3,7 @@ function eval_test(
     ) :: Nothing where {GD, SD, DD, Q <: Number}
 
     g_idxs = ntuple(i -> rand(eachindex(grids(f, i))), GD)
-    x_idxs = ntuple(i -> rand(axes(f.data, GD+i)), SD)
+    x_idxs = ntuple(i -> rand(axes(f.data, GD + i)), SD)
     freqs  = ntuple(i -> grids(f, i)[g_idxs[i]], GD)
     val    = f[g_idxs..., x_idxs...]
 

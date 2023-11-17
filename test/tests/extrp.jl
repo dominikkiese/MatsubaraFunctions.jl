@@ -4,12 +4,12 @@
     f2 = MatsubaraFunction(g)
     f3 = MatsubaraFunction(g, g)
 
-    for v in eachindex(g)
-        f1[v] = 1.0 / (im * value(g[v]) - 0.5)
-        f2[v] = 1.0 / (im * value(g[v]) - 0.5) / (im * value(g[v]) - 0.5)
+    for v in g
+        f1[v] = 1.0 / (im * value(v) - 0.5)
+        f2[v] = 1.0 / (im * value(v) - 0.5) / (im * value(v) - 0.5)
 
-        for vp in eachindex(g)
-            f3[v, vp] = 1.0 / (im * value(g[v]) - 0.5) / (im * value(g[vp]) - 0.5)
+        for vp in g
+            f3[v, vp] = 1.0 / (im * value(v) - 0.5) / (im * value(vp) - 0.5)
         end
     end 
     

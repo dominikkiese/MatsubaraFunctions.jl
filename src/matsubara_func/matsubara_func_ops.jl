@@ -184,7 +184,6 @@ function set!(
     )   :: Nothing where {GD, SD, DD, Q <: Number, Qp <: Number}
 
     OffsetArrays.no_offset_view(f.data) .= arr
-
     return nothing
 end
 

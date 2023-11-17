@@ -16,8 +16,8 @@ function save_matsubara_function!(
     grp = create_group(h, l)
 
     # save metadata
-    attributes(grp)["type"]  = "MatsubaraFunction"
-    attributes(grp)["shape"] = Int64[f.shape...]
+    attributes(grp)["type"]   = "MatsubaraFunction"
+    attributes(grp)["shape"]  = Int64[f.shape...]
     attributes(grp)["offset"] = Int64[f.offset...]
 
     for i in eachindex(grids(f))
@@ -44,8 +44,8 @@ function load_matsubara_function(
     ) :: MatsubaraFunction
 
     # load the metadata 
-    type  = read_attribute(h[l], "type")
-    shape = read_attribute(h[l], "shape")
+    type   = read_attribute(h[l], "type")
+    shape  = read_attribute(h[l], "shape")
     offset = read_attribute(h[l], "offset")
 
     @DEBUG type == "MatsubaraFunction" "Type $(l) unknown"

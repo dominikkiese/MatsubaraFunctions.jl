@@ -1,14 +1,14 @@
 # unsafe method for to grid index
 function grid_index(
-    w    :: MatsubaraFrequency{PT}
-    )    :: Int64 where {PT <: AbstractParticle}
+    w :: MatsubaraFrequency{PT}
+    ) :: Int64 where {PT <: AbstractParticle}
 
     return index(w)
 end
 
 function grid_index(
-    w    :: MatsubaraIndex{PT}
-    )    :: Int64 where {PT <: AbstractParticle}
+    w :: MatsubaraIndex{PT}
+    ) :: Int64 where {PT <: AbstractParticle}
 
     return index(w)
 end
@@ -23,10 +23,7 @@ function grid_index_extrp(
     return max(first_index(grid), min(grid_index(w), last_index(grid)))
 end
 
-function Base.:eachindex(
-    grid :: AbstractMatsubaraGrid
-    )
-
+function Base.:eachindex(grid :: AbstractMatsubaraGrid)
     return eachindex(grid.data)
 end
 

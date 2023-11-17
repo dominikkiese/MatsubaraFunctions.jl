@@ -2,8 +2,8 @@
     struct MatsubaraGrid{PT <: AbstractParticle} <: AbstractMatsubaraGrid
 
 MatsubaraGrid type with fields:
-* `T    :: Float64`                        : temperature
-* `data :: Vector{MatsubaraFrequency{PT}}` : list of MatsubaraFrequency objects
+* `T    :: Float64` : temperature
+* `data :: OffsetVector{MatsubaraFrequency{PT}, Vector{MatsubaraFrequency{PT}}}` : list of MatsubaraFrequency objects
 """
 struct MatsubaraGrid{PT <: AbstractParticle} <: AbstractMatsubaraGrid
     T    :: Float64 
@@ -27,7 +27,7 @@ struct MatsubaraGrid{PT <: AbstractParticle} <: AbstractMatsubaraGrid
           :: Type{Fermion}
         ) :: MatsubaraGrid{Fermion}
 
-        return MatsubaraGrid(T, OffsetVector([MatsubaraFrequency(T, n, Fermion) for n in -N : N - 1], -N-1))
+        return MatsubaraGrid(T, OffsetVector([MatsubaraFrequency(T, n, Fermion) for n in -N : N - 1], -N - 1))
     end
 
     function MatsubaraGrid(
@@ -223,30 +223,20 @@ function is_inbounds(
 end
 
 """
-    function indices(
-        grid :: AbstractMatsubaraGrid
-        )    :: Vector{Int64}
+    function indices(grid :: AbstractMatsubaraGrid)   
 
 Returns list of indices for Matsubara frequencies in grid
 """
-function indices(
-    grid :: AbstractMatsubaraGrid
-    )    :: Vector{Int64}
-
+function indices(grid :: AbstractMatsubaraGrid)    
     return index.(grid.data)
 end 
 
 """
-    function values(
-        grid :: AbstractMatsubaraGrid
-        )    :: Vector{Float64}
+    Base.:values(grid :: AbstractMatsubaraGrid)
 
 Returns list of values for Matsubara frequencies in grid
 """
-function Base.:values(
-    grid :: AbstractMatsubaraGrid
-    )
-
+function Base.:values(grid :: AbstractMatsubaraGrid)
     return value.(grid.data)
 end 
 

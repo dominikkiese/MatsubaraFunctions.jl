@@ -83,7 +83,7 @@ function reduce(
     x           :: NTuple{SD, Int64},
     op          :: MatsubaraOperation,
     f           :: MatsubaraFunction{GD, SD, DD, Q},
-    checked     :: OffsetArray{Bool,DD,Array{Bool, DD}},
+    checked     :: OffsetArray{Bool, DD, Array{Bool, DD}},
     symmetries  :: Vector{MatsubaraSymmetry{GD, SD}},
     class       :: Vector{Tuple{Int64, MatsubaraOperation}},
     path_length :: Int64

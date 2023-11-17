@@ -16,7 +16,7 @@ function CartesianIndex_extrp(
     ) :: CartesianIndex{DD} where {GD, SD, DD, Q <: Number}
 
     idxs = ntuple(i -> grid_index_extrp(w[i], grids(f, i)), GD)
-    @DEBUG all(ntuple(i -> firstindex(f.data, GD+i) <= x[i] <= lastindex(f.data, GD+i), SD)) "Tensor indices invalid, shape is $(shape(f))"
+    @DEBUG all(ntuple(i -> firstindex(f.data, GD + i) <= x[i] <= lastindex(f.data, GD + i), SD)) "Tensor indices invalid, shape is $(shape(f))"
 
     return CartesianIndex(idxs..., x...)
 end
@@ -120,8 +120,8 @@ end
 #----------------------------------------------------------------------------------------------#
 
 function grid_index(
-    w    :: Union{UnitRange, Colon, Base.IdentityUnitRange}
-    )    :: Union{UnitRange, Colon, Base.IdentityUnitRange}
+    w :: Union{UnitRange, Colon, Base.IdentityUnitRange}
+    ) :: Union{UnitRange, Colon, Base.IdentityUnitRange}
 
     return w
 end

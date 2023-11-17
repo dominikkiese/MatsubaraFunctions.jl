@@ -2,20 +2,21 @@
     struct MatsubaraFunction{GD, SD, DD, Q <: Number}
 
 MatsubaraFunction type with fields:
-* `grids :: NTuple{GD, AbstractMatsubaraGrid}` : collection of MatsubaraGrid
-* `shape :: NTuple{SD, Int64}`                 : shape of the tensor structure on every grid point
-* `data  :: OffsetArray{Q, DD}`                      : multidimensional data array
+* `grids  :: NTuple{GD, AbstractMatsubaraGrid}` : collection of Matsubara grids
+* `shape  :: NTuple{SD, Int64}`                 : shape of tensor structure on every grid point
+* `offset :: NTuple{DD, Int64}`                 : offsets for data access
+* `data   :: OffsetArray{Q, DD, Array{Q, DD}}`  : multidimensional data array
 """
 struct MatsubaraFunction{GD, SD, DD, Q <: Number}
-    grids :: NTuple{GD, AbstractMatsubaraGrid}
-    shape :: NTuple{SD, Int64}          
-    offset:: NTuple{DD, Int64}          
-    data  :: OffsetArray{Q, DD, Array{Q,DD}}
+    grids  :: NTuple{GD, AbstractMatsubaraGrid}
+    shape  :: NTuple{SD, Int64}          
+    offset :: NTuple{DD, Int64}          
+    data   :: OffsetArray{Q, DD, Array{Q, DD}}
 
     function MatsubaraFunction(
         grids :: NTuple{GD, AbstractMatsubaraGrid}, 
         shape :: NTuple{SD, Int64},
-        data  :: OffsetArray{Q, DD, Array{Q,DD}}
+        data  :: OffsetArray{Q, DD, Array{Q, DD}}
         )     :: MatsubaraFunction{GD, SD, DD, Q} where {GD, SD, DD, Q <: Number}
 
         if Q <: Integer || Q <: Complex{Int} error("Integer data type not supported") end
@@ -27,35 +28,36 @@ struct MatsubaraFunction{GD, SD, DD, Q <: Number}
         # check grids
         T = temperature(grids[1])
 
-        for g in grids
-            @DEBUG temperature(g) ≈ T "Grids must have same temperature"
-            @DEBUG issorted(values(g)) "Grids must be sorted"
+        for i in eachindex(grids)
+            @DEBUG temperature(grids[i]) ≈ T "Grids must have same temperature"
+            @DEBUG issorted(values(grids[i])) "Grids must be sorted"
+            @DEBUG first_index(grids[i]) == firstindex(data, i) "First index must agree between grids and data"
         end
-        offset = ntuple(i -> firstindex(data, i)-1, DD)
-        return new{GD, SD, DD, Q}(grids, shape, offset, data)
+        
+        return new{GD, SD, DD, Q}(grids, shape, ntuple(i -> firstindex(data, i) - 1, DD), data)
     end
 
     function MatsubaraFunction(
-        grids  :: NTuple{GD, AbstractMatsubaraGrid},
-        shape  :: Vararg{Int64, SD}
+        grids        :: NTuple{GD, AbstractMatsubaraGrid},
+        shape        :: Vararg{Int64, SD}
         ;
-        data_t :: DataType = ComplexF64,
-        offset :: NTuple{SD,Int64} = ntuple(i->0, SD)
-        )      :: MatsubaraFunction{GD, SD, GD + SD, data_t} where {GD, SD}
+        data_t       :: DataType         = ComplexF64,
+        shape_offset :: NTuple{SD,Int64} = ntuple(i -> 0, SD)
+        )            :: MatsubaraFunction{GD, SD, GD + SD, data_t} where {GD, SD}
         
-        data = OffsetArray(Array{data_t, GD + SD}(undef, length.(grids)..., shape...), .-div.(length.(grids).+2,2)..., offset...)
+        data = OffsetArray(Array{data_t, GD + SD}(undef, length.(grids)..., shape...), .-div.(length.(grids) .+ 2, 2)..., shape_offset...)
         return MatsubaraFunction(copy.(grids), ntuple(i -> shape[i], SD), data)
     end
 
     function MatsubaraFunction(
-        grid   :: AbstractMatsubaraGrid,
-        shape  :: Vararg{Int64, SD}
+        grid         :: AbstractMatsubaraGrid,
+        shape        :: Vararg{Int64, SD}
         ;
-        data_t :: DataType = ComplexF64,
-        offset :: NTuple{SD,Int64} = ntuple(i->0, SD)
-        )      :: MatsubaraFunction{1, SD, 1 + SD, data_t} where {SD}
+        data_t       :: DataType         = ComplexF64,
+        shape_offset :: NTuple{SD,Int64} = ntuple(i -> 0, SD)
+        )            :: MatsubaraFunction{1, SD, 1 + SD, data_t} where {SD}
 
-        return MatsubaraFunction((grid,), shape...; data_t, offset)
+        return MatsubaraFunction((grid,), shape...; data_t, shape_offset)
     end
 
     function MatsubaraFunction(
@@ -176,38 +178,27 @@ function shape(
 end 
 
 """
-    function data_shape(
-        f :: MatsubaraFunction{GD, SD, DD, Q}
-        ) :: NTuple{DD, Int64} where {GD, SD, DD, Q <: Number}
+    function data_shape(f :: MatsubaraFunction{GD, SD, DD, Q}) where {GD, SD, DD, Q <: Number}
 
 Returns shape of `f.data`
 """
-function data_shape(
-    f :: MatsubaraFunction{GD, SD, DD, Q}
-    ) where {GD, SD, DD, Q <: Number}
-
+function data_shape(f :: MatsubaraFunction{GD, SD, DD, Q}) where {GD, SD, DD, Q <: Number}
     return axes(f.data)
 end
 
 """
-    function data_shape(
-        f   :: MatsubaraFunction,
-        idx :: Int64
-        )   :: Int64
+    function data_shape(f :: MatsubaraFunction, idx :: Int64)
 
 Returns length of dimension `idx` of `f.data`
 """
-function data_shape(
-    f   :: MatsubaraFunction,
-    idx :: Int64
-    )
-
+function data_shape(f :: MatsubaraFunction, idx :: Int64)
     return axes(f.data, idx)
 end
 
 function Base.size(
-    f   :: MatsubaraFunction{GD, SD, DD, Q}
-    )   :: NTuple{DD, Int64} where {GD, SD, DD, Q <: Number}
+    f :: MatsubaraFunction{GD, SD, DD, Q}
+    ) :: NTuple{DD, Int64} where {GD, SD, DD, Q <: Number}
+    
     return size(f.data)
 end
 

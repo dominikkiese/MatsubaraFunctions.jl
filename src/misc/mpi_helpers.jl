@@ -74,7 +74,6 @@ function mpi_allreduce!(
     ) :: Nothing where {GD, SD, DD, Q <: Number}
 
     MPI.Allreduce!(OffsetArrays.no_offset_view(f.data), +, mpi_comm())
-
     return nothing
 end
 
