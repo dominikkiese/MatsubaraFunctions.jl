@@ -18,8 +18,8 @@ function upper_tail_moments(
 
     # compute nodes
     dist = ceil(Int64, 1.0 / min(temperature(grids(f, 1)), 1.0))
-    idx  = last_index(grids(f, 1)) - dist
-    @DEBUG idx > ceil(Int64, 0.25 * grids_shape(f, 1)) "Grid is too small for extrapolation"
+    idx  = lastindex(grids(f, 1)) - dist
+    @DEBUG idx > ceil(Int64, 0.75 * lastindex(grids(f, 1))) "Grid is too small for extrapolation"
 
     # read data
     y1, y2     = f.data[end, x...] - α0, f.data[idx, x...] - α0
@@ -50,9 +50,9 @@ function lower_tail_moments(
 
     # compute nodes
     dist = ceil(Int64, 1.0 / min(temperature(grids(f, 1)), 1.0))
-    idx1 = first_index(grids(f, 1))
+    idx1 = firstindex(grids(f, 1))
     idx2 = idx1 + dist
-    @DEBUG idx2 < -floor(Int64, 0.25 * grids_shape(f, 1)) "Grid is too small for extrapolation"
+    @DEBUG idx2 < floor(Int64, 0.75 * idx1) "Grid is too small for extrapolation"
 
     # read data
     y1, y2     = f.data[idx1, x...] - α0, f.data[idx2, x...] - α0
@@ -185,7 +185,7 @@ function (f :: MatsubaraFunction{GD, SD, DD, Q})(
     x :: Vararg{Int64, SD} 
     ) :: Q where{GD, SD, DD, Q <: Number}
 
-    p   = ntuple(i -> Param(max(first_value(grids(f, i)), min(w[i], last_value(grids(f, i)))), grids(f, i)), GD)
+    p   = ntuple(i -> Param(max(firstvalue(grids(f, i)), min(w[i], lastvalue(grids(f, i)))), grids(f, i)), GD)
     val = 0.0
 
     for cidx in CartesianIndices(ntuple(i -> 2, GD))

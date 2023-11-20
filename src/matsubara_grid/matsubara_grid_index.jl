@@ -20,25 +20,11 @@ function grid_index_extrp(
     )    :: Int64 
     
     @DEBUG temperature(w) ≈ temperature(grid) "Temperature must be equal between frequency and grid"
-    return max(first_index(grid), min(grid_index(w), last_index(grid)))
+    return max(firstindex(grid), min(grid_index(w), lastindex(grid)))
 end
 
 function Base.:eachindex(grid :: AbstractMatsubaraGrid)
     return eachindex(grid.data)
-end
-
-function Base.:firstindex(
-    grid :: AbstractMatsubaraGrid
-    )    :: Int64
-
-    return firstindex(grid.data)
-end
-
-function Base.:lastindex(
-    grid :: AbstractMatsubaraGrid
-    )    :: Int64
-
-    return lastindex(grid.data)
 end
 
 function Base.:getindex(
@@ -99,7 +85,7 @@ function Base.:iterate(
     grid :: AbstractMatsubaraGrid
     )    :: Tuple{MatsubaraFrequency, Int64}
 
-    return grid[first_index(grid)], 1 
+    return grid[firstindex(grid)], 1 
 end
 
 function Base.:iterate(
@@ -108,7 +94,7 @@ function Base.:iterate(
     )     :: Union{Nothing, Tuple{MatsubaraFrequency, Int64}}
 
     if state < length(grid)
-        return grid[state + first_index(grid)], state + 1 
+        return grid[state + firstindex(grid)], state + 1 
     else 
         return nothing 
     end

@@ -31,7 +31,7 @@ struct MatsubaraFunction{GD, SD, DD, Q <: Number}
         for i in eachindex(grids)
             @DEBUG temperature(grids[i]) ≈ T "Grids must have same temperature"
             @DEBUG issorted(values(grids[i])) "Grids must be sorted"
-            @DEBUG first_index(grids[i]) == firstindex(data, i) "First index must agree between grids and data"
+            @DEBUG firstindex(grids[i]) == firstindex(data, i) "First index must agree between grids and data"
         end
         
         return new{GD, SD, DD, Q}(grids, shape, ntuple(i -> firstindex(data, i) - 1, DD), data)
@@ -118,33 +118,21 @@ function grids(
 end
 
 """
-    function grids_shape(
-        f :: MatsubaraFunction{GD, SD, DD, Q}
-        ) :: NTuple{GD, Int64} where {GD, SD, DD, Q <: Number}
+    function grid_axes(f :: MatsubaraFunction)
 
-Returns length of grids
+Returns a tuple of valid index ranges for Matsubara grids of `f`
 """
-function grids_shape(
-    f :: MatsubaraFunction{GD, SD, DD, Q}
-    ) :: NTuple{GD, Int64} where {GD, SD, DD, Q <: Number}
-
-    return length.(grids(f))
+function grid_axes(f :: MatsubaraFunction)
+    return axes.(grids(f))
 end
 
 """
-    function grids_shape(
-        f   :: MatsubaraFunction,
-        idx :: Int64
-        )   :: Int64
+    function grid_axes(f :: MatsubaraFunction, idx :: Int64)
 
-Returns length of `f.grids[idx]`
+Returns the range of valid indices for Matsubara grid `idx` of `f`
 """
-function grids_shape(
-    f   :: MatsubaraFunction,
-    idx :: Int64
-    )   :: Int64
-
-    return length(grids(f, idx))
+function grid_axes(f :: MatsubaraFunction, idx :: Int64)
+    return axes(grids(f, idx))
 end
 
 """
@@ -178,20 +166,20 @@ function shape(
 end 
 
 """
-    function data_shape(f :: MatsubaraFunction{GD, SD, DD, Q}) where {GD, SD, DD, Q <: Number}
+    function axes(f :: MatsubaraFunction)
 
-Returns a tuple of valid indices for `f.data`
+Returns a tuple of valid index ranges for `f.data`
 """
-function data_shape(f :: MatsubaraFunction{GD, SD, DD, Q}) where {GD, SD, DD, Q <: Number}
+function Base.:axes(f :: MatsubaraFunction)
     return axes(f.data)
 end
 
 """
-    function data_shape(f :: MatsubaraFunction, idx :: Int64)
+    function axes(f :: MatsubaraFunction, idx :: Int64)
 
 Returns the range of valid indices along dimension `idx` of `f.data`
 """
-function data_shape(f :: MatsubaraFunction, idx :: Int64)
+function Base.:axes(f :: MatsubaraFunction, idx :: Int64)
     return axes(f.data, idx)
 end
 
@@ -300,9 +288,8 @@ include("matsubara_func_io.jl")
 export 
     MatsubaraFunction,
     grids, 
-    grids_shape,
+    grid_axes,
     shape,
-    data_shape,
     temperature,
     absmax,
     info

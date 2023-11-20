@@ -3,12 +3,12 @@ function check_shape_grid!(
     f2 :: MatsubaraFunction{GD, SD, DD, Q}
     )  :: Nothing where {GD, SD, DD, Q <: Number}
 
-    @DEBUG data_shape(f1) == data_shape(f2) "Data shapes must be equal"
+    @DEBUG axes(f1) == axes(f2) "Data shapes must be equal"
 
     for i in 1 : GD 
         @DEBUG typeof(grids(f1, i)) == typeof(grids(f2, i)) "Grids must have same particle type" 
         @DEBUG temperature(grids(f1, i)) == temperature(grids(f2, i)) "Grids must have same temperature" 
-        @DEBUG index_range(grids(f1, i)) == index_range(grids(f2, i)) "Grids must have same index range" 
+        @DEBUG axes(grids(f1, i)) == axes(grids(f2, i)) "Grids must have same index range" 
     end
 
     return nothing 

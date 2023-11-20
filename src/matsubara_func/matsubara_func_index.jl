@@ -26,7 +26,7 @@ function Base.:CartesianIndex(
     idx :: Int64
     )   :: CartesianIndex{DD} where {GD, SD, DD, Q <: Number}
 
-    return CartesianIndices(data_shape(f))[idx]
+    return CartesianIndices(axes(f))[idx]
 end
 
 #----------------------------------------------------------------------------------------------#
@@ -47,7 +47,7 @@ function LinearIndex(
     ) :: Int64 where {GD, SD, DD, Q <: Number}
 
     idxs = ntuple(i -> grids(f, i)(w[i]), GD)
-    return LinearIndices(data_shape(f))[idxs..., x...]
+    return LinearIndices(axes(f))[idxs..., x...]
 end
 
 """
@@ -63,7 +63,7 @@ function LinearIndex(
     cidx :: CartesianIndex{DD}
     )    :: Int64 where {GD, SD, DD, Q <: Number}
 
-    return LinearIndices(data_shape(f))[cidx]
+    return LinearIndices(axes(f))[cidx]
 end
 
 """
@@ -79,7 +79,7 @@ function LinearIndex(
     x :: Vararg{Int64, DD}
     ) :: Int64 where {GD, SD, DD, Q <: Number}
 
-    return LinearIndices(data_shape(f))[x...]
+    return LinearIndices(axes(f))[x...]
 end
 
 #----------------------------------------------------------------------------------------------#

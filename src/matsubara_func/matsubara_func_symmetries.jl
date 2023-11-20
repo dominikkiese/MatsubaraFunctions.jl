@@ -148,7 +148,7 @@ struct MatsubaraSymmetryGroup{GD, SD, DD, Q <: Number}
         max_length :: Int64 = 0
         )          :: MatsubaraSymmetryGroup{GD, SD, DD, Q} where {GD, SD, DD, Q <: Number}
 
-        checked  = OffsetArray(Array{Bool, DD}(undef, size(f)), data_shape(f)... )
+        checked  = OffsetArray(Array{Bool, DD}(undef, size(f)), axes(f)...)
         classes  = Vector{Tuple{Int64, MatsubaraOperation}}[]
         checked .= false
 
