@@ -180,7 +180,7 @@ end
 """
     function data_shape(f :: MatsubaraFunction{GD, SD, DD, Q}) where {GD, SD, DD, Q <: Number}
 
-Returns shape of `f.data`
+Returns a tuple of valid indices for `f.data`
 """
 function data_shape(f :: MatsubaraFunction{GD, SD, DD, Q}) where {GD, SD, DD, Q <: Number}
     return axes(f.data)
@@ -189,7 +189,7 @@ end
 """
     function data_shape(f :: MatsubaraFunction, idx :: Int64)
 
-Returns length of dimension `idx` of `f.data`
+Returns the range of valid indices along dimension `idx` of `f.data`
 """
 function data_shape(f :: MatsubaraFunction, idx :: Int64)
     return axes(f.data, idx)
