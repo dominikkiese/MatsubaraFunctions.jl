@@ -73,8 +73,7 @@ function mpi_allreduce!(
     f :: MatsubaraFunction{GD, SD, DD, Q}
     ) :: Nothing where {GD, SD, DD, Q <: Number}
 
-    MPI.Allreduce!(f.data, +, mpi_comm())
-
+    MPI.Allreduce!(OffsetArrays.no_offset_view(f.data), +, mpi_comm())
     return nothing
 end
 

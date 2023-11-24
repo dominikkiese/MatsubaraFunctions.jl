@@ -16,7 +16,7 @@ function CartesianIndex_extrp(
     ) :: CartesianIndex{DD} where {GD, SD, DD, Q <: Number}
 
     idxs = ntuple(i -> grid_index_extrp(w[i], grids(f, i)), GD)
-    @DEBUG all(ntuple(i -> 1 <= x[i] <= shape(f, i), SD)) "Tensor indices invalid, shape is $(shape(f))"
+    @DEBUG all(ntuple(i -> firstindex(f.data, GD + i) <= x[i] <= lastindex(f.data, GD + i), SD)) "Tensor indices invalid, shape is $(shape(f))"
 
     return CartesianIndex(idxs..., x...)
 end
@@ -26,7 +26,7 @@ function Base.:CartesianIndex(
     idx :: Int64
     )   :: CartesianIndex{DD} where {GD, SD, DD, Q <: Number}
 
-    return CartesianIndices(data_shape(f))[idx]
+    return CartesianIndices(axes(f))[idx]
 end
 
 #----------------------------------------------------------------------------------------------#
@@ -47,7 +47,7 @@ function LinearIndex(
     ) :: Int64 where {GD, SD, DD, Q <: Number}
 
     idxs = ntuple(i -> grids(f, i)(w[i]), GD)
-    return LinearIndices(data_shape(f))[idxs..., x...]
+    return LinearIndices(axes(f))[idxs..., x...]
 end
 
 """
@@ -63,7 +63,7 @@ function LinearIndex(
     cidx :: CartesianIndex{DD}
     )    :: Int64 where {GD, SD, DD, Q <: Number}
 
-    return LinearIndices(data_shape(f))[cidx]
+    return LinearIndices(axes(f))[cidx]
 end
 
 """
@@ -79,7 +79,7 @@ function LinearIndex(
     x :: Vararg{Int64, DD}
     ) :: Int64 where {GD, SD, DD, Q <: Number}
 
-    return LinearIndices(data_shape(f))[x...]
+    return LinearIndices(axes(f))[x...]
 end
 
 #----------------------------------------------------------------------------------------------#
@@ -120,9 +120,8 @@ end
 #----------------------------------------------------------------------------------------------#
 
 function grid_index(
-    w    :: Union{UnitRange, Colon},
-    grid :: AbstractMatsubaraGrid
-    )    :: Union{UnitRange, Colon}
+    w :: Union{UnitRange, Colon, Base.IdentityUnitRange}
+    ) :: Union{UnitRange, Colon, Base.IdentityUnitRange}
 
     return w
 end
@@ -133,7 +132,7 @@ function Base.:getindex(
     x :: Vararg{Union{Int64, UnitRange, Colon}, SD} 
     ) :: Union{Q, AbstractArray{Q}} where {GD, SD, DD, Q <: Number}
 
-    return f.data[ntuple(i -> grid_index(w[i], grids(f, i)), GD)..., x...]
+    return f.data[ntuple(i -> grid_index(w[i]), GD)..., x...]
 end
 
 function Base.:getindex(
@@ -142,7 +141,7 @@ function Base.:getindex(
     x :: Vararg{Union{Int64, UnitRange, Colon}, SD} 
     ) :: Union{Q, AbstractArray{Q}} where {SD, DD, Q <: Number}
 
-    return f.data[grid_index(w, grids(f, 1)), x...]
+    return f.data[grid_index(w), x...]
 end
 
 function Base.:getindex(
@@ -150,7 +149,7 @@ function Base.:getindex(
     w :: Vararg{Union{AbstractMatsubaraFrequency, UnitRange, Colon}, GD} 
     ) :: Union{Q, AbstractArray{Q}} where {GD, DD, Q <: Number}
 
-    return f.data[ntuple(i -> grid_index(w[i], grids(f, i)), GD)...]
+    return f.data[ntuple(i -> grid_index(w[i]), GD)...]
 end
 
 function Base.:getindex(
@@ -191,7 +190,7 @@ function Base.:getindex(
     w :: Union{AbstractMatsubaraFrequency, UnitRange, Colon}
     ) :: Union{Q, AbstractArray{Q}} where {DD, Q <: Number}
 
-    return f.data[grid_index(w, grids(f, 1))]
+    return f.data[grid_index(w)]
 end
 
 function Base.:getindex(
@@ -199,40 +198,40 @@ function Base.:getindex(
     w :: Union{UnitRange, Colon}
     ) :: Union{Q, AbstractArray{Q}} where {Q <: Number}
 
-    return f.data[grid_index(w, grids(f, 1))]
+    return f.data[grid_index(w)]
 end
 
 #----------------------------------------------------------------------------------------------#
 
 function Base.:view(
     f :: MatsubaraFunction{GD, SD, DD, Q},
-    w :: NTuple{GD, Union{AbstractMatsubaraFrequency, UnitRange, Colon}},
+    w :: NTuple{GD, Union{AbstractMatsubaraFrequency, UnitRange, Colon, Base.IdentityUnitRange}},
     x :: Vararg{Union{Int64, UnitRange, Colon}, SD} 
     ) :: SubArray{Q} where {GD, SD, DD, Q <: Number}
 
-    return view(f.data, ntuple(i -> grid_index(w[i], grids(f, i)), GD)..., x...)
+    return view(f.data, ntuple(i -> grid_index(w[i]), GD)..., x...)
 end
 
 function Base.:view(
     f :: MatsubaraFunction{1, SD, DD, Q},
-    w :: Union{AbstractMatsubaraFrequency, UnitRange, Colon},
+    w :: Union{AbstractMatsubaraFrequency, UnitRange, Colon, Base.IdentityUnitRange},
     x :: Vararg{Union{Int64, UnitRange, Colon}, SD} 
     ) :: SubArray{Q} where {SD, DD, Q <: Number}
 
-    return view(f.data, grid_index(w, grids(f, 1)), x...)
+    return view(f.data, grid_index(w), x...)
 end
 
 function Base.:view(
     f :: MatsubaraFunction{GD, 0, DD, Q},
-    w :: Vararg{Union{AbstractMatsubaraFrequency, UnitRange, Colon}, GD} 
+    w :: Vararg{Union{AbstractMatsubaraFrequency, UnitRange, Colon, Base.IdentityUnitRange}, GD} 
     ) :: SubArray{Q} where {GD, DD, Q <: Number}
 
-    return view(f.data, ntuple(i -> grid_index(w[i], grids(f, i)), GD)...)
+    return view(f.data, ntuple(i -> grid_index(w[i]), GD)...)
 end
 
 function Base.:view(
     f :: MatsubaraFunction{GD, SD, DD, Q},
-    x :: Vararg{Union{Int64, UnitRange, Colon}, DD}
+    x :: Vararg{Union{Int64, UnitRange, Colon, Base.IdentityUnitRange}, DD}
     ) :: SubArray{Q} where {GD, SD, DD, Q <: Number}
 
     return view(f.data, x...)
@@ -241,18 +240,18 @@ end
 # specialization
 function Base.:view(
     f :: MatsubaraFunction{1, 0, DD, Q},
-    w :: Union{AbstractMatsubaraFrequency, UnitRange, Colon},
+    w :: Union{AbstractMatsubaraFrequency, UnitRange, Colon, Base.IdentityUnitRange},
     ) :: SubArray{Q} where {DD, Q <: Number}
 
-    return view(f.data, grid_index(w, grids(f, 1)))
+    return view(f.data, grid_index(w))
 end
 
 function Base.:view(
     f :: MatsubaraFunction{1, 0, 1, Q},
-    w :: Union{UnitRange, Colon},
+    w :: Union{UnitRange, Colon, Base.IdentityUnitRange},
     ) :: SubArray{Q} where {Q <: Number}
 
-    return view(f.data, grid_index(w, grids(f, 1)))
+    return view(f.data, grid_index(w))
 end
 
 #----------------------------------------------------------------------------------------------#
@@ -264,7 +263,7 @@ function Base.:setindex!(
     x   :: Vararg{Int64, SD} 
     )   :: Nothing where {GD, SD, DD, Q <: Number, Qp <: Number}
 
-    f.data[ntuple(i -> grid_index(w[i], grids(f, i)), GD)..., x...] = val
+    f.data[ntuple(i -> grid_index(w[i]), GD)..., x...] = val
     return nothing
 end
 
@@ -275,7 +274,7 @@ function Base.:setindex!(
     x   :: Vararg{Int64, SD} 
     )   :: Nothing where {SD, DD, Q <: Number, Qp <: Number}
 
-    f.data[grid_index(w, grids(f, 1)), x...] = val
+    f.data[grid_index(w), x...] = val
     return nothing
 end
 
@@ -285,7 +284,7 @@ function Base.:setindex!(
     w   :: Vararg{Union{AbstractMatsubaraFrequency}, GD}
     )   :: Nothing where {GD, DD, Q <: Number, Qp <: Number}
 
-    f.data[ntuple(i -> grid_index(w[i], grids(f, i)), GD)...] = val
+    f.data[ntuple(i -> grid_index(w[i]), GD)...] = val
     return nothing
 end
 
@@ -326,7 +325,7 @@ function Base.:setindex!(
     w   :: Union{AbstractMatsubaraFrequency}
     )   :: Nothing where {DD, Q <: Number, Qp <: Number}
 
-    f.data[grid_index(w, grids(f, 1))] = val
+    f.data[grid_index(w)] = val
     return nothing
 end
 

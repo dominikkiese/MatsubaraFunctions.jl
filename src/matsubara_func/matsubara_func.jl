@@ -2,19 +2,21 @@
     struct MatsubaraFunction{GD, SD, DD, Q <: Number}
 
 MatsubaraFunction type with fields:
-* `grids :: NTuple{GD, AbstractMatsubaraGrid}` : collection of MatsubaraGrid
-* `shape :: NTuple{SD, Int64}`                 : shape of the tensor structure on every grid point
-* `data  :: Array{Q, DD}`                      : multidimensional data array
+* `grids  :: NTuple{GD, AbstractMatsubaraGrid}` : collection of Matsubara grids
+* `shape  :: NTuple{SD, Int64}`                 : shape of tensor structure on every grid point
+* `offset :: NTuple{DD, Int64}`                 : offsets for data access
+* `data   :: OffsetArray{Q, DD, Array{Q, DD}}`  : multidimensional data array
 """
 struct MatsubaraFunction{GD, SD, DD, Q <: Number}
-    grids :: NTuple{GD, AbstractMatsubaraGrid}
-    shape :: NTuple{SD, Int64}          
-    data  :: Array{Q, DD}
+    grids  :: NTuple{GD, AbstractMatsubaraGrid}
+    shape  :: NTuple{SD, Int64}          
+    offset :: NTuple{DD, Int64}          
+    data   :: OffsetArray{Q, DD, Array{Q, DD}}
 
     function MatsubaraFunction(
         grids :: NTuple{GD, AbstractMatsubaraGrid}, 
-        shape :: NTuple{SD, Int64}, 
-        data  :: Array{Q, DD}
+        shape :: NTuple{SD, Int64},
+        data  :: OffsetArray{Q, DD, Array{Q, DD}}
         )     :: MatsubaraFunction{GD, SD, DD, Q} where {GD, SD, DD, Q <: Number}
 
         if Q <: Integer || Q <: Complex{Int} error("Integer data type not supported") end
@@ -26,33 +28,36 @@ struct MatsubaraFunction{GD, SD, DD, Q <: Number}
         # check grids
         T = temperature(grids[1])
 
-        for g in grids
-            @DEBUG temperature(g) ≈ T "Grids must have same temperature"
-            @DEBUG issorted(values(g)) "Grids must be sorted"
+        for i in eachindex(grids)
+            @DEBUG temperature(grids[i]) ≈ T "Grids must have same temperature"
+            @DEBUG issorted(values(grids[i])) "Grids must be sorted"
+            @DEBUG firstindex(grids[i]) == firstindex(data, i) "First index must agree between grids and data"
         end
-
-        return new{GD, SD, DD, Q}(grids, shape, data)
+        
+        return new{GD, SD, DD, Q}(grids, shape, ntuple(i -> firstindex(data, i) - 1, DD), data)
     end
 
     function MatsubaraFunction(
-        grids  :: NTuple{GD, AbstractMatsubaraGrid},
-        shape  :: Vararg{Int64, SD}
+        grids        :: NTuple{GD, AbstractMatsubaraGrid},
+        shape        :: Vararg{Int64, SD}
         ;
-        data_t :: DataType = ComplexF64
-        )      :: MatsubaraFunction{GD, SD, GD + SD, data_t} where {GD, SD}
+        data_t       :: DataType         = ComplexF64,
+        shape_offset :: NTuple{SD,Int64} = ntuple(i -> 0, SD)
+        )            :: MatsubaraFunction{GD, SD, GD + SD, data_t} where {GD, SD}
         
-        data = Array{data_t, GD + SD}(undef, length.(grids)..., shape...)
+        data = OffsetArray(Array{data_t, GD + SD}(undef, length.(grids)..., shape...), .-div.(length.(grids) .+ 2, 2)..., shape_offset...)
         return MatsubaraFunction(copy.(grids), ntuple(i -> shape[i], SD), data)
     end
 
     function MatsubaraFunction(
-        grid   :: AbstractMatsubaraGrid,
-        shape  :: Vararg{Int64, SD}
+        grid         :: AbstractMatsubaraGrid,
+        shape        :: Vararg{Int64, SD}
         ;
-        data_t :: DataType = ComplexF64
-        )      :: MatsubaraFunction{1, SD, 1 + SD, data_t} where {SD}
+        data_t       :: DataType         = ComplexF64,
+        shape_offset :: NTuple{SD,Int64} = ntuple(i -> 0, SD)
+        )            :: MatsubaraFunction{1, SD, 1 + SD, data_t} where {SD}
 
-        return MatsubaraFunction((grid,), shape...; data_t)
+        return MatsubaraFunction((grid,), shape...; data_t, shape_offset)
     end
 
     function MatsubaraFunction(
@@ -113,33 +118,21 @@ function grids(
 end
 
 """
-    function grids_shape(
-        f :: MatsubaraFunction{GD, SD, DD, Q}
-        ) :: NTuple{GD, Int64} where {GD, SD, DD, Q <: Number}
+    function grid_axes(f :: MatsubaraFunction)
 
-Returns length of grids
+Returns a tuple of valid index ranges for Matsubara grids of `f`
 """
-function grids_shape(
-    f :: MatsubaraFunction{GD, SD, DD, Q}
-    ) :: NTuple{GD, Int64} where {GD, SD, DD, Q <: Number}
-
-    return length.(grids(f))
+function grid_axes(f :: MatsubaraFunction)
+    return axes.(grids(f))
 end
 
 """
-    function grids_shape(
-        f   :: MatsubaraFunction,
-        idx :: Int64
-        )   :: Int64
+    function grid_axes(f :: MatsubaraFunction, idx :: Int64)
 
-Returns length of `f.grids[idx]`
+Returns the range of valid indices for Matsubara grid `idx` of `f`
 """
-function grids_shape(
-    f   :: MatsubaraFunction,
-    idx :: Int64
-    )   :: Int64
-
-    return length(grids(f, idx))
+function grid_axes(f :: MatsubaraFunction, idx :: Int64)
+    return axes(grids(f, idx))
 end
 
 """
@@ -173,33 +166,28 @@ function shape(
 end 
 
 """
-    function data_shape(
-        f :: MatsubaraFunction{GD, SD, DD, Q}
-        ) :: NTuple{DD, Int64} where {GD, SD, DD, Q <: Number}
+    function axes(f :: MatsubaraFunction)
 
-Returns shape of `f.data`
+Returns a tuple of valid index ranges for `f.data`
 """
-function data_shape(
-    f :: MatsubaraFunction{GD, SD, DD, Q}
-    ) :: NTuple{DD, Int64} where {GD, SD, DD, Q <: Number}
-
-    return size(f.data)
+function Base.:axes(f :: MatsubaraFunction)
+    return axes(f.data)
 end
 
 """
-    function data_shape(
-        f   :: MatsubaraFunction,
-        idx :: Int64
-        )   :: Int64
+    function axes(f :: MatsubaraFunction, idx :: Int64)
 
-Returns length of dimension `idx` of `f.data`
+Returns the range of valid indices along dimension `idx` of `f.data`
 """
-function data_shape(
-    f   :: MatsubaraFunction,
-    idx :: Int64
-    )   :: Int64
+function Base.:axes(f :: MatsubaraFunction, idx :: Int64)
+    return axes(f.data, idx)
+end
 
-    return size(f.data, idx)
+function Base.size(
+    f :: MatsubaraFunction{GD, SD, DD, Q}
+    ) :: NTuple{DD, Int64} where {GD, SD, DD, Q <: Number}
+    
+    return size(f.data)
 end
 
 """
@@ -300,9 +288,8 @@ include("matsubara_func_io.jl")
 export 
     MatsubaraFunction,
     grids, 
-    grids_shape,
+    grid_axes,
     shape,
-    data_shape,
     temperature,
     absmax,
     info

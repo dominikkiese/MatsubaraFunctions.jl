@@ -5,6 +5,7 @@ module MatsubaraFunctions
     @recompile_invalidations begin
         using Printf
         using LinearAlgebra
+        using OffsetArrays
         using MPI
         using Polyester
         using HDF5
