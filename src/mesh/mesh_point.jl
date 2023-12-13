@@ -24,10 +24,10 @@ abstract type AbstractValue end
 MeshPoint type with fields:
 * `hash  :: UInt64` : mesh identifier
 * `index :: Int64`  : mesh index
-* `value :: T`      : mesh point coordinates
+* `value :: T`      : mesh coordinates
 """
 struct MeshPoint{T <: AbstractValue} <: AbstractMeshPoint
-    hash  :: UInt64
+    hash  :: UInt64 # no accessor, only for internal use
     index :: Int64 
     value :: T 
 end
@@ -65,10 +65,11 @@ end
 
 # mesh point operations are operations on their values
 # each value type must implement +, - and sign reversal
+
 function Base.:+(
     x1 :: MeshPoint{T},
     x2 :: MeshPoint{T}
-    )  :: T where {T <: AbstractValue}
+    )  :: T where {T <: AbstractValue} 
 
     return value(x1) + value(x2)
 end
@@ -76,14 +77,14 @@ end
 function Base.:-(
     x1 :: MeshPoint{T},
     x2 :: MeshPoint{T}
-    )  :: T where {T <: AbstractValue}
+    )  :: T where {T <: AbstractValue} 
 
     return value(x1) - value(x2)
 end
 
 function Base.:-(
     x :: MeshPoint{T},
-    ) :: T where {T <: AbstractValue}
+    ) :: T where {T <: AbstractValue} 
 
     return -value(x)
 end
@@ -94,7 +95,7 @@ end
 function Base.:(==)(
     x1 :: MeshPoint{T},
     x2 :: MeshPoint{T}
-    )  :: Bool where {T <: AbstractValue}
+    )  :: Bool where {T <: AbstractValue} 
 
     if (x1.hash != x2.hash) || (index(x1) != index(x2)) || (value(x1) != value(x2))
         return false

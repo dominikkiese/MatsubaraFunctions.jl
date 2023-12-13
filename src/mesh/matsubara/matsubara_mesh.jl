@@ -56,20 +56,6 @@ function MatsubaraMesh(
 end
 
 """
-    function temperature(
-        m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
-        ) :: Float64 where {PT <: AbstractParticle}
-
-Returns temperature for which the mesh is defined
-"""
-function temperature(
-    m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
-    ) :: Float64 where {PT <: AbstractParticle}
-
-    return domain(m)[:temperature]
-end
-
-"""
     function first_index(
         m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
         ) :: Int64 where {PT <: AbstractParticle}
@@ -169,7 +155,7 @@ function is_inbounds(
     m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
     ) :: Bool where {PT <: AbstractParticle}
 
-    @DEBUG temperature(w) ≈ temperature(m) "Temperature must be equal between Matsubara frequency and grid"
+    @DEBUG temperature(w) ≈ domain(m)[:temperature] "Temperature must be equal between Matsubara frequency and grid"
     return first_index(m) <= index(w) <= last_index(m)
 end
 
@@ -189,22 +175,14 @@ function is_inbounds(
     return first_value(m) <= w <= last_value(m)
 end
 
-# methods for mapping Matsubara frequency to mesh index 
+# mapping from Matsubara frequency to mesh index 
 function mesh_index(
     w :: MatsubaraFrequency{PT},
     m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
     ) :: Int64 where {PT <: AbstractParticle}
 
-    @DEBUG temperature(w) ≈ temperature(m) "Temperature must be equal between Matsubara frequency and mesh"
+    @DEBUG temperature(w) ≈ domain(m)[:temperature] "Temperature must be equal between Matsubara frequency and mesh"
     return index(w) - first_index(m) + 1
-end
-
-function mesh_index_extrp(
-    w :: MatsubaraFrequency{PT},
-    m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
-    ) :: Int64 where {PT <: AbstractParticle}
-
-    return max(1, min(mesh_index(w, m), length(m)))
 end
 
 # make mesh callable with MatsubaraFrequency
@@ -252,7 +230,7 @@ function Base.:(==)(
     end 
 
     for idx in eachindex(m1)
-        if point(m1, idx) != point(m2, idx)
+        if points(m1, idx) != points(m2, idx)
             return false 
         end 
     end 
@@ -304,6 +282,7 @@ function load_matsubara_mesh(
 
     @DEBUG read_attribute(h[l], "tag") == "MatsubaraMesh" "Dataset $(l) not tagged as MatsubaraMesh"
 
+    # load metadata
     temperature = read_attribute(h[l], "temperature")
     N           = read_attribute(h[l], "N")
     type        = read_attribute(h[l], "type")
@@ -322,7 +301,6 @@ end
 
 export 
     MatsubaraMesh,
-    temperature,
     first_index,
     last_index,
     first_value,

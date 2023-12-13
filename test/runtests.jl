@@ -2,6 +2,7 @@ using Test
 using Aqua
 using HDF5
 using MPI
+using StaticArrays
 using MatsubaraFunctions 
 
 MPI.Init()

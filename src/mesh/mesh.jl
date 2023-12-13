@@ -19,10 +19,10 @@ abstract type AbstractMesh end
 Mesh type with fields:
 * `hash   :: UInt64`    : mesh identifier
 * `points :: Vector{T}` : mesh points
-* `domain :: Dict`      : T-specific details
+* `domain :: Dict`      : implementation details
 """
 struct Mesh{T <: AbstractMeshPoint} <: AbstractMesh
-    hash   :: UInt64
+    hash   :: UInt64 # no accessor, only for internal use
     points :: Vector{T}  
     domain :: Dict  
 
@@ -35,6 +35,7 @@ struct Mesh{T <: AbstractMeshPoint} <: AbstractMesh
         return new{T}(hash, points, domain)
     end
 
+    # copy constructor
     function Mesh(m :: Mesh) :: Mesh
         return Mesh(m.hash, copy(points(m)), copy(domain(m)))
     end
@@ -55,14 +56,14 @@ function points(
 end
 
 """
-    function point(
+    function points(
         m   :: Mesh{T},
         idx :: Int64
         )   :: T where {T <: AbstractMeshPoint}
 
 Returns `m.points[idx]`
 """
-function point(
+function points(
     m   :: Mesh{T},
     idx :: Int64
     )   :: T where {T <: AbstractMeshPoint}
@@ -120,7 +121,7 @@ function Base.:getindex(
     idx :: Int64
     )   :: T where {T <: AbstractMeshPoint}
 
-    return point(m, idx)
+    return points(m, idx)
 end
 
 function Base.:getindex(
@@ -139,8 +140,8 @@ end
 #-------------------------------------------------------------------------------#
  
 function Base.:iterate(
-    m :: AbstractMesh
-    ) :: Tuple{T, Int64}
+    m :: Mesh{T}
+    ) :: Tuple{T, Int64} where {T <: AbstractMeshPoint}
 
     return m[1], 1 
 end 
@@ -187,11 +188,14 @@ end
 # - comparison operator
 # - method to call mesh with value type for mapping to mesh index
 
-include("matsubara/matsubara.jl")
+include("matsubara/matsubara_freq.jl")
+include("matsubara/matsubara_mesh.jl")
+include("brillouin/brillouin_pt.jl")
+include("brillouin/brillouin_zone.jl")
+include("brillouin/brillouin_mesh.jl")
 
 export
     AbstractMesh,
     Mesh,
     points,
-    point,
     domain

@@ -4,10 +4,11 @@ module MatsubaraFunctions
 
     @recompile_invalidations begin
         using LinearAlgebra
-        using Aqua
-        using Documenter
+        using StaticArrays
         using MPI
         using HDF5
+        using Aqua
+        using Documenter
     end
 
     # macro to unlock debug mode
