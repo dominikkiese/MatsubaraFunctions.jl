@@ -163,8 +163,9 @@ end
 
 # for each value type the respective mesh must implement:
 # - outer constructor
+# - mappings from mesh point and value type to mesh index 
+# - boundary conditions
 # - comparison operator
-# - methods to call mesh with mesh point and value type for mapping to mesh index
 
 include("matsubara/matsubara_freq.jl")
 include("matsubara/matsubara_mesh.jl")

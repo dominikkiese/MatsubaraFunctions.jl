@@ -149,6 +149,8 @@ end
 
 include("func_operations.jl")
 include("func_index.jl")
+include("func_itp.jl")
+include("func_eval.jl")
 
 export 
     MeshFunction, 
