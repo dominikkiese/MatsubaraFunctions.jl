@@ -51,6 +51,24 @@ function LinearIndex(
 end
 
 """
+    function LinearIndex_bc(
+        f :: MeshFunction{MD, SD, DD, Q},
+        p :: NTuple{MD, Union{AbstractValue, AbstractMeshPoint}},
+        x :: Vararg{Int64, SD} 
+        ) :: Int64 where {MD, SD, DD, Q <: Number}
+
+Returns linear index for access to `f.data` under boundary conditions
+"""
+function LinearIndex_bc(
+    f :: MeshFunction{MD, SD, DD, Q},
+    p :: NTuple{MD, Union{AbstractValue, AbstractMeshPoint}},
+    x :: Vararg{Int64, SD} 
+    ) :: Int64 where {MD, SD, DD, Q <: Number}
+
+    return LinearIndices(size(f.data))[ntuple(i -> mesh_index_bc(p[i], meshes(f, i)), MD)..., x...]
+end
+
+"""
     function LinearIndex(
         f    :: MeshFunction{MD, SD, DD, Q},
         cidx :: CartesianIndex{DD}
@@ -339,4 +357,5 @@ end
 
 export 
     LinearIndex,
+    LinearIndex_bc,
     to_meshes

@@ -42,7 +42,7 @@ function (f :: MeshFunction{MD, SD, DD, Q})(
     val       = 0.0
 
     for x in zip(wgt_iters, idx_iters)
-        val += prod(x[1]) * f[x[2]...]
+        val += prod(first(x)) * f[last(x)...]
     end
 
     return val
