@@ -110,22 +110,6 @@ function euclidean(
     return basis(bz) * (index(k) ./ bz.L)
 end
 
-"""
-    function euclidean(
-        k  :: SVector{N, Int64},
-        bz :: BrillouinZone{N}
-        )  :: SVector{N, Float64} where {N}
-
-Convert reciprocal to euclidean coordinates
-"""
-function euclidean(
-    k  :: SVector{N, Int64},
-    bz :: BrillouinZone{N}
-    )  :: SVector{N, Float64} where {N}
-
-    return basis(bz) * (k ./ bz.L)
-end
-
 # conversion from euclidean to reciprocal coordinates
 #-------------------------------------------------------------------------------#
 
@@ -162,22 +146,6 @@ function is_inbounds(
     )  :: Bool where {N}
 
     return all(kn -> 0 <= kn < bz.L, index(k))
-end
-
-"""
-    function is_inbounds(
-        k  :: SVector{N, Int64},
-        bz :: BrillouinZone{N}
-        )  :: Bool where {N}
-
-Checks if reciprocal coordinates in bounds
-"""
-function is_inbounds(
-    k  :: SVector{N, Int64},
-    bz :: BrillouinZone{N}
-    )  :: Bool where {N}
-
-    return all(kn -> 0 <= kn < bz.L, k)
 end
 
 """
@@ -219,23 +187,6 @@ function fold_back(
 
     # no prior bound checks to improve performance in case back folding is needed
     return BrillouinPoint(ntuple(n -> positive_modulo(index(k)[n], bz.L), N)...)
-end
-
-"""
-    function fold_back(
-        k  :: SVector{N, Int64},
-        bz :: BrillouinZone{N}
-        )  :: SVector{N, Int64} where {N}
-
-Use periodic boundary conditions to fold `k` back into mesh
-"""
-function fold_back(
-    k  :: SVector{N, Int64},
-    bz :: BrillouinZone{N}
-    )  :: SVector{N, Int64} where {N}
-
-    # no prior bound checks to improve performance in case back folding is needed
-    return SVector{N, Int64}(ntuple(n -> positive_modulo(k[n], bz.L), N)...)
 end
 
 """

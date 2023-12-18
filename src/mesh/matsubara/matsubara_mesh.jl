@@ -139,7 +139,7 @@ function Base.:values(
     return value.(value.(points(m)))
 end
 
-# mapping to mesh index
+# bounds checking
 #-------------------------------------------------------------------------------#
 
 """
@@ -176,6 +176,9 @@ function is_inbounds(
 end
 
 # mapping to mesh index
+#-------------------------------------------------------------------------------#
+
+# from mesh point
 function mesh_index(
     w :: MeshPoint{MatsubaraFrequency{PT}},
     m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
@@ -185,6 +188,7 @@ function mesh_index(
     return index(w)
 end
 
+# from value type
 function mesh_index(
     w :: MatsubaraFrequency{PT},
     m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
@@ -195,6 +199,7 @@ function mesh_index(
     return index(w) - first_index(m) + 1
 end
 
+# from Float
 function mesh_index( # returns index of closest frequency
     w :: Float64,
     m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
@@ -206,7 +211,7 @@ function mesh_index( # returns index of closest frequency
     return round(Int64, position) + 1
 end
 
-# mapping to mesh index using boundary condition
+# from mesh point with bc
 function mesh_index_bc(
     w :: MeshPoint{MatsubaraFrequency{PT}},
     m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
@@ -215,6 +220,7 @@ function mesh_index_bc(
     return mesh_index(w, m)
 end
 
+# from value type with bc
 function mesh_index_bc(
     w :: MatsubaraFrequency{PT},
     m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
