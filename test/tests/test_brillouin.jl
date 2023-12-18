@@ -20,8 +20,8 @@
         n  = SVector{2, Int64}(rand(-4 : 4), rand(-4 : 4))
         q1 = value(p) + BrillouinPoint(domain(m)[:bz].L .* n)
         q2 = euclidean(p, m) + basis(domain(m)[:bz]) * n
-        @test m(q1) == index(p)
-        @test m(q2) == index(p)
+        @test m(fold_back(q1, m)) == index(p)
+        @test m(q2) == index(p) # call with Vector of Float needs to do backfolding anyways
     end
 
     # io

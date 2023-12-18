@@ -176,13 +176,21 @@ function is_inbounds(
 end
 
 # mapping from Matsubara frequency to mesh index 
-function mesh_index(
+function mesh_index( # to be used with []-operator
     w :: MatsubaraFrequency{PT},
     m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
     ) :: Int64 where {PT <: AbstractParticle}
 
     @DEBUG temperature(w) ≈ domain(m)[:temperature] "Temperature must be equal between Matsubara frequency and mesh"
     return index(w) - first_index(m) + 1
+end
+
+function mesh_index_bc( # to be used with ()-operator
+    w :: MatsubaraFrequency{PT},
+    m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
+    ) :: Int64 where {PT <: AbstractParticle}
+
+    return max(1, min(mesh_index(w, m), length(m)))
 end
 
 # make mesh callable with MatsubaraFrequency
