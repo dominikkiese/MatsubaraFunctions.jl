@@ -175,42 +175,52 @@ function is_inbounds(
     return first_value(m) <= w <= last_value(m)
 end
 
-# mapping from Matsubara frequency to mesh index 
-function mesh_index( # to be used with []-operator
+# mapping to mesh index
+function mesh_index(
+    w :: MeshPoint{MatsubaraFrequency{PT}},
+    m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
+    ) :: Int64 where {PT <: AbstractParticle}
+
+    @DEBUG w.hash == m.hash "Mesh point invalid"
+    return index(w)
+end
+
+function mesh_index(
     w :: MatsubaraFrequency{PT},
     m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
     ) :: Int64 where {PT <: AbstractParticle}
 
+    @DEBUG is_inbounds(w, m) "Matsubara frequency not in mesh"
     @DEBUG temperature(w) ≈ domain(m)[:temperature] "Temperature must be equal between Matsubara frequency and mesh"
     return index(w) - first_index(m) + 1
 end
 
-function mesh_index_bc( # to be used with ()-operator
-    w :: MatsubaraFrequency{PT},
+function mesh_index( # returns index of closest frequency
+    w :: Float64,
     m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
-    ) :: Int64 where {PT <: AbstractParticle}
-
-    return max(1, min(mesh_index(w, m), length(m)))
-end
-
-# make mesh callable with MatsubaraFrequency
-function (m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}})(
-    w :: MatsubaraFrequency{PT}
-    ) :: Int64 where {PT <: AbstractParticle}
-
-    @DEBUG is_inbounds(w, m) "Matsubara frequency not in mesh"
-    return mesh_index(w, m)
-end
-
-# make mesh callable with Float64, returns index of closest frequency 
-function (m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}})(
-    w :: Float64
     ) :: Int64 where {PT <: AbstractParticle}
 
     @DEBUG is_inbounds(w, m) "Value not in mesh"
     delta    = value(value(m[2])) - value(value(m[1]))
     position = (w - value(value(m[1]))) / delta
     return round(Int64, position) + 1
+end
+
+# mapping to mesh index using boundary condition
+function mesh_index_bc(
+    w :: MeshPoint{MatsubaraFrequency{PT}},
+    m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
+    ) :: Int64 where {PT <: AbstractParticle}
+
+    return mesh_index(w, m)
+end
+
+function mesh_index_bc(
+    w :: MatsubaraFrequency{PT},
+    m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
+    ) :: Int64 where {PT <: AbstractParticle}
+
+    return max(1, min(mesh_index(w, m), length(m)))
 end
 
 # comparison operator

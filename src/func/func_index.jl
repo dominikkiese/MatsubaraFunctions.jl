@@ -3,12 +3,22 @@
 
 function Base.:CartesianIndex(
     f :: MeshFunction{MD, SD, DD, Q},
-    p :: NTuple{MD, AbstractMeshPoint},
+    p :: NTuple{MD, Union{AbstractValue, AbstractMeshPoint}},
     x :: Vararg{Int64, SD} 
     ) :: CartesianIndex{DD} where {MD, SD, DD, Q <: Number}
 
     @DEBUG all(ntuple(i -> 1 <= x[i] <= shape(f, i), SD)) "Indices invalid"
-    return CartesianIndex(ntuple(i -> index_valid(meshes(f, i), p[i]), MD)..., x...)
+    return CartesianIndex(ntuple(i -> mesh_index(p[i], meshes(f, i)), MD)..., x...)
+end
+
+function CartesianIndex_bc(
+    f :: MeshFunction{MD, SD, DD, Q},
+    p :: NTuple{MD, Union{AbstractValue, AbstractMeshPoint}},
+    x :: Vararg{Int64, SD} 
+    ) :: CartesianIndex{DD} where {MD, SD, DD, Q <: Number}
+
+    @DEBUG all(ntuple(i -> 1 <= x[i] <= shape(f, i), SD)) "Indices invalid"
+    return CartesianIndex(ntuple(i -> mesh_index_bc(p[i], meshes(f, i)), MD)..., x...)
 end
 
 function Base.:CartesianIndex(
@@ -25,7 +35,7 @@ end
 """
     function LinearIndex(
         f :: MeshFunction{MD, SD, DD, Q},
-        p :: NTuple{MD, AbstractMeshPoint},
+        p :: NTuple{MD, Union{AbstractValue, AbstractMeshPoint}},
         x :: Vararg{Int64, SD} 
         ) :: Int64 where {MD, SD, DD, Q <: Number}
 
@@ -33,11 +43,11 @@ Returns linear index for access to `f.data`
 """
 function LinearIndex(
     f :: MeshFunction{MD, SD, DD, Q},
-    p :: NTuple{MD, AbstractMeshPoint},
+    p :: NTuple{MD, Union{AbstractValue, AbstractMeshPoint}},
     x :: Vararg{Int64, SD} 
     ) :: Int64 where {MD, SD, DD, Q <: Number}
 
-    return LinearIndices(size(f.data))[ntuple(i -> index_valid(meshes(f, i), p[i]), MD)..., x...]
+    return LinearIndices(size(f.data))[ntuple(i -> mesh_index(p[i], meshes(f, i)), MD)..., x...]
 end
 
 """
@@ -111,38 +121,38 @@ end
 # getindex
 #----------------------------------------------------------------------------------------------#
 
-function index_valid(
-    m :: AbstractMesh,
-    p :: Union{UnitRange, Colon}
+function mesh_index(
+    p :: Union{UnitRange, Colon},
+    m :: AbstractMesh
     ) :: Union{UnitRange, Colon}
 
-    return p
+    return p 
 end
 
 function Base.:getindex(
     f :: MeshFunction{MD, SD, DD, Q},
-    p :: NTuple{MD, Union{AbstractMeshPoint, UnitRange, Colon}},
+    p :: NTuple{MD, Union{AbstractValue, AbstractMeshPoint, UnitRange, Colon}},
     x :: Vararg{Union{Int64, UnitRange, Colon}, SD} 
     ) :: Union{Q, AbstractArray{Q}} where {MD, SD, DD, Q <: Number}
 
-    return f.data[ntuple(i -> index_valid(meshes(f, i), p[i]), MD)..., x...]
+    return f.data[ntuple(i -> mesh_index(p[i], meshes(f, i)), MD)..., x...]
 end
 
 function Base.:getindex(
     f :: MeshFunction{1, SD, DD, Q},
-    p :: Union{AbstractMeshPoint, UnitRange, Colon},
+    p :: Union{AbstractValue, AbstractMeshPoint, UnitRange, Colon},
     x :: Vararg{Union{Int64, UnitRange, Colon}, SD} 
     ) :: Union{Q, AbstractArray{Q}} where {SD, DD, Q <: Number}
 
-    return f.data[index_valid(meshes(f, 1), p), x...]
+    return f.data[mesh_index(p, meshes(f, 1)), x...]
 end
 
 function Base.:getindex(
     f :: MeshFunction{MD, 0, DD, Q},
-    p :: Vararg{Union{AbstractMeshPoint, UnitRange, Colon}, MD} 
+    p :: Vararg{Union{AbstractValue, AbstractMeshPoint, UnitRange, Colon}, MD} 
     ) :: Union{Q, AbstractArray{Q}} where {MD, DD, Q <: Number}
 
-    return f.data[ntuple(i -> index_valid(meshes(f, i), p[i]), MD)...]
+    return f.data[ntuple(i -> mesh_index(p[i], meshes(f, i)), MD)...]
 end
 
 function Base.:getindex(
@@ -180,10 +190,10 @@ end
 
 function Base.:getindex(
     f :: MeshFunction{1, 0, DD, Q},
-    p :: Union{AbstractMeshPoint, UnitRange, Colon}
+    p :: Union{AbstractValue, AbstractMeshPoint, UnitRange, Colon}
     ) :: Union{Q, AbstractArray{Q}} where {DD, Q <: Number}
 
-    return f.data[index_valid(meshes(f, 1), p)]
+    return f.data[mesh_index(p, meshes(f, 1))]
 end
 
 function Base.:getindex(
@@ -199,28 +209,28 @@ end
 
 function Base.:view(
     f :: MeshFunction{MD, SD, DD, Q},
-    p :: NTuple{MD, Union{AbstractMeshPoint, UnitRange, Colon}},
+    p :: NTuple{MD, Union{AbstractValue, AbstractMeshPoint, UnitRange, Colon}},
     x :: Vararg{Union{Int64, UnitRange, Colon}, SD} 
     ) :: SubArray{Q} where {MD, SD, DD, Q <: Number}
 
-    return view(f.data, ntuple(i -> index_valid(meshes(f, i), p[i]), MD)..., x...)
+    return view(f.data, ntuple(i -> mesh_index(p[i], meshes(f, i)), MD)..., x...)
 end
 
 function Base.:view(
     f :: MeshFunction{1, SD, DD, Q},
-    p :: Union{AbstractMeshPoint, UnitRange, Colon},
+    p :: Union{AbstractValue, AbstractMeshPoint, UnitRange, Colon},
     x :: Vararg{Union{Int64, UnitRange, Colon}, SD} 
     ) :: SubArray{Q} where {SD, DD, Q <: Number}
 
-    return view(f.data, index_valid(meshes(f, 1), p), x...)
+    return view(f.data, mesh_index(p, meshes(f, 1)), x...)
 end
 
 function Base.:view(
     f :: MeshFunction{MD, 0, DD, Q},
-    p :: Vararg{Union{AbstractMeshPoint, UnitRange, Colon}, MD} 
+    p :: Vararg{Union{AbstractValue, AbstractMeshPoint, UnitRange, Colon}, MD} 
     ) :: SubArray{Q} where {MD, DD, Q <: Number}
 
-    return view(f.data, ntuple(i -> index_valid(meshes(f, i), p[i]), MD)...)
+    return view(f.data, ntuple(i -> mesh_index(p[i], meshes(f, i)), MD)...)
 end
 
 function Base.:view(
@@ -234,10 +244,10 @@ end
 # specialization
 function Base.:view(
     f :: MeshFunction{1, 0, DD, Q},
-    p :: Union{AbstractMeshPoint, UnitRange, Colon},
+    p :: Union{AbstractValue, AbstractMeshPoint, UnitRange, Colon},
     ) :: SubArray{Q} where {DD, Q <: Number}
 
-    return view(f.data, index_valid(meshes(f, 1), p))
+    return view(f.data, mesh_index(p, meshes(f, 1)))
 end
 
 function Base.:view(
@@ -254,32 +264,32 @@ end
 function Base.:setindex!(
     f   :: MeshFunction{MD, SD, DD, Q},
     val :: Qp,
-    p   :: NTuple{MD, Union{AbstractMeshPoint}},
+    p   :: NTuple{MD, Union{AbstractValue, AbstractMeshPoint}},
     x   :: Vararg{Int64, SD} 
     )   :: Nothing where {MD, SD, DD, Q <: Number, Qp <: Number}
 
-    f.data[ntuple(i -> index_valid(meshes(f, i), p[i]), MD)..., x...] = val
+    f.data[ntuple(i -> mesh_index(p[i], meshes(f, i)), MD)..., x...] = val
     return nothing
 end
 
 function Base.:setindex!(
     f   :: MeshFunction{1, SD, DD, Q},
     val :: Qp,
-    p   :: Union{AbstractMeshPoint},
+    p   :: Union{AbstractValue, AbstractMeshPoint},
     x   :: Vararg{Int64, SD} 
     )   :: Nothing where {SD, DD, Q <: Number, Qp <: Number}
 
-    f.data[index_valid(meshes(f, 1), p), x...] = val
+    f.data[mesh_index(p, meshes(f, 1)), x...] = val
     return nothing
 end
 
 function Base.:setindex!(
     f   :: MeshFunction{MD, 0, DD, Q},
     val :: Qp,
-    p   :: Vararg{Union{AbstractMeshPoint}, MD}
+    p   :: Vararg{Union{AbstractValue, AbstractMeshPoint}, MD}
     )   :: Nothing where {MD, DD, Q <: Number, Qp <: Number}
 
-    f.data[ntuple(i -> index_valid(meshes(f, i), p[i]), MD)...] = val
+    f.data[ntuple(i -> mesh_index(p[i], meshes(f, i)), MD)...] = val
     return nothing
 end
 
@@ -317,10 +327,10 @@ end
 function Base.:setindex!(
     f   :: MeshFunction{1, 0, DD, Q},
     val :: Qp,
-    p   :: Union{AbstractMeshPoint}
+    p   :: Union{AbstractValue, AbstractMeshPoint}
     )   :: Nothing where {DD, Q <: Number, Qp <: Number}
 
-    f.data[index_valid(meshes(f, 1), p)] = val
+    f.data[mesh_index(p, meshes(f, 1))] = val
     return nothing
 end
 

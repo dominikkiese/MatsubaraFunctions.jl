@@ -33,12 +33,12 @@ end
     # call to grid
     for trial in 1 : 10
         pFermion = rand(points(mFermion))
-        @test mFermion(value(pFermion)) == index(pFermion)
-        @test mFermion(value(value(pFermion))) == index(pFermion)
+        @test MatsubaraFunctions.mesh_index(value(pFermion), mFermion) == index(pFermion)
+        @test MatsubaraFunctions.mesh_index(value(value(pFermion)), mFermion) == index(pFermion)
 
         pBoson = rand(points(mBoson))
-        @test mBoson(value(pBoson)) == index(pBoson)
-        @test mBoson(value(value(pBoson))) == index(pBoson)
+        @test MatsubaraFunctions.mesh_index(value(pBoson), mBoson) == index(pBoson)
+        @test MatsubaraFunctions.mesh_index(value(value(pBoson)), mBoson) == index(pBoson)
     end 
     
     # io

@@ -150,44 +150,39 @@ end
 # mapping to mesh index
 #-------------------------------------------------------------------------------#
 
-# mapping from reciprocal coordinates to mesh index
-function mesh_index( # to be used with []-operator
+# mapping to mesh index
+function mesh_index(
+    k :: MeshPoint{BrillouinPoint{N}},
+    m :: Mesh{MeshPoint{BrillouinPoint{N}}}
+    ) :: Int64 where {N}
+    
+    @DEBUG k.hash == m.hash "Mesh point invalid"
+    return index(k)
+end
+
+function mesh_index(
     k :: BrillouinPoint{N},
     m :: Mesh{MeshPoint{BrillouinPoint{N}}}
     ) :: Int64 where {N}
     
+    @DEBUG is_inbounds(k, m) "Momentum not in mesh"
     return domain(m)[:lin_idxs][(index(k) .+ 1)...]
 end
 
-function mesh_index( # to be used with []-operator
+function mesh_index(
     k :: SVector{N, Int64},
     m :: Mesh{MeshPoint{BrillouinPoint{N}}}
     ) :: Int64 where {N}
     
+    @DEBUG is_inbounds(k, m) "Momentum not in mesh"
     return domain(m)[:lin_idxs][(k .+ 1)...]
 end
 
-function mesh_index_bc( # to be used with ()-operator
-    k :: Union{BrillouinPoint{N}, SVector{N, Int64}},
+function mesh_index(
+    k :: SVector{N, Float64},
     m :: Mesh{MeshPoint{BrillouinPoint{N}}}
     ) :: Int64 where {N}
     
-    return mesh_index(fold_back(k, m), m)
-end
-
-# make mesh callable with reciprocal coordinates
-function (m :: Mesh{MeshPoint{BrillouinPoint{N}}})(
-    k :: Union{BrillouinPoint{N}, SVector{N, Int64}}
-    ) :: Int64 where {N}
-
-    return mesh_index(k, m)
-end
-
-# make mesh callable with euclidean coordinates, returns index of closest mesh point
-function (m :: Mesh{MeshPoint{BrillouinPoint{N}}})(
-    k :: SVector{N, Float64}
-    ) :: Int64 where {N}
-
     # find surrounding box
     x      = reciprocal(k, m)
     ranges = ntuple(n -> floor(Int64, x[n]) : ceil(Int64, x[n]), N)
@@ -208,6 +203,23 @@ function (m :: Mesh{MeshPoint{BrillouinPoint{N}}})(
 
     # even if k is in the mesh, we need to fold back here
     return mesh_index(fold_back(SVector{N, Int64}(iters[min_idx]...), m), m)
+end
+
+# mapping to mesh index using boundary condition
+function mesh_index_bc(
+    k :: MeshPoint{BrillouinPoint{N}},
+    m :: Mesh{MeshPoint{BrillouinPoint{N}}}
+    ) :: Int64 where {N}
+    
+    return mesh_index(k, m)
+end
+
+function mesh_index_bc(
+    k :: Union{BrillouinPoint{N}, SVector{N, Int64}},
+    m :: Mesh{MeshPoint{BrillouinPoint{N}}}
+    ) :: Int64 where {N}
+    
+    return mesh_index(fold_back(k, m), m)
 end
 
 # comparison operator
