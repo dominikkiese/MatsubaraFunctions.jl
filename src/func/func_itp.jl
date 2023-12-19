@@ -29,15 +29,16 @@ struct InterpolationParam{N}
         return InterpolationParam((index,), (weight,))
     end 
 
-    # Matsubara mesh
+    # from mesh point or value type 
     function InterpolationParam(
-        w :: Union{MeshPoint{MatsubaraFrequency{PT}}, MatsubaraFrequency{PT}}, 
-        m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
-        ) :: InterpolationParam{1} where {PT <: AbstractParticle}
+        p :: Union{MeshPoint{T}, T},
+        m :: Mesh{MeshPoint{T}}
+        ) :: InterpolationParam{1} where {T <: AbstractValue}
 
-        return InterpolationParam(mesh_index_bc(w, m), 1.0)
+        return InterpolationParam(mesh_index_bc(p, m), 1.0)
     end
 
+    # Matsubara mesh
     function InterpolationParam(
         w :: Float64, 
         m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
@@ -61,14 +62,6 @@ struct InterpolationParam{N}
     end
 
     # Brillouin zone mesh
-    function InterpolationParam(
-        k :: Union{MeshPoint{BrillouinPoint{N}}, BrillouinPoint{N}},
-        m :: Mesh{MeshPoint{BrillouinPoint{N}}}
-        ) :: InterpolationParam{1} where {N}
-
-        return InterpolationParam(mesh_index_bc(k, m), 1.0)
-    end
-
     function InterpolationParam(
         k :: SVector{N, Float64},
         m :: Mesh{MeshPoint{BrillouinPoint{N}}}

@@ -1,3 +1,6 @@
+include("brillouin_pt.jl")
+include("brillouin_zone.jl")
+
 # outer constructors and accessors
 #-------------------------------------------------------------------------------#
 
@@ -35,7 +38,7 @@ end
         m :: Mesh{MeshPoint{BrillouinPoint{N}}}
         ) :: SVector{N, Float64} where {N}
 
-Convert reciprocal mesh point to euclidean coordinates
+Convert mesh point to euclidean coordinates
 """
 function euclidean(
     k :: MeshPoint{BrillouinPoint{N}},
@@ -171,7 +174,7 @@ function mesh_index(
 end
 
 # from Vector of Float
-function mesh_index(
+function mesh_index( # returns index of closest mesh point
     k :: SVector{N, Float64},
     m :: Mesh{MeshPoint{BrillouinPoint{N}}}
     ) :: Int64 where {N}

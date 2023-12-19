@@ -185,7 +185,6 @@ function fold_back(
     bz :: BrillouinZone{N}
     )  :: BrillouinPoint{N} where {N}
 
-    # no prior bound checks to improve performance in case back folding is needed
     return BrillouinPoint(ntuple(n -> positive_modulo(index(k)[n], bz.L), N)...)
 end
 
@@ -197,14 +196,12 @@ end
 
 Use periodic boundary conditions to fold `k` back into mesh
 """
-# slower than back folding in reciprocal space, should be avoided if possible
-function fold_back( 
+function fold_back( # slower than back folding in reciprocal space, should be avoided if possible
     k  :: SVector{N, Float64},
     bz :: BrillouinZone{N}
     )  :: SVector{N, Float64} where {N}
 
     x = reciprocal(k, bz)
-    # no prior bound checks to improve performance in case back folding is needed
     return basis(bz) * (SVector{N, Float64}(ntuple(n -> positive_modulo(x[n], bz.L), N)...) ./ bz.L)
 end
 
@@ -250,6 +247,7 @@ end
 export 
     BrillouinZone,
     basis,
+    inv_basis,
     euclidean,
     reciprocal,
     is_inbounds,

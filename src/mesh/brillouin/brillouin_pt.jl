@@ -65,7 +65,7 @@ function Base.:-(
     k :: BrillouinPoint{N}
     ) :: BrillouinPoint{N} where {N} 
 
-    return BrillouinPoint(-index(k1))
+    return BrillouinPoint(-index(k))
 end
 
 # comparison operator

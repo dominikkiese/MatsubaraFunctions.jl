@@ -167,10 +167,7 @@ end
 # - boundary conditions
 # - comparison operator
 
-include("matsubara/matsubara_freq.jl")
 include("matsubara/matsubara_mesh.jl")
-include("brillouin/brillouin_pt.jl")
-include("brillouin/brillouin_zone.jl")
 include("brillouin/brillouin_mesh.jl")
 
 export

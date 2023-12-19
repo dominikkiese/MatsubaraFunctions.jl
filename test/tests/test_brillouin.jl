@@ -1,3 +1,26 @@
+@testset "BrillouinPoints" begin 
+    k1 = (2.0 * pi / 3) .* SVector{2, Float64}(1, +sqrt(3.0))
+    k2 = (2.0 * pi / 3) .* SVector{2, Float64}(1, -sqrt(3.0))
+    m  = BrillouinZoneMesh(BrillouinZone(6, k1, k2))
+
+    for trial in 1 : 10 
+        q1    = value(m[rand(eachindex(m))])
+        q2    = value(m[rand(eachindex(m))])
+        q1vec = euclidean(q1, m)
+        q2vec = euclidean(q2, m)
+
+        # addition 
+        @test euclidean(q1 + q2, m) ≈ q1vec + q2vec
+
+        # subtraction
+        @test euclidean(q1 - q2, m) ≈ q1vec - q2vec
+
+        # reflection
+        @test euclidean(-q1, m) ≈ -q1vec
+        @test euclidean(-q2, m) ≈ -q2vec
+    end
+end
+
 @testset "BrillouinZoneMesh" begin 
     k1 = (2.0 * pi / 3) .* SVector{2, Float64}(1, +sqrt(3.0))
     k2 = (2.0 * pi / 3) .* SVector{2, Float64}(1, -sqrt(3.0))
@@ -17,7 +40,7 @@
         @test MatsubaraFunctions.mesh_index(value(p), m) == index(p)
         @test MatsubaraFunctions.mesh_index(euclidean(p, m), m) == index(p)
         @test MatsubaraFunctions.mesh_index_bc(q1, m) == index(p)
-        @test MatsubaraFunctions.mesh_index(q2, m) == index(p) # call with Vector of Float needs to do backfolding anyways
+        @test MatsubaraFunctions.mesh_index(q2, m) == index(p) # call with Vector of Float does backfolding anyways
     end 
 
     # io
