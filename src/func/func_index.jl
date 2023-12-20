@@ -8,7 +8,7 @@ function Base.:CartesianIndex(
     ) :: CartesianIndex{DD} where {MD, SD, DD, Q <: Number}
 
     @DEBUG all(ntuple(i -> 1 <= x[i] <= shape(f, i), SD)) "Indices invalid"
-    return CartesianIndex(ntuple(i -> mesh_index(p[i], meshes(f, i)), MD)..., x...)
+    return CartesianIndex(map((y, m) -> mesh_index(y, m), p, meshes(f))..., x...)
 end
 
 function CartesianIndex_bc(
@@ -18,7 +18,7 @@ function CartesianIndex_bc(
     ) :: CartesianIndex{DD} where {MD, SD, DD, Q <: Number}
 
     @DEBUG all(ntuple(i -> 1 <= x[i] <= shape(f, i), SD)) "Indices invalid"
-    return CartesianIndex(ntuple(i -> mesh_index_bc(p[i], meshes(f, i)), MD)..., x...)
+    return CartesianIndex(map((y, m) -> mesh_index_bc(y, m), p, meshes(f))..., x...)
 end
 
 function Base.:CartesianIndex(
@@ -47,7 +47,7 @@ function LinearIndex(
     x :: Vararg{Int64, SD} 
     ) :: Int64 where {MD, SD, DD, Q <: Number}
 
-    return LinearIndices(size(f.data))[ntuple(i -> mesh_index(p[i], meshes(f, i)), MD)..., x...]
+    return LinearIndices(size(f.data))[map((y, m) -> mesh_index(y, m), p, meshes(f))..., x...]
 end
 
 """
@@ -65,7 +65,7 @@ function LinearIndex_bc(
     x :: Vararg{Int64, SD} 
     ) :: Int64 where {MD, SD, DD, Q <: Number}
 
-    return LinearIndices(size(f.data))[ntuple(i -> mesh_index_bc(p[i], meshes(f, i)), MD)..., x...]
+    return LinearIndices(size(f.data))[map((y, m) -> mesh_index_bc(y, m), p, meshes(f))..., x...]
 end
 
 """
@@ -153,7 +153,7 @@ function Base.:getindex(
     x :: Vararg{Union{Int64, UnitRange, Colon}, SD} 
     ) :: Union{Q, AbstractArray{Q}} where {MD, SD, DD, Q <: Number}
 
-    return f.data[ntuple(i -> mesh_index(p[i], meshes(f, i)), MD)..., x...]
+    return f.data[map((y, m) -> mesh_index(y, m), p, meshes(f))..., x...]
 end
 
 function Base.:getindex(
@@ -170,7 +170,7 @@ function Base.:getindex(
     p :: Vararg{Union{AbstractValue, AbstractMeshPoint, UnitRange, Colon}, MD} 
     ) :: Union{Q, AbstractArray{Q}} where {MD, DD, Q <: Number}
 
-    return f.data[ntuple(i -> mesh_index(p[i], meshes(f, i)), MD)...]
+    return f.data[map((y, m) -> mesh_index(y, m), p, meshes(f))...]
 end
 
 function Base.:getindex(
@@ -231,7 +231,7 @@ function Base.:view(
     x :: Vararg{Union{Int64, UnitRange, Colon}, SD} 
     ) :: SubArray{Q} where {MD, SD, DD, Q <: Number}
 
-    return view(f.data, ntuple(i -> mesh_index(p[i], meshes(f, i)), MD)..., x...)
+    return view(f.data, map((y, m) -> mesh_index(y, m), p, meshes(f))..., x...)
 end
 
 function Base.:view(
@@ -248,7 +248,7 @@ function Base.:view(
     p :: Vararg{Union{AbstractValue, AbstractMeshPoint, UnitRange, Colon}, MD} 
     ) :: SubArray{Q} where {MD, DD, Q <: Number}
 
-    return view(f.data, ntuple(i -> mesh_index(p[i], meshes(f, i)), MD)...)
+    return view(f.data, map((y, m) -> mesh_index(y, m), p, meshes(f))...)
 end
 
 function Base.:view(
@@ -286,7 +286,7 @@ function Base.:setindex!(
     x   :: Vararg{Int64, SD} 
     )   :: Nothing where {MD, SD, DD, Q <: Number, Qp <: Number}
 
-    f.data[ntuple(i -> mesh_index(p[i], meshes(f, i)), MD)..., x...] = val
+    f.data[map((y, m) -> mesh_index(y, m), p, meshes(f))..., x...] = val
     return nothing
 end
 
@@ -307,7 +307,7 @@ function Base.:setindex!(
     p   :: Vararg{Union{AbstractValue, AbstractMeshPoint}, MD}
     )   :: Nothing where {MD, DD, Q <: Number, Qp <: Number}
 
-    f.data[ntuple(i -> mesh_index(p[i], meshes(f, i)), MD)...] = val
+    f.data[map((y, m) -> mesh_index(y, m), p, meshes(f))...] = val
     return nothing
 end
 

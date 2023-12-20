@@ -36,13 +36,13 @@ function (f :: MeshFunction{MD, SD, DD, Q})(
     x :: Vararg{Int64, SD} 
     ) :: Q where{MD, SD, DD, Q <: Number}
 
-    params    = ntuple(n -> InterpolationParam(p[n], meshes(f, n)), MD)
-    idx_iters = Iterators.product(ntuple(n -> indices(params[n]), MD)...)
-    wgt_iters = Iterators.product(ntuple(n -> weights(params[n]), MD)...)
+    params    = map((y, m) -> InterpolationParam(y, m), p, meshes(f))
+    idx_iters = Iterators.product(indices.(params)...)
+    wgt_iters = Iterators.product(weights.(params)...)
     val       = 0.0
 
-    for x in zip(wgt_iters, idx_iters)
-        val += prod(first(x)) * f[last(x)...]
+    for y in zip(wgt_iters, idx_iters)
+        val += prod(first(y)) * f[last(y)..., x...]
     end
 
     return val

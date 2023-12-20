@@ -185,7 +185,7 @@ function fold_back(
     bz :: BrillouinZone{N}
     )  :: BrillouinPoint{N} where {N}
 
-    return BrillouinPoint(ntuple(n -> positive_modulo(index(k)[n], bz.L), N)...)
+    return BrillouinPoint(map(kn -> positive_modulo(kn, bz.L), index(k)))
 end
 
 """
