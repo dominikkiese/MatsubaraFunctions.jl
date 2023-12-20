@@ -7,17 +7,17 @@
 MeshFunction type with fields:
 * `meshes :: NTuple{MD, AbstractMesh}` : set of meshes
 * `shape  :: NTuple{SD, Int64}`        : index structure
-* `data   :: Array{Q, DD}`             : multidimensional data array
+* `data   :: AbstractArray{Q, DD}`     : multidimensional data array
 """
 struct MeshFunction{MD, SD, DD, Q <: Number}
     meshes :: NTuple{MD, AbstractMesh}
     shape  :: NTuple{SD, Int64}          
-    data   :: Array{Q, DD}
+    data   :: AbstractArray{Q, DD}
 
-    function MeshFunction(
+    function MeshFunction( # parse by reference
         meshes :: NTuple{MD, AbstractMesh}, 
         shape  :: NTuple{SD, Int64}, 
-        data   :: Array{Q, DD}
+        data   :: AbstractArray{Q, DD}
         )      :: MeshFunction{MD, SD, DD, Q} where {MD, SD, DD, Q <: Number}
 
         if Q <: Integer || Q <: Complex{Int} 
@@ -29,7 +29,32 @@ struct MeshFunction{MD, SD, DD, Q <: Number}
         return new{MD, SD, DD, Q}(meshes, shape, data)
     end
 
-    function MeshFunction(
+    function MeshFunction( # parse by reference
+        mesh  :: AbstractMesh, 
+        shape :: NTuple{SD, Int64}, 
+        data  :: AbstractArray{Q, DD}
+        )     :: MeshFunction{1, SD, DD, Q} where {SD, DD, Q <: Number}
+
+        return MeshFunction((mesh,), shape, data)
+    end
+
+    function MeshFunction( # parse by reference
+        meshes :: NTuple{MD, AbstractMesh}, 
+        data   :: AbstractArray{Q, DD}
+        )      :: MeshFunction{MD, 0, DD, Q} where {MD, DD, Q <: Number}
+
+        return MeshFunction(meshes, (), data)
+    end
+
+    function MeshFunction( # parse by reference
+        mesh  :: AbstractMesh, 
+        data  :: AbstractArray{Q, DD}
+        )     :: MeshFunction{1, 0, DD, Q} where {DD, Q <: Number}
+
+        return MeshFunction((mesh,), (), data)
+    end
+
+    function MeshFunction( # parse meshes by copy
         meshes :: NTuple{MD, AbstractMesh},
         shape  :: Vararg{Int64, SD}
         ;
@@ -37,10 +62,10 @@ struct MeshFunction{MD, SD, DD, Q <: Number}
         )      :: MeshFunction{MD, SD, MD + SD, data_t} where {MD, SD}
         
         data = Array{data_t, MD + SD}(undef, length.(meshes)..., shape...)
-        return MeshFunction(Mesh.(meshes), ntuple(i -> shape[i], SD), data)
+        return MeshFunction(Mesh.(meshes), tuple(shape...), data)
     end
 
-    function MeshFunction(
+    function MeshFunction( # parse mesh by copy
         mesh   :: AbstractMesh,
         shape  :: Vararg{Int64, SD}
         ;
@@ -50,24 +75,24 @@ struct MeshFunction{MD, SD, DD, Q <: Number}
         return MeshFunction((mesh,), shape...; data_t)
     end
 
-    function MeshFunction(
+    function MeshFunction( # parse meshes by copy
         meshes :: Vararg{AbstractMesh, MD},
         ;
         data_t :: DataType = ComplexF64
         )      :: MeshFunction{MD, 0, MD, data_t} where {MD}
 
-        return MeshFunction(ntuple(i -> meshes[i], MD); data_t)
+        return MeshFunction(tuple(meshes...); data_t)
     end
 
-    function MeshFunction(
+    function MeshFunction( # parse meshes and data by copy
         f :: MeshFunction
         ) :: MeshFunction
 
-        return MeshFunction(meshes(f), shape(f), copy(f.data))
+        return MeshFunction(Mesh.(meshes(f)), shape(f), copy(f.data))
     end
 
     # specialization
-    function MeshFunction(
+    function MeshFunction( # parse mesh by copy
         mesh   :: AbstractMesh
         ;
         data_t :: DataType = ComplexF64
