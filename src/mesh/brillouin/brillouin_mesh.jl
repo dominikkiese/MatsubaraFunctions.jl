@@ -1,3 +1,6 @@
+include("brillouin_pt.jl")
+include("brillouin_zone.jl")
+
 # outer constructors and accessors
 #-------------------------------------------------------------------------------#
 
@@ -22,7 +25,7 @@ function BrillouinZoneMesh(
         points[lin_idx] = MeshPoint(HASH, lin_idx, BrillouinPoint(idxs...))
     end 
 
-    domain = Dict(:bz => bz, :lin_idxs => lin_idxs)
+    domain = Dict(:lin_idxs => lin_idxs, :bz => bz)
     return Mesh(HASH, points, domain)
 end
 
@@ -35,7 +38,7 @@ end
         m :: Mesh{MeshPoint{BrillouinPoint{N}}}
         ) :: SVector{N, Float64} where {N}
 
-Convert reciprocal mesh point to euclidean coordinates
+Convert mesh point to euclidean coordinates
 """
 function euclidean(
     k :: MeshPoint{BrillouinPoint{N}},
@@ -48,14 +51,14 @@ end
 
 """
     function euclidean(
-        k :: Union{BrillouinPoint{N}, SVector{N, Int64}},
+        k :: BrillouinPoint{N},
         m :: Mesh{MeshPoint{BrillouinPoint{N}}}
         ) :: SVector{N, Float64} where {N}
 
 Convert reciprocal to euclidean coordinates
 """
 function euclidean(
-    k :: Union{BrillouinPoint{N}, SVector{N, Int64}},
+    k :: BrillouinPoint{N},
     m :: Mesh{MeshPoint{BrillouinPoint{N}}}
     ) :: SVector{N, Float64} where {N}
 
@@ -114,14 +117,14 @@ end
 
 """
     function is_inbounds(
-        k :: Union{BrillouinPoint{N}, SVector{N, Int64}, SVector{N, Float64}},
+        k :: Union{BrillouinPoint{N}, SVector{N, Float64}},
         m :: Mesh{MeshPoint{BrillouinPoint{N}}}
         ) :: Bool where {N}
 
 Checks if input in mesh
 """
 function is_inbounds(
-    k :: Union{BrillouinPoint{N}, SVector{N, Int64}, SVector{N, Float64}},
+    k :: Union{BrillouinPoint{N}, SVector{N, Float64}},
     m :: Mesh{MeshPoint{BrillouinPoint{N}}}
     ) :: Bool where {N}
 
@@ -133,16 +136,16 @@ end
 
 """
     function fold_back(
-        k :: Union{BrillouinPoint{N}, SVector{N, Int64}, SVector{N, Float64}},
+        k :: Union{BrillouinPoint{N}, SVector{N, Float64}},
         m :: Mesh{MeshPoint{BrillouinPoint{N}}}
-        ) :: Union{BrillouinPoint{N}, SVector{N, Int64}, SVector{N, Float64}} where {N}
+        ) :: Union{BrillouinPoint{N}, SVector{N, Float64}} where {N}
 
 Use periodic boundary conditions to fold `k` back into mesh
 """
 function fold_back(
-    k :: Union{BrillouinPoint{N}, SVector{N, Int64}, SVector{N, Float64}},
+    k :: Union{BrillouinPoint{N}, SVector{N, Float64}},
     m :: Mesh{MeshPoint{BrillouinPoint{N}}}
-    ) :: Union{BrillouinPoint{N}, SVector{N, Int64}, SVector{N, Float64}} where {N}
+    ) :: Union{BrillouinPoint{N}, SVector{N, Float64}} where {N}
 
     return fold_back(k, domain(m)[:bz])
 end
@@ -150,38 +153,32 @@ end
 # mapping to mesh index
 #-------------------------------------------------------------------------------#
 
-# mapping from reciprocal coordinates to mesh index
+# from mesh point
+function mesh_index(
+    k :: MeshPoint{BrillouinPoint{N}},
+    m :: Mesh{MeshPoint{BrillouinPoint{N}}}
+    ) :: Int64 where {N}
+    
+    @DEBUG k.hash == m.hash "Mesh point invalid"
+    return index(k)
+end
+
+# from value type
 function mesh_index(
     k :: BrillouinPoint{N},
     m :: Mesh{MeshPoint{BrillouinPoint{N}}}
     ) :: Int64 where {N}
     
-    # fails if k out of bounds
+    @DEBUG is_inbounds(k, m) "Momentum not in mesh"
     return domain(m)[:lin_idxs][(index(k) .+ 1)...]
 end
 
-function mesh_index(
-    k :: SVector{N, Int64},
+# from Vector of Float
+function mesh_index( # returns index of closest mesh point
+    k :: SVector{N, Float64},
     m :: Mesh{MeshPoint{BrillouinPoint{N}}}
     ) :: Int64 where {N}
     
-    # fails if k out of bounds
-    return domain(m)[:lin_idxs][(k .+ 1)...]
-end
-
-# make mesh callable with reciprocal coordinates
-function (m :: Mesh{MeshPoint{BrillouinPoint{N}}})(
-    k :: Union{BrillouinPoint{N}, SVector{N, Int64}}
-    ) :: Int64 where {N}
-
-    return mesh_index(fold_back(k, m), m)
-end
-
-# make mesh callable with euclidean coordinates, returns index of closest mesh point
-function (m :: Mesh{MeshPoint{BrillouinPoint{N}}})(
-    k :: SVector{N, Float64}
-    ) :: Int64 where {N}
-
     # find surrounding box
     x      = reciprocal(k, m)
     ranges = ntuple(n -> floor(Int64, x[n]) : ceil(Int64, x[n]), N)
@@ -189,10 +186,10 @@ function (m :: Mesh{MeshPoint{BrillouinPoint{N}}})(
 
     # determine closest point in box
     min_idx  = 1
-    min_dist = norm(euclidean(SVector{N, Int64}(iters[1]...), m) .- k)
+    min_dist = norm(euclidean(BrillouinPoint(iters[1]...), m) .- k)
 
     for i in 2 : length(iters)
-        dist = norm(euclidean(SVector{N, Int64}(iters[i]...), m) .- k)
+        dist = norm(euclidean(BrillouinPoint(iters[i]...), m) .- k)
         
         if dist < min_dist
             min_idx  = i
@@ -200,8 +197,26 @@ function (m :: Mesh{MeshPoint{BrillouinPoint{N}}})(
         end
     end
 
-    # fold back and calculate mesh index
-    return mesh_index(fold_back(SVector{N, Int64}(iters[min_idx]...), m), m)
+    # even if k is in the mesh, we need to fold back here
+    return mesh_index(fold_back(BrillouinPoint(iters[min_idx]...), m), m)
+end
+
+# from mesh point with bc
+function mesh_index_bc(
+    k :: MeshPoint{BrillouinPoint{N}},
+    m :: Mesh{MeshPoint{BrillouinPoint{N}}}
+    ) :: Int64 where {N}
+    
+    return mesh_index(k, m)
+end
+
+# from value type with bc
+function mesh_index_bc(
+    k :: BrillouinPoint{N},
+    m :: Mesh{MeshPoint{BrillouinPoint{N}}}
+    ) :: Int64 where {N}
+    
+    return mesh_index(fold_back(k, m), m)
 end
 
 # comparison operator

@@ -1,22 +1,24 @@
 @testset "MatsubaraFrequencies" begin 
-    wFermion = MatsubaraFrequency(1.0, rand(-100 : 100), Fermion)
-    wBoson   = MatsubaraFrequency(1.0, rand(-100 : 100), Boson)
+    for trial in 1 : 10
+        wFermion = MatsubaraFrequency(1.0, rand(-100 : 100), Fermion)
+        wBoson   = MatsubaraFrequency(1.0, rand(-100 : 100), Boson)
 
-    # addition
-    @test value(wFermion + wFermion) ≈ value(wFermion) + value(wFermion)
-    @test value(wFermion + wBoson)   ≈ value(wFermion) + value(wBoson)
-    @test value(wBoson + wFermion)   ≈ value(wBoson) + value(wFermion)
-    @test value(wBoson + wBoson)     ≈ value(wBoson) + value(wBoson)
+        # addition
+        @test value(wFermion + wFermion) ≈ value(wFermion) + value(wFermion)
+        @test value(wFermion + wBoson)   ≈ value(wFermion) + value(wBoson)
+        @test value(wBoson + wFermion)   ≈ value(wBoson) + value(wFermion)
+        @test value(wBoson + wBoson)     ≈ value(wBoson) + value(wBoson)
 
-    # subtraction
-    @test value(wFermion - wFermion) ≈ value(wFermion) - value(wFermion)
-    @test value(wFermion - wBoson)   ≈ value(wFermion) - value(wBoson)
-    @test value(wBoson - wFermion)   ≈ value(wBoson) - value(wFermion)
-    @test value(wBoson - wBoson)     ≈ value(wBoson) - value(wBoson)
+        # subtraction
+        @test value(wFermion - wFermion) ≈ value(wFermion) - value(wFermion)
+        @test value(wFermion - wBoson)   ≈ value(wFermion) - value(wBoson)
+        @test value(wBoson - wFermion)   ≈ value(wBoson) - value(wFermion)
+        @test value(wBoson - wBoson)     ≈ value(wBoson) - value(wBoson)
 
-    # reflection 
-    @test value(-wFermion) ≈ -value(wFermion)
-    @test value(-wBoson)   ≈ -value(wBoson)
+        # reflection 
+        @test value(-wFermion) ≈ -value(wFermion)
+        @test value(-wBoson)   ≈ -value(wBoson)
+    end
 end
 
 @testset "MatsubaraMesh" begin 
@@ -33,12 +35,12 @@ end
     # call to grid
     for trial in 1 : 10
         pFermion = rand(points(mFermion))
-        @test mFermion(value(pFermion)) == index(pFermion)
-        @test mFermion(value(value(pFermion))) == index(pFermion)
+        @test MatsubaraFunctions.mesh_index(value(pFermion), mFermion) == index(pFermion)
+        @test MatsubaraFunctions.mesh_index(value(value(pFermion)), mFermion) == index(pFermion)
 
         pBoson = rand(points(mBoson))
-        @test mBoson(value(pBoson)) == index(pBoson)
-        @test mBoson(value(value(pBoson))) == index(pBoson)
+        @test MatsubaraFunctions.mesh_index(value(pBoson), mBoson) == index(pBoson)
+        @test MatsubaraFunctions.mesh_index(value(value(pBoson)), mBoson) == index(pBoson)
     end 
     
     # io

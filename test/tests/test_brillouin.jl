@@ -1,3 +1,26 @@
+@testset "BrillouinPoints" begin 
+    k1 = (2.0 * pi / 3) .* SVector{2, Float64}(1, +sqrt(3.0))
+    k2 = (2.0 * pi / 3) .* SVector{2, Float64}(1, -sqrt(3.0))
+    m  = BrillouinZoneMesh(BrillouinZone(6, k1, k2))
+
+    for trial in 1 : 10 
+        q1    = value(m[rand(eachindex(m))])
+        q2    = value(m[rand(eachindex(m))])
+        q1vec = euclidean(q1, m)
+        q2vec = euclidean(q2, m)
+
+        # addition 
+        @test euclidean(q1 + q2, m) ≈ q1vec + q2vec
+
+        # subtraction
+        @test euclidean(q1 - q2, m) ≈ q1vec - q2vec
+
+        # reflection
+        @test euclidean(-q1, m) ≈ -q1vec
+        @test euclidean(-q2, m) ≈ -q2vec
+    end
+end
+
 @testset "BrillouinZoneMesh" begin 
     k1 = (2.0 * pi / 3) .* SVector{2, Float64}(1, +sqrt(3.0))
     k2 = (2.0 * pi / 3) .* SVector{2, Float64}(1, -sqrt(3.0))
@@ -7,22 +30,18 @@
     @test reciprocals(m) ≈ [index(value(k)) for k in m]
     @test euclideans(m)  ≈ [euclidean(k, m) for k in m]
 
-    # call to grid
+    # mapping to mesh index
     for trial in 1 : 10
-        p = rand(points(m))
-        @test m(value(p)) == index(p)
-        @test m(euclidean(p, m)) == index(p)
-    end 
-
-    # periodic boundary conditions 
-    for trial in 1 : 10 
         p  = rand(points(m))
         n  = SVector{2, Int64}(rand(-4 : 4), rand(-4 : 4))
         q1 = value(p) + BrillouinPoint(domain(m)[:bz].L .* n)
         q2 = euclidean(p, m) + basis(domain(m)[:bz]) * n
-        @test m(q1) == index(p)
-        @test m(q2) == index(p)
-    end
+
+        @test MatsubaraFunctions.mesh_index(value(p), m) == index(p)
+        @test MatsubaraFunctions.mesh_index(euclidean(p, m), m) == index(p)
+        @test MatsubaraFunctions.mesh_index_bc(q1, m) == index(p)
+        @test MatsubaraFunctions.mesh_index(q2, m) == index(p) # call with Vector of Float does backfolding anyways
+    end 
 
     # io
     file = h5open("test.h5", "w")

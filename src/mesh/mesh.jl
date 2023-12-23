@@ -158,40 +158,16 @@ function Base.:iterate(
     end
 end
 
-# test if mesh point is valid
-#-------------------------------------------------------------------------------#
-
-# check if the mesh point is valid
-function is_valid(
-    m :: Mesh{T}, 
-    x :: T
-    ) :: Bool where {T <: AbstractMeshPoint}
-
-    return x.hash == m.hash
-end
-
-# get index of mesh point if valid
-function index_valid(
-    m :: Mesh{T}, 
-    x :: T
-    ) :: Int64 where {T <: AbstractMeshPoint}
-
-    @DEBUG is_valid(m, x) "Mesh point invalid"
-    return index(x)
-end
-
 # load implementations and export
 #-------------------------------------------------------------------------------#
 
 # for each value type the respective mesh must implement:
 # - outer constructor
+# - mappings from mesh point and value type to mesh index 
+# - boundary conditions
 # - comparison operator
-# - method to call mesh with value type for mapping to mesh index
 
-include("matsubara/matsubara_freq.jl")
 include("matsubara/matsubara_mesh.jl")
-include("brillouin/brillouin_pt.jl")
-include("brillouin/brillouin_zone.jl")
 include("brillouin/brillouin_mesh.jl")
 
 export

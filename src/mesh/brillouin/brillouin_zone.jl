@@ -110,22 +110,6 @@ function euclidean(
     return basis(bz) * (index(k) ./ bz.L)
 end
 
-"""
-    function euclidean(
-        k  :: SVector{N, Int64},
-        bz :: BrillouinZone{N}
-        )  :: SVector{N, Float64} where {N}
-
-Convert reciprocal to euclidean coordinates
-"""
-function euclidean(
-    k  :: SVector{N, Int64},
-    bz :: BrillouinZone{N}
-    )  :: SVector{N, Float64} where {N}
-
-    return basis(bz) * (k ./ bz.L)
-end
-
 # conversion from euclidean to reciprocal coordinates
 #-------------------------------------------------------------------------------#
 
@@ -166,22 +150,6 @@ end
 
 """
     function is_inbounds(
-        k  :: SVector{N, Int64},
-        bz :: BrillouinZone{N}
-        )  :: Bool where {N}
-
-Checks if reciprocal coordinates in bounds
-"""
-function is_inbounds(
-    k  :: SVector{N, Int64},
-    bz :: BrillouinZone{N}
-    )  :: Bool where {N}
-
-    return all(kn -> 0 <= kn < bz.L, k)
-end
-
-"""
-    function is_inbounds(
         k  :: SVector{N, Float64},
         bz :: BrillouinZone{N}
         )  :: Bool where {N}
@@ -217,25 +185,7 @@ function fold_back(
     bz :: BrillouinZone{N}
     )  :: BrillouinPoint{N} where {N}
 
-    # no prior bound checks to improve performance in case back folding is needed
     return BrillouinPoint(ntuple(n -> positive_modulo(index(k)[n], bz.L), N)...)
-end
-
-"""
-    function fold_back(
-        k  :: SVector{N, Int64},
-        bz :: BrillouinZone{N}
-        )  :: SVector{N, Int64} where {N}
-
-Use periodic boundary conditions to fold `k` back into mesh
-"""
-function fold_back(
-    k  :: SVector{N, Int64},
-    bz :: BrillouinZone{N}
-    )  :: SVector{N, Int64} where {N}
-
-    # no prior bound checks to improve performance in case back folding is needed
-    return SVector{N, Int64}(ntuple(n -> positive_modulo(k[n], bz.L), N)...)
 end
 
 """
@@ -246,14 +196,12 @@ end
 
 Use periodic boundary conditions to fold `k` back into mesh
 """
-# slower than back folding in reciprocal space, should be avoided if possible
-function fold_back( 
+function fold_back( # slower than back folding in reciprocal space, should be avoided if possible
     k  :: SVector{N, Float64},
     bz :: BrillouinZone{N}
     )  :: SVector{N, Float64} where {N}
 
     x = reciprocal(k, bz)
-    # no prior bound checks to improve performance in case back folding is needed
     return basis(bz) * (SVector{N, Float64}(ntuple(n -> positive_modulo(x[n], bz.L), N)...) ./ bz.L)
 end
 
@@ -299,6 +247,7 @@ end
 export 
     BrillouinZone,
     basis,
+    inv_basis,
     euclidean,
     reciprocal,
     is_inbounds,
