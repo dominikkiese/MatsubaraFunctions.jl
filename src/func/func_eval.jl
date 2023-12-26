@@ -20,10 +20,10 @@ function upper_tail_moments(
     dist = ceil(Int64, 1.0 / min(temperature(firstvalue(meshes(f, 1))), 1.0))
     idx  = lastindex(meshes(f, 1)) - dist
     @DEBUG idx > ceil(Int64, 0.75 * lastindex(meshes(f, 1))) "Grid is too small for extrapolation"
-    val(x) = value(value(x))
+
     # read data
     y1, y2     = f.data[end, x...] - α0, f.data[idx, x...] - α0
-    x1, x2     = 1.0 / val(meshes(f, 1)[end]), 1.0 / val(meshes(f, 1)[idx])
+    x1, x2     = 1.0 / plain_value(meshes(f, 1)[end]), 1.0 / plain_value(meshes(f, 1)[idx])
     x1sq, x2sq = x1 * x1, x2 * x2
     dtinv      = 1.0 / (x1 * x2sq - x2 * x1sq)
 

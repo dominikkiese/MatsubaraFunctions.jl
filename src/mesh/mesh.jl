@@ -215,8 +215,8 @@ function (m :: AbstractMesh)(
     ) :: Int64
 
     if is_inbounds(p, m)
-        delta    = value(value(m[2])) - value(value(m[1]))
-        position = (w - value(value(f[1]))) / delta
+        delta    = plain_value(m[2]) - plain_value(m[1])
+        position = (w - plain_value(f[1])) / delta
         return round(Int64, position) + 1
     else 
         error("Frequency not in grid")

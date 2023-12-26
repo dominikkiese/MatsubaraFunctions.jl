@@ -45,24 +45,8 @@ struct InterpolationParam{N}
         ) :: InterpolationParam where {PT <: AbstractParticle}
 
         # calculate mesh spacing and position in mesh
-        val   = x -> value(value(x))
-        #w     = max(first_value(m), min(w, last_value(m)))
-        #delta = val(m[firstindex(m)+1]) - first_value(m)
-        #x     = (w - first_value(m)) / delta
-        #println("delta: ", delta)
-        #println("x: ", x)
-        ## calculate mesh indices and interpolation weights
-        #indices = floor(Int64, x)   , min(ceil(Int64, x), lastindex(m))
-        #println("indices: ", indices)
-        #if first(indices) < last(indices)
-        #    weights = (val(m[last(indices)]) - w) / delta, (w - val(m[first(indices)])) / delta
-        #    return InterpolationParam(indices, weights)
-        #else 
-        #    return InterpolationParam(first(indices), 1.0)
-        #end
-
-        delta    = val(m[2]) - val(m[1])
-        position = (w - val(m[0])) / delta
+        delta    = plain_value(m[2]) - plain_value(m[1])
+        position = (w - plain_value(m[0])) / delta
 
         # nearest-neighbor indices
         # add min to upper index to improve robustness with respect to rounding errors
@@ -70,7 +54,7 @@ struct InterpolationParam{N}
 
         # interpolation weights
         if dn_idx < up_idx
-            return InterpolationParam((dn_idx, up_idx), ((val(m[up_idx]) - w) / delta, (w - val(m[dn_idx])) / delta))
+            return InterpolationParam((dn_idx, up_idx), ((plain_value(m[up_idx]) - w) / delta, (w - plain_value(m[dn_idx])) / delta))
         else
             return InterpolationParam((up_idx, up_idx), (1.0, 0.0))
         end

@@ -7,8 +7,8 @@
     @test length(wBoson)   == 199
 
     # iterator
-    @test [values(wFermion)...] ≈ Float64[value(value(w)) for w in wFermion]
-    @test [values(wBoson)...]   ≈ Float64[value(value(w)) for w in wBoson]
+    @test [values(wFermion)...] ≈ Float64[plain_value(w) for w in wFermion]
+    @test [values(wBoson)...]   ≈ Float64[plain_value(w) for w in wBoson]
 
     wFermion_idx = rand(eachindex(wFermion))
     wBoson_idx   = rand(eachindex(wBoson))

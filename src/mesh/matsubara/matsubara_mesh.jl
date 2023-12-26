@@ -117,7 +117,7 @@ function first_value(
     m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
     ) :: Float64 where {PT <: AbstractParticle}
 
-    return value(value(m[firstindex(m)]))
+    return plain_value(m[firstindex(m)])
 end
 
 """
@@ -131,7 +131,7 @@ function last_value(
     m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
     ) :: Float64 where {PT <: AbstractParticle}
 
-    return value(value(m[end]))
+    return plain_value(m[end])
 end
 
 """
@@ -244,8 +244,8 @@ function mesh_index( # returns index of closest frequency
     ) :: Int64 where {PT <: AbstractParticle}
 
     @DEBUG is_inbounds(w, m) "Value not in mesh"
-    delta    = value(value(m[2])) - value(value(m[1]))
-    position = (w - value(value(m[0]))) / delta
+    delta    = plain_value(m[2]) - plain_value(m[1])
+    position = (w - plain_value(m[0])) / delta
     return round(Int64, position)# + 1
 end
 

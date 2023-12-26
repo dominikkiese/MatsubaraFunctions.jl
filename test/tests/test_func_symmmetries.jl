@@ -5,14 +5,14 @@
     f3 = MeshFunction(g)
 
     for v in g
-        f1[v] = 1.0 / (im * value(value(v)) - 0.5)
+        f1[v] = 1.0 / (im * plain_value(v) - 0.5)
     end
 
     # complex conjugation for Green's function
     function conj(
-        w :: Tuple{MeshPoint{MatsubaraFrequency{PT}}},
+        w :: Tuple{Union{MeshPoint{MatsubaraFrequency{PT}},MatsubaraFrequency{PT}}},
         x :: Tuple{}
-        ) :: Tuple{Tuple{MeshPoint{MatsubaraFrequency{PT}}}, Tuple{}, MeshOperation} where{PT}
+        ) :: Tuple{Tuple{MatsubaraFrequency{PT}}, Tuple{}, MeshOperation} where{PT}
 
         return (-w[1],), (), MeshOperation(false, true)
     end 

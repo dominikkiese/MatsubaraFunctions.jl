@@ -43,6 +43,35 @@ function value(
     return x.value
 end 
 
+
+"""
+    function plain_value(
+        x :: MeshPoint{T}
+        ) where {T <: AbstractValue}  
+
+Returns the plain underlying value of the mesh point `value(x.value)`.
+"""
+function plain_value(
+    x :: MeshPoint{T}
+    ) where {T <: AbstractValue} 
+
+    return value(x.value)
+end 
+
+"""
+    function plain_value(
+        x :: AbstractValue
+        )
+
+Returns the plain underlying value of the mesh point `value(x.value)`.
+"""
+function plain_value(
+    x :: AbstractValue
+    )
+
+    return value(x)
+end 
+
 # arithmetic operations
 #-------------------------------------------------------------------------------#
 
@@ -50,27 +79,61 @@ end
 # each value type must implement +, - and sign reversal
 
 function Base.:+(
-    x1 :: MeshPoint{T},
-    x2 :: MeshPoint{T}
-    )  :: MeshPoint{T} where {T <: AbstractValue} 
-    val_new = value(x1) + value(x2)
-    return MeshPoint{T}(x.hash, index(val_new), val_new)
+    x1 :: MeshPoint{T1},
+    x2 :: MeshPoint{T2}
+    ) where {T1 <: AbstractValue, T2 <: AbstractValue} 
+    
+    return value(x1) + value(x2)
 end
 
 function Base.:-(
-    x1 :: MeshPoint{T},
-    x2 :: MeshPoint{T}
-    )  :: MeshPoint{T} where {T <: AbstractValue} 
-    val_new = value(x1) - value(x2)
-    return MeshPoint{T}(x.hash, index(val_new), val_new)
+    x1 :: MeshPoint{T1},
+    x2 :: MeshPoint{T2}
+    ) where {T1 <: AbstractValue, T2 <: AbstractValue} 
+    
+    return value(x1) - value(x2)
 end
 
 function Base.:-(
-    x :: MeshPoint{T},
-    ) :: MeshPoint{T} where {T <: AbstractValue} 
-    val_new = -value(x)
-    return MeshPoint{T}(x.hash, index(val_new), val_new)
+    x :: MeshPoint{T1},
+    ) :: T1 where {T1 <: AbstractValue} 
+    
+    return -value(x)
 end
+
+
+function Base.:+(
+    x1 :: T1,
+    x2 :: MeshPoint{T2}
+    ) where {T1 <: AbstractValue, T2 <: AbstractValue} 
+    
+    return x1 + value(x2)
+end
+
+function Base.:-(
+    x1 :: T1,
+    x2 :: MeshPoint{T2}
+    ) where {T1 <: AbstractValue, T2 <: AbstractValue} 
+    
+    return x1 - value(x2)
+end
+
+function Base.:+(
+    x1 :: MeshPoint{T1},
+    x2 :: T2
+    ) where {T1 <: AbstractValue, T2 <: AbstractValue} 
+    
+    return value(x1) + x2
+end
+
+function Base.:-(
+    x1 :: MeshPoint{T1},
+    x2 :: T2
+    ) where {T1 <: AbstractValue, T2 <: AbstractValue} 
+    
+    return value(x1) - x2
+end
+
 
 # comparison operator
 #-------------------------------------------------------------------------------#
@@ -93,4 +156,5 @@ end
 export 
     MeshPoint,
     index,
-    value
+    value,
+    plain_value

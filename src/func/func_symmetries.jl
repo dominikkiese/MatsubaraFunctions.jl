@@ -148,7 +148,7 @@ struct MeshSymmetryGroup{GD, SD, DD, Q <: Number}
 
         return new{GD, SD, DD, Q}([[(idx, MeshOperation())] for idx in eachindex(f.data)], 1.0)
     end
- 
+    MeshSymmetryGroup
     function MeshSymmetryGroup(
         symmetries :: Vector{MeshSymmetry{GD, SD}},
         f          :: MeshFunction{GD, SD, DD, Q}

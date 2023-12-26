@@ -3,13 +3,13 @@
     f = MeshFunction(g)
 
     for v in g
-        f[v] = 1.0 / (im * value(value(v)) - 0.5)
+        f[v] = 1.0 / (im * plain_value(v) - 0.5)
     end
 
     function conj(
-        w :: Tuple{MeshPoint{MatsubaraFrequency{PT}}},
+        w :: Tuple{Union{MeshPoint{MatsubaraFrequency{PT}},MatsubaraFrequency{PT}}},
         x :: Tuple{}
-        ) :: Tuple{Tuple{MeshPoint{MatsubaraFrequency{PT}}}, Tuple{}, MeshOperation} where{PT}
+        ) :: Tuple{Tuple{MatsubaraFrequency{PT}}, Tuple{}, MeshOperation} where{PT}
 
         return (-w[1],), (), MeshOperation(false, true)
     end 
