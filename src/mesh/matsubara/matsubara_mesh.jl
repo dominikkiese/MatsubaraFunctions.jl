@@ -19,13 +19,10 @@ function MatsubaraMesh(
     )           :: Mesh{MeshPoint{MatsubaraFrequency{Fermion}}}
 
     HASH      = hash(temperature, hash(N, hash(Fermion)))
-    idx_range = -N : N - 1
-    points    = Vector{MeshPoint{MatsubaraFrequency{Fermion}}}(undef, length(idx_range))
-
-    for lin_idx in eachindex(idx_range)
-        points[lin_idx] = MeshPoint(HASH, lin_idx, MatsubaraFrequency(temperature, idx_range[lin_idx], Fermion))
-    end 
-
+    
+    points = OffsetVector([
+        MeshPoint(HASH, lin_idx, MatsubaraFrequency(temperature, lin_idx, Fermion)) for lin_idx in -N : N - 1
+        ], -N - 1)
     domain = Dict(:temperature => temperature, :N => N, :type => "Fermion")
     return Mesh(HASH, points, domain)
 end
@@ -46,15 +43,39 @@ function MatsubaraMesh(
     )           :: Mesh{MeshPoint{MatsubaraFrequency{Boson}}}
 
     HASH      = hash(temperature, hash(N, hash(Boson)))
-    idx_range = -N + 1 : N - 1
-    points    = Vector{MeshPoint{MatsubaraFrequency{Boson}}}(undef, length(idx_range))
-
-    for lin_idx in eachindex(idx_range)
-        points[lin_idx] = MeshPoint(HASH, lin_idx, MatsubaraFrequency(temperature, idx_range[lin_idx], Boson))
-    end 
-
+    #idx_range = -N + 1 : N - 1
+    #points    = Vector{MeshPoint{MatsubaraFrequency{Boson}}}(undef, length(idx_range), -N)
+#
+    #for lin_idx in eachindex(idx_range)
+    #    points[lin_idx] = MeshPoint(HASH, lin_idx, MatsubaraFrequency(temperature, idx_range[lin_idx], Boson))
+    #end 
+    points = OffsetVector([
+        MeshPoint(HASH, lin_idx, MatsubaraFrequency(temperature, lin_idx, Boson)) for lin_idx in -N + 1: N - 1
+        ], -N)
     domain = Dict(:temperature => temperature, :N => N, :type => "Boson")
     return Mesh(HASH, points, domain)
+end
+
+"""
+    function info(
+        grid :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
+        )    :: Nothing where {PT <: AbstractParticle}
+
+Prints summary of grid properties
+"""
+function info(
+    grid :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
+    )    :: Nothing where {PT <: AbstractParticle}
+
+    println("MatsubaraGrid properties")
+    println("------------------------")
+    println("Particle type : $(string(PT))")
+    println("Temperature   : $(temperature(grid))")
+    println("Length        : $(length(grid))")
+    println("Index range   : $(axes(grid))")
+    println("Value range   : ($(firstvalue(grid)), $(lastvalue(grid)))")
+
+    return nothing
 end
 
 """
@@ -68,7 +89,7 @@ function first_index(
     m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
     ) :: Int64 where {PT <: AbstractParticle}
 
-    return index(value(m[1]))
+    return firstindex(m)
 end
 
 """
@@ -82,7 +103,7 @@ function last_index(
     m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
     ) :: Int64 where {PT <: AbstractParticle}
 
-    return index(value(m[end]))
+    return lastindex(m)
 end
 
 """
@@ -96,7 +117,7 @@ function first_value(
     m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
     ) :: Float64 where {PT <: AbstractParticle}
 
-    return value(value(m[1]))
+    return value(value(m[firstindex(m)]))
 end
 
 """
@@ -116,13 +137,13 @@ end
 """
     function indices(
         m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
-        ) :: Vector{Int64} where {PT <: AbstractParticle}
+        ) :: OffsetVector{Int64,Vector{Int64}} where {PT <: AbstractParticle}
 
 Return indices of all Matsubara frequencies in mesh
 """
 function indices(
     m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
-    ) :: Vector{Int64} where {PT <: AbstractParticle}
+    ) :: OffsetVector{Int64,Vector{Int64}} where {PT <: AbstractParticle}
 
     return index.(value.(points(m)))
 end
@@ -130,19 +151,20 @@ end
 """
     function values(
         m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
-        ) :: Vector{Float64} where {PT <: AbstractParticle}
+        ) :: OffsetVector{Int64,Vector{Int64}} where {PT <: AbstractParticle}
 
 Return values of all Matsubara frequencies in mesh
 """
 function Base.:values(
     m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
-    ) :: Vector{Float64} where {PT <: AbstractParticle}
+    ) :: OffsetVector{Float64,Vector{Float64}} where {PT <: AbstractParticle}
 
     return value.(value.(points(m)))
 end
 
 # bounds checking
 #-------------------------------------------------------------------------------#
+
 
 """
     function is_inbounds(
@@ -158,7 +180,7 @@ function is_inbounds(
     ) :: Bool where {PT <: AbstractParticle}
 
     @DEBUG temperature(w) ≈ domain(m)[:temperature] "Temperature must be equal between Matsubara frequency and grid"
-    return first_index(m) <= index(w) <= last_index(m)
+    return firstindex(m) <= index(w) <= lastindex(m)
 end
 
 """
@@ -175,6 +197,20 @@ function is_inbounds(
     ) :: Bool where {PT <: AbstractParticle}
 
     return first_value(m) <= w <= last_value(m)
+end
+
+"""
+    function N(
+        grid :: AbstractMesh
+        )    :: Int64
+
+Returns that value `N` used to construct the grid
+"""
+function N(
+    grid :: AbstractMesh
+    )    :: Int64
+
+    return lastindex(grid) + 1
 end
 
 # mapping to mesh index
@@ -196,9 +232,9 @@ function mesh_index(
     m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
     ) :: Int64 where {PT <: AbstractParticle}
 
-    @DEBUG is_inbounds(w, m) "Matsubara frequency not in mesh"
+    #@DEBUG is_inbounds(w, m) "Matsubara frequency not in mesh"
     @DEBUG temperature(w) ≈ domain(m)[:temperature] "Temperature must be equal between Matsubara frequency and mesh"
-    return index(w) - first_index(m) + 1
+    return index(w)# - first_index(m) + 1
 end
 
 # from Float
@@ -209,8 +245,8 @@ function mesh_index( # returns index of closest frequency
 
     @DEBUG is_inbounds(w, m) "Value not in mesh"
     delta    = value(value(m[2])) - value(value(m[1]))
-    position = (w - value(value(m[1]))) / delta
-    return round(Int64, position) + 1
+    position = (w - value(value(m[0]))) / delta
+    return round(Int64, position)# + 1
 end
 
 # from mesh point with bc
@@ -228,7 +264,7 @@ function mesh_index_bc(
     m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
     ) :: Int64 where {PT <: AbstractParticle}
 
-    return max(1, min(mesh_index(w, m), length(m)))
+    return max(firstindex(m), min(mesh_index(w, m), lastindex(m)))
 end
 
 # comparison operator

@@ -1,20 +1,3 @@
-# abstract types
-#-------------------------------------------------------------------------------#
-
-"""
-    abstract type AbstractMeshPoint
-
-AbstractMeshPoint type
-"""
-abstract type AbstractMeshPoint end
-
-"""
-    abstract type AbstractValue
-
-AbstractValue type
-"""
-abstract type AbstractValue end
-
 # type def and accessors
 #-------------------------------------------------------------------------------#
 
@@ -69,24 +52,24 @@ end
 function Base.:+(
     x1 :: MeshPoint{T},
     x2 :: MeshPoint{T}
-    )  :: T where {T <: AbstractValue} 
-
-    return value(x1) + value(x2)
+    )  :: MeshPoint{T} where {T <: AbstractValue} 
+    val_new = value(x1) + value(x2)
+    return MeshPoint{T}(x.hash, index(val_new), val_new)
 end
 
 function Base.:-(
     x1 :: MeshPoint{T},
     x2 :: MeshPoint{T}
-    )  :: T where {T <: AbstractValue} 
-
-    return value(x1) - value(x2)
+    )  :: MeshPoint{T} where {T <: AbstractValue} 
+    val_new = value(x1) - value(x2)
+    return MeshPoint{T}(x.hash, index(val_new), val_new)
 end
 
 function Base.:-(
     x :: MeshPoint{T},
-    ) :: T where {T <: AbstractValue} 
-
-    return -value(x)
+    ) :: MeshPoint{T} where {T <: AbstractValue} 
+    val_new = -value(x)
+    return MeshPoint{T}(x.hash, index(val_new), val_new)
 end
 
 # comparison operator
@@ -108,8 +91,6 @@ end
 #-------------------------------------------------------------------------------#
 
 export 
-    AbstractMeshPoint,
-    AbstractValue,
     MeshPoint,
     index,
     value

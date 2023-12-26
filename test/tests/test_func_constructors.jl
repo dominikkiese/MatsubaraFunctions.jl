@@ -3,16 +3,20 @@
     k2 = (2.0 * pi / 3) .* SVector{2, Float64}(1, -sqrt(3.0))
     m1 = BrillouinZoneMesh(BrillouinZone(6, k1, k2))
     m2 = MatsubaraMesh(1.0, 10, Fermion)
+    m3 = MatsubaraMesh(1.0, 1, Boson)
 
     # scalar-valued
     @test typeof(MeshFunction(m1)) == MeshFunction{1, 0, 1, ComplexF64}
     @test typeof(MeshFunction((m1, m2))) == MeshFunction{2, 0, 2, ComplexF64}
+    @test typeof(MeshFunction((m1, m2, m3))) == MeshFunction{3, 0, 3, ComplexF64}
 
     # tensor-valued
     @test typeof(MeshFunction(m1, 1)) == MeshFunction{1, 1, 2, ComplexF64}
     @test typeof(MeshFunction(m1, 1, 1)) == MeshFunction{1, 2, 3, ComplexF64}
     @test typeof(MeshFunction((m1, m2), 1)) == MeshFunction{2, 1, 3, ComplexF64}
     @test typeof(MeshFunction((m1, m2), 1, 1)) == MeshFunction{2, 2, 4, ComplexF64}
+    @test typeof(MeshFunction((m1, m2, m3), 1)) == MeshFunction{3, 1, 4, ComplexF64}
+    @test typeof(MeshFunction((m1, m2, m3), 1, 1)) == MeshFunction{3, 2, 5, ComplexF64}
 
     # change data type 
     @test typeof(MeshFunction(m1; data_t = Float64)) == MeshFunction{1, 0, 1, Float64}

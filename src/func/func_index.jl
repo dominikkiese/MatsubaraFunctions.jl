@@ -26,7 +26,7 @@ function Base.:CartesianIndex(
     idx :: Int64
     )   :: CartesianIndex{DD} where {MD, SD, DD, Q <: Number}
 
-    return CartesianIndices(size(f.data))[idx]
+    return CartesianIndices(f.data)[idx]
 end
 
 # linear index
@@ -47,7 +47,7 @@ function LinearIndex(
     x :: Vararg{Int64, SD} 
     ) :: Int64 where {MD, SD, DD, Q <: Number}
 
-    return LinearIndices(size(f.data))[ntuple(i -> mesh_index(p[i], meshes(f, i)), MD)..., x...]
+    return LinearIndices(f.data)[ntuple(i -> mesh_index(p[i], meshes(f, i)), MD)..., x...]
 end
 
 """
@@ -81,7 +81,7 @@ function LinearIndex(
     cidx :: CartesianIndex{DD}
     )    :: Int64 where {MD, SD, DD, Q <: Number}
 
-    return LinearIndices(size(f.data))[cidx]
+    return LinearIndices(f.data)[cidx]
 end
 
 """
@@ -97,7 +97,7 @@ function LinearIndex(
     x :: Vararg{Int64, DD}
     ) :: Int64 where {MD, SD, DD, Q <: Number}
 
-    return LinearIndices(size(f.data))[x...]
+    return LinearIndices(f.data )[x...]
 end
 
 # conversion to meshes

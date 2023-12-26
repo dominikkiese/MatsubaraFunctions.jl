@@ -1,27 +1,3 @@
-# abstract types 
-#-------------------------------------------------------------------------------#
-
-"""
-    abstract type AbstractParticle
-
-AbstractParticle type
-"""
-abstract type AbstractParticle end 
-
-"""
-    struct Fermion <: AbstractParticle
-
-Fermionic particle type
-"""
-struct Fermion <: AbstractParticle end 
-
-"""
-    struct Boson <: AbstractParticle
-
-Bosonic particle type
-"""
-struct Boson <: AbstractParticle end
-
 # type def and accessors
 #-------------------------------------------------------------------------------#
 
@@ -37,6 +13,17 @@ struct MatsubaraFrequency{PT <: AbstractParticle} <: AbstractValue
     temperature :: Float64 
     value       :: Float64
     index       :: Int64 
+
+    # standard constructor for custom particle type
+    function MatsubaraFrequency(
+        temperature :: Float64, 
+        value       :: Float64, 
+        index       :: Int64,
+                    :: Type{PT}
+        )   :: MatsubaraFrequency{PT} where {PT <: AbstractParticle}
+        
+        return new{PT}(temperature, value, index)
+    end 
 
     # constructor for fermionic frequencies 
     function MatsubaraFrequency(

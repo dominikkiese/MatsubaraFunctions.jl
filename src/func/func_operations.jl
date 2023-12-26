@@ -32,16 +32,16 @@ end
 # debugging
 #-------------------------------------------------------------------------------#
 
-function debug_f1_f2(
+function check_shape_grid!(
     f1 :: MeshFunction{GD, SD, DD, Q}, 
     f2 :: MeshFunction{GD, SD, DD, Q}
     )  :: Nothing where {GD, SD, DD, Q <: Number}
 
-    @DEBUG size(f1.data) == size(f2.data) "Size of data arrays not equal"
-    @DEBUG shape(f1) == shape(f2) "Index structures are not equal"
+    @DEBUG axes(f1) == axes(f2) "Data shapes must be equal"
 
     for i in 1 : GD 
-        @DEBUG meshes(f1, i) == meshes(f2, i) "Meshes are different"
+        @DEBUG meshes(f1, i) == meshes(f2, i) "Meshes must be equivalent" 
+        @DEBUG axes(meshes(f1, i)) == axes(meshes(f2, i)) == axes(f1, i) "Meshes must have same index range" 
     end
 
     return nothing 
@@ -55,7 +55,7 @@ function Base.:(==)(
     f2 :: MeshFunction
     )  :: Bool
 
-    debug_f1_f2(f1, f2) 
+    check_shape_grid!(f1, f2) 
     return f1.data ≈ f2.data 
 end
 
@@ -75,7 +75,7 @@ function add(
     f2 :: MeshFunction
     )  :: MeshFunction
 
-    debug_f1_f2(f1, f2)
+    check_shape_grid!(f1, f2)
     return MeshFunction(Mesh.(meshes(f1)), shape(f1), f1.data .+ f2.data)
 end
 
@@ -100,7 +100,7 @@ function add!(
     f2 :: MeshFunction
     )  :: Nothing
 
-    debug_f1_f2(f1, f2)
+    check_shape_grid!(f1, f2)
     f1.data .+= f2.data
     return nothing 
 end
@@ -121,7 +121,7 @@ function subtract(
     f2 :: MeshFunction
     )  :: MeshFunction
 
-    debug_f1_f2(f1, f2)
+    check_shape_grid!(f1, f2)
     return MeshFunction(Mesh.(meshes(f1)), shape(f1), f1.data .- f2.data)
 end
 
@@ -146,7 +146,7 @@ function subtract!(
     f2 :: MeshFunction
     )  :: Nothing
 
-    debug_f1_f2(f1, f2)
+    check_shape_grid!(f1, f2)
     f1.data .-= f2.data
 
     return nothing 
@@ -237,7 +237,7 @@ function set!(
     arr :: Array{Qp, DD},
     )   :: Nothing where {GD, SD, DD, Q <: Number, Qp <: Number}
 
-    f.data .= arr
+    OffsetArrays.no_offset_view(f.data) .= arr
     return nothing
 end
 
@@ -254,7 +254,7 @@ function set!(
     f2 :: MeshFunction
     )  :: Nothing
 
-    debug_f1_f2(f1, f2)
+    check_shape_grid!(f1, f2)
     f1.data .= f2.data
     return nothing
 end
@@ -274,7 +274,7 @@ function flatten(
     ) :: Vector{Q} where {GD, SD, DD, Q <: Number}
 
     x  = Vector{Q}(undef, length(f.data))
-    x .= @view f.data[:]
+    flatten!(f, x)
     return x
 end
 
@@ -291,7 +291,8 @@ function flatten!(
     x :: AbstractVector
     ) :: Nothing
 
-    x .= @view f.data[:]
+    f_view = @view f.data[:]
+    copyto!(x, firstindex(x), f_view, firstindex(f_view), length(f_view))
     return nothing
 end
 
@@ -308,7 +309,8 @@ function unflatten!(
     x :: AbstractVector
     ) :: Nothing
     
-    f.data[:] .= x
+    f_view = @view f.data[:]
+    copyto!(f_view, firstindex(f_view), x, firstindex(x))
     return nothing
 end
 

@@ -26,11 +26,11 @@ end
     mBoson   = MatsubaraMesh(1.0, 10, Boson)
 
     # iterator
-    @test indices(mFermion) ≈ [index(value(w)) for w in mFermion]
-    @test indices(mBoson)   ≈ [index(value(w)) for w in mBoson]
+    @test OffsetArrays.no_offset_view(indices(mFermion)) ≈ [index(value(w)) for w in mFermion]
+    @test OffsetArrays.no_offset_view(indices(mBoson))   ≈ [index(value(w)) for w in mBoson]
 
-    @test values(mFermion) ≈ [value(value(w)) for w in mFermion]
-    @test values(mBoson)   ≈ [value(value(w)) for w in mBoson]
+    @test OffsetArrays.no_offset_view(values(mFermion))  ≈ [value(value(w)) for w in mFermion]
+    @test OffsetArrays.no_offset_view(values(mBoson))    ≈ [value(value(w)) for w in mBoson]
 
     # call to grid
     for trial in 1 : 10

@@ -12,12 +12,13 @@ MeshFunction type with fields:
 struct MeshFunction{MD, SD, DD, Q <: Number}
     meshes :: NTuple{MD, AbstractMesh}
     shape  :: NTuple{SD, Int64}          
-    data   :: Array{Q, DD}
+    offset :: NTuple{DD, Int64}          
+    data   :: OffsetArray{Q, DD, Array{Q, DD}}
 
     function MeshFunction(
         meshes :: NTuple{MD, AbstractMesh}, 
         shape  :: NTuple{SD, Int64}, 
-        data   :: Array{Q, DD}
+        data   :: OffsetArray{Q, DD, Array{Q, DD}}
         )      :: MeshFunction{MD, SD, DD, Q} where {MD, SD, DD, Q <: Number}
 
         if Q <: Integer || Q <: Complex{Int} 
@@ -26,17 +27,19 @@ struct MeshFunction{MD, SD, DD, Q <: Number}
 
         @DEBUG MD > 0 "Mesh dimension cannot be zero"
         @DEBUG MD + SD == DD "Data dimension incompatible with meshes and shape"
-        return new{MD, SD, DD, Q}(meshes, shape, data)
+        return new{MD, SD, DD, Q}(meshes, shape, ntuple(i -> firstindex(data, i) - 1, DD), data)
     end
 
     function MeshFunction(
         meshes :: NTuple{MD, AbstractMesh},
         shape  :: Vararg{Int64, SD}
         ;
-        data_t :: DataType = ComplexF64
+        data_t :: DataType = ComplexF64,
+        shape_offset :: NTuple{SD,Int64} = ntuple(i -> 0, SD)
         )      :: MeshFunction{MD, SD, MD + SD, data_t} where {MD, SD}
         
-        data = Array{data_t, MD + SD}(undef, length.(meshes)..., shape...)
+        #data = Array{data_t, MD + SD}(undef, length.(meshes)..., shape...)
+        data = OffsetArray(Array{data_t, MD + SD}(undef, length.(meshes)..., shape...), (firstindex.(meshes) .- 1) ..., shape_offset...)
         return MeshFunction(Mesh.(meshes), ntuple(i -> shape[i], SD), data)
     end
 
@@ -44,10 +47,11 @@ struct MeshFunction{MD, SD, DD, Q <: Number}
         mesh   :: AbstractMesh,
         shape  :: Vararg{Int64, SD}
         ;
-        data_t :: DataType = ComplexF64
+        data_t :: DataType = ComplexF64,
+        shape_offset :: NTuple{SD,Int64} = ntuple(i -> 0, SD)
         )      :: MeshFunction{1, SD, 1 + SD, data_t} where {SD}
 
-        return MeshFunction((mesh,), shape...; data_t)
+        return MeshFunction((mesh,), shape...; data_t, shape_offset)
     end
 
     function MeshFunction(
@@ -137,6 +141,31 @@ function shape(
     return f.shape[idx]
 end 
 
+"""
+    function axes(f :: MeshFunction)
+
+Returns a tuple of valid index ranges for `f.data`
+"""
+function Base.:axes(f :: MeshFunction)
+    return axes(f.data)
+end
+
+"""
+    function axes(f :: MeshFunction, idx :: Int64)
+
+Returns the range of valid indices along dimension `idx` of `f.data`
+"""
+function Base.:axes(f :: MeshFunction, idx :: Int64)
+    return axes(f.data, idx)
+end
+
+function Base.size(
+    f :: MeshFunction{GD, SD, DD, Q}
+    ) :: NTuple{DD, Int64} where {GD, SD, DD, Q <: Number}
+    
+    return size(f.data)
+end
+
 function Base.:copy(
     f :: MeshFunction
     ) :: MeshFunction
@@ -151,6 +180,8 @@ include("func_operations.jl")
 include("func_index.jl")
 include("func_itp.jl")
 include("func_eval.jl")
+include("func_symmetries.jl")
+include("func_io.jl")
 
 export 
     MeshFunction, 

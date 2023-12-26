@@ -1,14 +1,5 @@
 include("mesh_point.jl")
 
-# abstract types
-#-------------------------------------------------------------------------------#
-
-"""
-    abstract type AbstractMesh
-
-AbstractMesh type
-"""
-abstract type AbstractMesh end
 
 # type def and accessors
 #-------------------------------------------------------------------------------#
@@ -23,12 +14,12 @@ Mesh type with fields:
 """
 struct Mesh{T <: AbstractMeshPoint} <: AbstractMesh
     hash   :: UInt64 # no accessor, only for internal use
-    points :: Vector{T}  
+    points :: OffsetVector{T,Vector{T}}
     domain :: Dict  
 
     function Mesh(
         hash   :: UInt64,
-        points :: Vector{T},
+        points :: OffsetVector{T,Vector{T}},
         domain :: Dict  
         )      :: Mesh{T} where {T <: AbstractMeshPoint}
 
@@ -50,7 +41,7 @@ Returns `m.points`
 """
 function points(
     m :: Mesh{T}
-    ) :: Vector{T} where {T <: AbstractMeshPoint}
+    ) :: OffsetVector{T,Vector{T}} where {T <: AbstractMeshPoint}
 
     return m.points
 end
@@ -97,11 +88,18 @@ end
 
 function Base.:eachindex(
     m :: AbstractMesh
-    ) :: Base.OneTo{Int64}
+    ) #:: Base.OneTo{Int64}
 
     return eachindex(points(m))
 end
 
+"""
+    function firstindex(
+        grid :: AbstractMesh
+        )    :: Int64
+
+Returns the index of the first Matsubara frequency in grid
+"""
 function Base.:firstindex(
     m :: AbstractMesh
     ) :: Int64
@@ -109,11 +107,55 @@ function Base.:firstindex(
     return firstindex(points(m))
 end
 
+"""
+    function lastindex(
+        grid :: AbstractMesh
+        )    :: Int64
+
+Returns the index of the last Matsubara frequency in grid
+"""
 function Base.:lastindex(
     m :: AbstractMesh
     ) :: Int64
 
     return lastindex(points(m))
+end
+
+"""
+    function axes(grid :: AbstractMesh)
+
+Returns range of valid indices for Mesh
+"""
+function Base.:axes(grid :: AbstractMesh)
+    return first(axes(grid.points))
+end
+
+"""
+    function firstvalue(
+        grid :: AbstractMesh
+        )    :: Float64
+
+Returns the value of the first Matsubara frequency in grid
+"""
+function firstvalue(
+    grid :: AbstractMesh
+    )    :: AbstractValue
+
+    return value(grid.points[firstindex(grid)])
+end
+
+"""
+    function lastvalue(
+        grid :: AbstractMesh
+        )    :: AbstractValue
+
+Returns the value of the last Matsubara frequency in grid
+"""
+function lastvalue(
+    grid :: AbstractMesh
+    )    :: AbstractValue
+    
+    return value(grid.points[end])
 end
 
 function Base.:getindex(
@@ -127,7 +169,7 @@ end
 function Base.:getindex(
     m    :: Mesh{T},
     idxs :: UnitRange{Int64}
-    )    :: SubArray{T, 1, Vector{T}, Tuple{UnitRange{Int64}}, true} where {T <: AbstractMeshPoint}
+    )    :: SubArray{T, 1, OffsetVector{T,Vector{T}}, Tuple{UnitRange{Int64}}, true} where {T <: AbstractMeshPoint}
 
     return @view points(m)[idxs]
 end
@@ -136,6 +178,52 @@ function Base.:copy(m :: Mesh) :: Mesh
     return Mesh(m)
 end
 
+
+#----------------------------------------------------------------------------------------------#
+
+"""
+    function is_inbounds(
+        w :: MatsubaraFrequency{PT},
+        m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
+        ) :: Bool where {PT <: AbstractParticle}
+
+Checks if Matsubara frequency in mesh
+"""
+function is_inbounds(
+    p :: AbstractMeshPoint,
+    m :: Mesh{T}
+    ) :: Bool where {T}
+
+    return is_inbounds(value(p), m)
+end
+
+# returns index to data array corresponding to this frequency if in grid
+function (m :: AbstractMesh)(
+    p :: Union{AbstractValue,AbstractMeshPoint}
+    ) :: Int64
+
+    if is_inbounds(p, m)
+        return mesh_index(p, m)
+    else 
+        error("Point is not in mesh")
+    end 
+end
+
+# returns index to data array corresponding to closest frequency if in grid
+function (m :: AbstractMesh)(
+    p :: Float64
+    ) :: Int64
+
+    if is_inbounds(p, m)
+        delta    = value(value(m[2])) - value(value(m[1]))
+        position = (w - value(value(f[1]))) / delta
+        return round(Int64, position) + 1
+    else 
+        error("Frequency not in grid")
+    end 
+end
+
+
 # iterate
 #-------------------------------------------------------------------------------#
  
@@ -143,7 +231,7 @@ function Base.:iterate(
     m :: Mesh{T}
     ) :: Tuple{T, Int64} where {T <: AbstractMeshPoint}
 
-    return m[1], 1 
+    return m[firstindex(m)], 1 
 end 
 
 function Base.:iterate(
@@ -152,7 +240,7 @@ function Base.:iterate(
     )     :: Union{Nothing, Tuple{T, Int64}} where {T <: AbstractMeshPoint}
 
     if state < length(m)
-        return m[state + 1], state + 1 
+        return m[state + firstindex(m)], state + 1 
     else 
         return nothing 
     end
