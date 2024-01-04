@@ -107,13 +107,13 @@ function last_index(
 end
 
 """
-    function first_value(
+    function first_plain_value(
         m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
         ) :: Float64 where {PT <: AbstractParticle}
 
 Returns the value of the first Matsubara frequency in mesh
 """
-function first_value(
+function first_plain_value(
     m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
     ) :: Float64 where {PT <: AbstractParticle}
 
@@ -121,13 +121,13 @@ function first_value(
 end
 
 """
-    function last_value(
+    function last_plain_value(
         m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
         ) :: Float64 where {PT <: AbstractParticle}
 
 Returns the value of the last Matsubara frequency in mesh
 """
-function last_value(
+function last_plain_value(
     m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
     ) :: Float64 where {PT <: AbstractParticle}
 
@@ -196,7 +196,7 @@ function is_inbounds(
     m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
     ) :: Bool where {PT <: AbstractParticle}
 
-    return first_value(m) <= w <= last_value(m)
+    return first_plain_value(m) <= w <= last_plain_value(m)
 end
 
 """
@@ -365,8 +365,8 @@ export
     MatsubaraMesh,
     first_index,
     last_index,
-    first_value,
-    last_value,
+    first_plain_value,
+    last_plain_value,
     indices,
     values,
     is_inbounds,

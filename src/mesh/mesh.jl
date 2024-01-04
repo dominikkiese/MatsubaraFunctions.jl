@@ -141,7 +141,7 @@ function firstvalue(
     grid :: AbstractMesh
     )    :: AbstractValue
 
-    return value(grid.points[firstindex(grid)])
+    return value(first(grid.points))
 end
 
 """
@@ -155,7 +155,7 @@ function lastvalue(
     grid :: AbstractMesh
     )    :: AbstractValue
     
-    return value(grid.points[end])
+    return value(last(grid.points))
 end
 
 function Base.:getindex(

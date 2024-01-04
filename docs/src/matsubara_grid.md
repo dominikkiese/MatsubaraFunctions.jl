@@ -83,11 +83,11 @@ N
 ```
 
 ```@docs
-first_value
+first_plain_value
 ```
 
 ```@docs
-last_value
+last_plain_value
 ```
 
 ```@docs

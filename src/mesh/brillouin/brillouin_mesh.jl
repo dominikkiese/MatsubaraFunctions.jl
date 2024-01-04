@@ -18,12 +18,7 @@ function BrillouinZoneMesh(
     HASH     = hash(bz, hash(bz.L, hash(N)))
     ranges   = ntuple(x -> 0 : bz.L - 1, N)
     lin_idxs = LinearIndices(ranges)
-    #points   = OffsetArray{MeshPoint{BrillouinPoint{N}},Vector{MeshPoint{BrillouinPoint{N}}}}(undef, bz.L^N)
-#
-    #for idxs in Iterators.product(ranges...)
-    #    lin_idx         = lin_idxs[(idxs .+ 1)...]
-    #    points[lin_idx] = MeshPoint(HASH, lin_idx, BrillouinPoint(idxs...))
-    #end 
+
     points = OffsetVector([MeshPoint(HASH, lin_idxs[(idxs .+ 1)...], BrillouinPoint(idxs...)) for idxs in Iterators.product(ranges...)][:])
     domain = Dict(:lin_idxs => lin_idxs, :bz => bz)
     return Mesh(HASH, points, domain)
