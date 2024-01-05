@@ -7,7 +7,7 @@
 BrillouinZone struct with fields:
 * `L         :: Int64`                  : linear system size
 * `basis     :: SMatrix{N, N, Float64}` : matrix with reciprocal lattice vectors as columns
-* `inv_basis :: SMatrix{N, N, Float64}` : inverse of `basis`
+* `inv_basis :: SMatrix{N, N, Float64}` : matrix inverse of `basis`
 """
 struct BrillouinZone{N}
     L         :: Int64

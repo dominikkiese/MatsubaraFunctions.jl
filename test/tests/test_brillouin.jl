@@ -4,19 +4,29 @@
     m  = BrillouinZoneMesh(BrillouinZone(6, k1, k2))
 
     for trial in 1 : 10 
-        q1    = value(m[rand(eachindex(m))])
-        q2    = value(m[rand(eachindex(m))])
+        x1    = m[rand(eachindex(m))]
+        x2    = m[rand(eachindex(m))]
+        q1    = value(x1)
+        q2    = value(x2)
         q1vec = euclidean(q1, m)
         q2vec = euclidean(q2, m)
 
         # addition 
+        @test euclidean(x1 + x2, m) ≈ q1vec + q2vec
+        @test euclidean(x1 + q2, m) ≈ q1vec + q2vec
+        @test euclidean(q1 + x2, m) ≈ q1vec + q2vec
         @test euclidean(q1 + q2, m) ≈ q1vec + q2vec
 
         # subtraction
+        @test euclidean(x1 - x2, m) ≈ q1vec - q2vec
+        @test euclidean(x1 - q2, m) ≈ q1vec - q2vec
+        @test euclidean(q1 - x2, m) ≈ q1vec - q2vec
         @test euclidean(q1 - q2, m) ≈ q1vec - q2vec
 
         # reflection
+        @test euclidean(-x1, m) ≈ -q1vec
         @test euclidean(-q1, m) ≈ -q1vec
+        @test euclidean(-x2, m) ≈ -q2vec
         @test euclidean(-q2, m) ≈ -q2vec
     end
 end

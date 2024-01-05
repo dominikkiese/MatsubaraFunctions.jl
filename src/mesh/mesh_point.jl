@@ -66,22 +66,57 @@ end
 # mesh point operations are operations on their values
 # each value type must implement +, - and sign reversal
 
+# addition
 function Base.:+(
-    x1 :: MeshPoint{T},
-    x2 :: MeshPoint{T}
-    )  :: T where {T <: AbstractValue} 
+    x1 :: MeshPoint{T1},
+    x2 :: MeshPoint{T2}
+    ) where {T1 <: AbstractValue, T2 <: AbstractValue} 
 
     return value(x1) + value(x2)
 end
 
+function Base.:+(
+    x1 :: T1,
+    x2 :: MeshPoint{T2}
+    ) where {T1 <: AbstractValue, T2 <: AbstractValue} 
+
+    return x1 + value(x2)
+end
+
+function Base.:+(
+    x1 :: MeshPoint{T1},
+    x2 :: T2
+    ) where {T1 <: AbstractValue, T2 <: AbstractValue} 
+
+    return value(x1) + x2
+end
+
+# subtraction
 function Base.:-(
-    x1 :: MeshPoint{T},
-    x2 :: MeshPoint{T}
-    )  :: T where {T <: AbstractValue} 
+    x1 :: MeshPoint{T1},
+    x2 :: MeshPoint{T2}
+    ) where {T1 <: AbstractValue, T2 <: AbstractValue} 
 
     return value(x1) - value(x2)
 end
 
+function Base.:-(
+    x1 :: T1,
+    x2 :: MeshPoint{T2}
+    ) where {T1 <: AbstractValue, T2 <: AbstractValue} 
+
+    return x1 - value(x2)
+end
+
+function Base.:-(
+    x1 :: MeshPoint{T1},
+    x2 :: T2
+    ) where {T1 <: AbstractValue, T2 <: AbstractValue} 
+
+    return value(x1) - x2
+end
+
+# sign reversal
 function Base.:-(
     x :: MeshPoint{T},
     ) :: T where {T <: AbstractValue} 
