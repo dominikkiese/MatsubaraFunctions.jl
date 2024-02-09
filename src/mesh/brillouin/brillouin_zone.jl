@@ -107,7 +107,7 @@ function euclidean(
     bz :: BrillouinZone{N}
     )  :: SVector{N, Float64} where {N}
 
-    return basis(bz) * (index(k) ./ bz.L)
+    return basis(bz) * (value(k) ./ bz.L)
 end
 
 # conversion from euclidean to reciprocal coordinates
@@ -145,7 +145,7 @@ function is_inbounds(
     bz :: BrillouinZone{N}
     )  :: Bool where {N}
 
-    return all(kn -> 0 <= kn < bz.L, index(k))
+    return all(kn -> 0 <= kn < bz.L, value(k))
 end
 
 """
@@ -185,7 +185,7 @@ function fold_back(
     bz :: BrillouinZone{N}
     )  :: BrillouinPoint{N} where {N}
 
-    return BrillouinPoint(map(kn -> positive_modulo(kn, bz.L), index(k)))
+    return BrillouinPoint(map(kn -> positive_modulo(kn, bz.L), value(k)))
 end
 
 """

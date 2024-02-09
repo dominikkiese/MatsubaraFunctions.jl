@@ -45,6 +45,6 @@ end
         pts  = ntuple(n -> meshes(f2, n)[idxs[n]], 2)
         val  = f2[idxs...]
 
-        @test f2(euclidean(pts[1], m1), value(value(pts[2]))) ≈ val
+        @test f2(euclidean(pts[1], m1), plain_value(pts[2])) ≈ val
     end
 end

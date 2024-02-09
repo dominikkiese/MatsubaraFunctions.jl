@@ -60,6 +60,15 @@ function value(
     return x.value
 end 
 
+"""
+    function plain_value(x :: MeshPoint{T}) where {T <: AbstractValue} 
+
+Returns the plain underlying value of the mesh point `value(value(x))`.
+"""
+function plain_value(x :: MeshPoint{T}) where {T <: AbstractValue} 
+    return value(value(x))
+end 
+
 # arithmetic operations
 #-------------------------------------------------------------------------------#
 
@@ -147,4 +156,5 @@ export
     AbstractValue,
     MeshPoint,
     index,
-    value
+    value,
+    plain_value

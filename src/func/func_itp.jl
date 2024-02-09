@@ -45,16 +45,15 @@ struct InterpolationParam{N}
         ) :: InterpolationParam where {PT <: AbstractParticle}
 
         # calculate mesh spacing and position in mesh
-        val   = x -> value(value(x))
         w     = max(first_value(m), min(w, last_value(m)))
-        delta = val(m[2]) - val(m[1])
-        x     = (w - val(m[1])) / delta
+        delta = plain_value(m[2]) - plain_value(m[1])
+        x     = (w - plain_value(m[1])) / delta
 
         # calculate mesh indices and interpolation weights
         indices = floor(Int64, x) + 1, min(ceil(Int64, x) + 1, length(m))
 
         if first(indices) < last(indices)
-            weights = (val(m[last(indices)]) - w) / delta, (w - val(m[first(indices)])) / delta
+            weights = (plain_value(m[last(indices)]) - w) / delta, (w - plain_value(m[first(indices)])) / delta
             return InterpolationParam(indices, weights)
         else 
             return InterpolationParam(first(indices), 1.0)

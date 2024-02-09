@@ -37,7 +37,7 @@ end
     m  = BrillouinZoneMesh(BrillouinZone(6, k1, k2))
 
     # iterator
-    @test reciprocals(m) ≈ [index(value(k)) for k in m]
+    @test reciprocals(m) ≈ [plain_value(k) for k in m]
     @test euclideans(m)  ≈ [euclidean(k, m) for k in m]
 
     # mapping to mesh index

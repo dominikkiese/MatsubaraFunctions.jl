@@ -5,38 +5,38 @@
     struct BrillouinPoint{N} <: AbstractValue
     
 BrillouinPoint type with fields:
-* `index :: SVector{N, Int64}` : coordinates in reciprocal space
+* `value :: SVector{N, Int64}` : coordinates in reciprocal space
 """
 struct BrillouinPoint{N} <: AbstractValue where {N}
-    index :: SVector{N, Int64}
+    value :: SVector{N, Int64}
 
     function BrillouinPoint(
-        index :: SVector{N, Int64}
+        value :: SVector{N, Int64}
         )     :: BrillouinPoint{N} where {N}
 
-        return new{N}(index)
+        return new{N}(value)
     end 
 
     function BrillouinPoint(
-        index :: Vararg{Int64, N}
+        value :: Vararg{Int64, N}
         )     :: BrillouinPoint{N} where {N}
 
-        return new{N}(SVector{N, Int64}(index...))
+        return new{N}(SVector{N, Int64}(value...))
     end 
 end
 
 """
-    function index(
+    function value(
         k :: BrillouinPoint{N}
         ) :: SVector{N, Int64}
 
-Returns `k.index`
+Returns `k.value`
 """ 
-function index(
+function value(
     k :: BrillouinPoint{N}
     ) :: SVector{N, Int64} where {N}
 
-    return k.index 
+    return k.value 
 end
 
 # arithmetic operations
@@ -48,7 +48,7 @@ function Base.:+(
     k2 :: BrillouinPoint{N}
     )  :: BrillouinPoint{N} where {N} 
 
-    return BrillouinPoint(index(k1) .+ index(k2))
+    return BrillouinPoint(value(k1) .+ value(k2))
 end
 
 # subtraction 
@@ -57,7 +57,7 @@ function Base.:-(
     k2 :: BrillouinPoint{N}
     )  :: BrillouinPoint{N} where {N} 
 
-    return BrillouinPoint(index(k1) .- index(k2))
+    return BrillouinPoint(value(k1) .- value(k2))
 end
 
 # sign reversal 
@@ -65,7 +65,7 @@ function Base.:-(
     k :: BrillouinPoint{N}
     ) :: BrillouinPoint{N} where {N} 
 
-    return BrillouinPoint(-index(k))
+    return BrillouinPoint(-value(k))
 end
 
 # comparison operator
@@ -76,7 +76,7 @@ function Base.:(==)(
     k2 :: BrillouinPoint{N},
     )  :: Bool where {N} 
 
-    return index(k1) == index(k2)
+    return value(k1) == value(k2)
 end 
 
 # export
@@ -84,4 +84,4 @@ end
 
 export 
     BrillouinPoint,
-    index
+    value

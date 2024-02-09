@@ -29,18 +29,18 @@ end
     @test indices(mFermion) ≈ [index(value(w)) for w in mFermion]
     @test indices(mBoson)   ≈ [index(value(w)) for w in mBoson]
 
-    @test values(mFermion) ≈ [value(value(w)) for w in mFermion]
-    @test values(mBoson)   ≈ [value(value(w)) for w in mBoson]
+    @test values(mFermion) ≈ [plain_value(w) for w in mFermion]
+    @test values(mBoson)   ≈ [plain_value(w) for w in mBoson]
 
     # call to grid
     for trial in 1 : 10
         pFermion = rand(points(mFermion))
         @test MatsubaraFunctions.mesh_index(value(pFermion), mFermion) == index(pFermion)
-        @test MatsubaraFunctions.mesh_index(value(value(pFermion)), mFermion) == index(pFermion)
+        @test MatsubaraFunctions.mesh_index(plain_value(pFermion), mFermion) == index(pFermion)
 
         pBoson = rand(points(mBoson))
         @test MatsubaraFunctions.mesh_index(value(pBoson), mBoson) == index(pBoson)
-        @test MatsubaraFunctions.mesh_index(value(value(pBoson)), mBoson) == index(pBoson)
+        @test MatsubaraFunctions.mesh_index(plain_value(pBoson), mBoson) == index(pBoson)
     end 
     
     # io

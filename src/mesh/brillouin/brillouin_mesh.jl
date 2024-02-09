@@ -109,7 +109,7 @@ function reciprocals(
     m :: Mesh{MeshPoint{BrillouinPoint{N}}}
     ) :: Vector{SVector{N, Int64}} where {N}
 
-    return index.(value.(points(m)))
+    return plain_value.(points(m))
 end
 
 # bounds checking
@@ -170,7 +170,7 @@ function mesh_index(
     ) :: Int64 where {N}
     
     @DEBUG is_inbounds(k, m) "Momentum not in mesh"
-    return domain(m)[:lin_idxs][(index(k) .+ 1)...]
+    return domain(m)[:lin_idxs][(value(k) .+ 1)...]
 end
 
 # from Vector of Float
