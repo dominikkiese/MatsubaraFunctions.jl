@@ -205,6 +205,23 @@ function is_inbounds(
     return first_value(m) <= w <= last_value(m)
 end
 
+function is_inbounds_bc(
+    w :: MeshPoint{MatsubaraFrequency{PT}},
+    m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
+    ) :: Bool where {PT <: AbstractParticle}
+
+    @DEBUG w.hash == m.hash "Mesh point invalid"
+    return true
+end
+
+function is_inbounds_bc(
+    w :: Union{MatsubaraFrequency{PT}, Float64},
+    m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
+    ) :: Bool where {PT <: AbstractParticle}
+
+    return is_inbounds(w, m)
+end
+
 # mapping to mesh index
 #-------------------------------------------------------------------------------#
 
@@ -241,22 +258,13 @@ function mesh_index( # returns index of closest frequency
     return round(Int64, position) + 1
 end
 
-# from mesh point with bc
+# from mesh point or value type with bc
 function mesh_index_bc(
-    w :: MeshPoint{MatsubaraFrequency{PT}},
+    w :: Union{MeshPoint{MatsubaraFrequency{PT}}, MatsubaraFrequency{PT}},
     m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
     ) :: Int64 where {PT <: AbstractParticle}
 
     return mesh_index(w, m)
-end
-
-# from value type with bc
-function mesh_index_bc(
-    w :: MatsubaraFrequency{PT},
-    m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
-    ) :: Int64 where {PT <: AbstractParticle}
-
-    return max(1, min(mesh_index(w, m), length(m)))
 end
 
 # comparison operator
@@ -359,6 +367,8 @@ export
     last_index,
     first_value,
     last_value,
+    first_frequency,
+    last_frequency,
     indices,
     values,
     is_inbounds,

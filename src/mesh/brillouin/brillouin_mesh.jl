@@ -131,6 +131,23 @@ function is_inbounds(
     return is_inbounds(k, domain(m)[:bz])
 end
 
+function is_inbounds_bc(
+    k :: MeshPoint{BrillouinPoint{N}},
+    m :: Mesh{MeshPoint{BrillouinPoint{N}}}
+    ) :: Bool where {N}
+
+    @DEBUG k.hash == m.hash "Mesh point invalid"
+    return true
+end
+
+function is_inbounds_bc(
+    k :: Union{BrillouinPoint{N}, SVector{N, Float64}},
+    m :: Mesh{MeshPoint{BrillouinPoint{N}}}
+    ) :: Bool where {N}
+
+    return true
+end
+
 # periodic boundary conditions
 #-------------------------------------------------------------------------------#
 
