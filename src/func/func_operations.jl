@@ -2,40 +2,28 @@
 #-------------------------------------------------------------------------------#
 
 """
-    function absmax(
-        f :: MeshFunction
-        ) :: Float64
+    function absmax(f :: MeshFunction) :: Float64
 
 Returns ∞-norm of `f.data`
 """
-function absmax(
-    f :: MeshFunction
-    ) :: Float64
-
+function absmax(f :: MeshFunction) :: Float64
     return norm(f.data, inf)
 end
 
 """
-    function arg_absmax(
-        f :: MeshFunction{MD, SD, DD, Q}
-        ) :: CartesianIndex{DD} where {MD, SD, DD, Q <: Number}
+    function arg_absmax(f :: MeshFunction{MD, SD, DD, Q, AT}) :: CartesianIndex{DD} where {MD, SD, DD, Q <: Number, AT <: AbstractArray{Q, DD}}
 
 Returns cartesian index of `absmax(f)`
 """
-function arg_absmax(
-    f :: MeshFunction{MD, SD, DD, Q}
-    ) :: CartesianIndex{DD} where {MD, SD, DD, Q <: Number}
-
+function arg_absmax(f :: MeshFunction{MD, SD, DD, Q, AT}) :: CartesianIndex{DD} where {MD, SD, DD, Q <: Number, AT <: AbstractArray{Q, DD}}
     return argmax(abs.(f.data))
 end
 
 # debugging
 #-------------------------------------------------------------------------------#
 
-function debug_f1_f2(
-    f1 :: MeshFunction{GD, SD, DD, Q}, 
-    f2 :: MeshFunction{GD, SD, DD, Q}
-    )  :: Nothing where {GD, SD, DD, Q <: Number}
+function debug_f1_f2(f1 :: MeshFunction{GD, SD, DD, Q, AT}, f2 :: MeshFunction{GD, SD, DD, Q, BT}
+    ) where {GD, SD, DD, Q <: Number, AT <: AbstractArray{Q, DD}, BT <: AbstractArray{Q, DD}}
 
     @DEBUG size(f1.data) == size(f2.data) "Size of data arrays not equal"
     @DEBUG shape(f1) == shape(f2) "Index structures are not equal"
@@ -50,11 +38,7 @@ end
 # comparison
 #-------------------------------------------------------------------------------#
 
-function Base.:(==)(    
-    f1 :: MeshFunction,
-    f2 :: MeshFunction
-    )  :: Bool
-
+function Base.:(==)(f1 :: MeshFunction, f2 :: MeshFunction)
     debug_f1_f2(f1, f2) 
     return f1.data ≈ f2.data 
 end
@@ -63,43 +47,25 @@ end
 #-------------------------------------------------------------------------------#
 
 """
-    function add(
-        f1 :: MeshFunction, 
-        f2 :: MeshFunction
-        )  :: MeshFunction
+    function add(f1 :: MeshFunction, f2 :: MeshFunction) :: MeshFunction
 
 Addition of two MeshFunction, returns new MeshFunction. For brevity, use f1 + f2.
 """
-function add(
-    f1 :: MeshFunction, 
-    f2 :: MeshFunction
-    )  :: MeshFunction
-
+function add(f1 :: MeshFunction, f2 :: MeshFunction) :: MeshFunction
     debug_f1_f2(f1, f2)
     return MeshFunction(Mesh.(meshes(f1)), shape(f1), f1.data .+ f2.data)
 end
 
-function Base.:+(
-    f1 :: MeshFunction, 
-    f2 :: MeshFunction
-    )  :: MeshFunction
-
+function Base.:+(f1 :: MeshFunction, f2 :: MeshFunction)
     return add(f1, f2)
 end
 
 """
-    function add!(
-        f1 :: MeshFunction, 
-        f2 :: MeshFunction
-        )  :: Nothing
+    function add!(f1 :: MeshFunction, f2 :: MeshFunction) :: Nothing
 
 Inplace addition of two MeshFunction (`f1 += f2`)
 """
-function add!(
-    f1 :: MeshFunction, 
-    f2 :: MeshFunction
-    )  :: Nothing
-
+function add!(f1 :: MeshFunction, f2 :: MeshFunction) :: Nothing
     debug_f1_f2(f1, f2)
     f1.data .+= f2.data
     return nothing 
@@ -109,46 +75,27 @@ end
 #-------------------------------------------------------------------------------#
 
 """
-    function subtract(
-        f1 :: MeshFunction, 
-        f2 :: MeshFunction
-        )  :: MeshFunction
+    function subtract(f1 :: MeshFunction, f2 :: MeshFunction) :: MeshFunction
 
 Subtraction of two MeshFunction, returns new MeshFunction. For brevity, use f1 - f2.
 """
-function subtract(
-    f1 :: MeshFunction, 
-    f2 :: MeshFunction
-    )  :: MeshFunction
-
+function subtract(f1 :: MeshFunction, f2 :: MeshFunction) :: MeshFunction
     debug_f1_f2(f1, f2)
     return MeshFunction(Mesh.(meshes(f1)), shape(f1), f1.data .- f2.data)
 end
 
-function Base.:-(
-    f1 :: MeshFunction, 
-    f2 :: MeshFunction
-    )  :: MeshFunction
-
+function Base.:-(f1 :: MeshFunction, f2 :: MeshFunction)
     return subtract(f1, f2)
 end
 
 """
-    function subtract!(
-        f1 :: MeshFunction, 
-        f2 :: MeshFunction
-        )  :: Nothing
+    function subtract!(f1 :: MeshFunction, f2 :: MeshFunction) :: Nothing
 
 Inplace subtraction of two MeshFunction (`f1 -= f2`)
 """
-function subtract!(
-    f1 :: MeshFunction, 
-    f2 :: MeshFunction
-    )  :: Nothing
-
+function subtract!(f1 :: MeshFunction, f2 :: MeshFunction) :: Nothing
     debug_f1_f2(f1, f2)
     f1.data .-= f2.data
-
     return nothing 
 end
 
@@ -156,49 +103,33 @@ end
 #-------------------------------------------------------------------------------#
 
 """
-    function mult(
-        f   :: MeshFunction{GD, SD, DD, Q},
-        val :: Qp
-        )   :: MeshFunction{GD, SD, DD, Q} where {GD, SD, DD, Q <: Number, Qp <: Number}
+    function mult(f :: MeshFunction{GD, SD, DD, Q, AT}, val :: Qp
+        ) :: MeshFunction{GD, SD, DD, Q, AT} where {GD, SD, DD, Q <: Number, Qp <: Number, AT <: AbstractArray{Q, DD}}
 
 Multiplication of MeshFunction with scalar, returns new MeshFunction. For brevity, use val * f or f * val.
 """
-function mult(
-    f   :: MeshFunction{GD, SD, DD, Q},
-    val :: Qp
-    )   :: MeshFunction{GD, SD, DD, Q} where {GD, SD, DD, Q <: Number, Qp <: Number}
+function mult(f :: MeshFunction{GD, SD, DD, Q, AT}, val :: Qp
+    ) :: MeshFunction{GD, SD, DD, Q, AT} where {GD, SD, DD, Q <: Number, Qp <: Number, AT <: AbstractArray{Q, DD}}
 
     return MeshFunction(Mesh.(meshes(f)), shape(f), val .* f.data)
 end
 
-function Base.:*(
-    f   :: MeshFunction{GD, SD, DD, Q},
-    val :: Qp
-    )   :: MeshFunction{GD, SD, DD, Q} where {GD, SD, DD, Q <: Number, Qp <: Number}
-
+function Base.:*(f :: MeshFunction{GD, SD, DD, Q, AT}, val :: Qp) where {GD, SD, DD, Q <: Number, Qp <: Number, AT <: AbstractArray{Q, DD}}
     return mult(f, val)
 end
 
-function Base.:*(
-    val :: Qp,
-    f   :: MeshFunction{GD, SD, DD, Q}
-    )   :: MeshFunction{GD, SD, DD, Q} where {GD, SD, DD, Q <: Number, Qp <: Number}
-
+function Base.:*(val :: Qp, f :: MeshFunction{GD, SD, DD, Q, AT}) where {GD, SD, DD, Q <: Number, Qp <: Number, AT <: AbstractArray{Q, DD}}
     return mult(f, val)
 end
 
 """
-    function mult!(
-        f   :: MeshFunction{GD, SD, DD, Q},
-        val :: Qp
-        )   :: Nothing where {GD, SD, DD, Q <: Number, Qp <: Number}
+    function mult!(f :: MeshFunction{GD, SD, DD, Q, AT}, val :: Qp
+        ) :: Nothing where {GD, SD, DD, Q <: Number, Qp <: Number, AT <: AbstractArray{Q, DD}}
 
 Inplace multiplication of MeshFunction with scalar (`f *= val`)
 """
-function mult!(
-    f   :: MeshFunction{GD, SD, DD, Q},
-    val :: Qp
-    )   :: Nothing where {GD, SD, DD, Q <: Number, Qp <: Number}
+function mult!(f :: MeshFunction{GD, SD, DD, Q, AT}, val :: Qp
+    ) :: Nothing where {GD, SD, DD, Q <: Number, Qp <: Number, AT <: AbstractArray{Q, DD}}
 
     f.data .*= val 
     return nothing
@@ -208,52 +139,37 @@ end
 #-------------------------------------------------------------------------------#
 
 """
-    function set!(
-        f   :: MeshFunction{GD, SD, DD, Q},
-        val :: Qp,
-        )   :: Nothing where {GD, SD, DD, Q <: Number, Qp <: Number}
+    function set!(f :: MeshFunction{GD, SD, DD, Q, AT}, val :: Qp
+        ) :: Nothing where {GD, SD, DD, Q <: Number, Qp <: Number, AT <: AbstractArray{Q, DD}}
 
 Initialize MeshFunction with `val`
 """
-function set!(
-    f   :: MeshFunction{GD, SD, DD, Q},
-    val :: Qp,
-    )   :: Nothing where {GD, SD, DD, Q <: Number, Qp <: Number}
+function set!(f :: MeshFunction{GD, SD, DD, Q, AT}, val :: Qp
+    ) :: Nothing where {GD, SD, DD, Q <: Number, Qp <: Number, AT <: AbstractArray{Q, DD}}
 
     f.data .= val
     return nothing
 end
 
 """
-    function set!(
-        f   :: MeshFunction{GD, SD, DD, Q},
-        arr :: Array{Qp, DD},
-        )   :: Nothing where {GD, SD, DD, Q <: Number, Qp <: Number}
+    function set!(f :: MeshFunction{GD, SD, DD, Q, AT}, arr :: Array{Qp, DD}
+        ) :: Nothing where {GD, SD, DD, Q <: Number, Qp <: Number, AT <: AbstractArray{Q, DD}}
 
 Initialize MeshFunction with `arr`
 """
-function set!(
-    f   :: MeshFunction{GD, SD, DD, Q},
-    arr :: Array{Qp, DD},
-    )   :: Nothing where {GD, SD, DD, Q <: Number, Qp <: Number}
+function set!(f :: MeshFunction{GD, SD, DD, Q, AT}, arr :: Array{Qp, DD}
+    ) :: Nothing where {GD, SD, DD, Q <: Number, Qp <: Number, AT <: AbstractArray{Q, DD}}
 
     f.data .= arr
     return nothing
 end
 
 """
-    function set!(
-        f1 :: MeshFunction,
-        f2 :: MeshFunction
-        )  :: Nothing
+    function set!(f1 :: MeshFunction, f2 :: MeshFunction) :: Nothing
 
 Initialize MeshFunction with another MeshFunction (`f1 = f2`)
 """
-function set!(
-    f1 :: MeshFunction,
-    f2 :: MeshFunction
-    )  :: Nothing
-
+function set!(f1 :: MeshFunction, f2 :: MeshFunction) :: Nothing
     debug_f1_f2(f1, f2)
     f1.data .= f2.data
     return nothing
@@ -263,50 +179,37 @@ end
 #-------------------------------------------------------------------------------#
 
 """
-    function flatten(
-        f :: MeshFunction{GD, SD, DD, Q}
-        ) :: Vector{Q} where {GD, SD, DD, Q <: Number}
+    function flatten(f :: MeshFunction{GD, SD, DD, Q, AT}) :: Vector{Q} where {GD, SD, DD, Q <: Number, AT <: AbstractArray{Q, DD}}
 
 Flatten data array of MeshFunction and return vector of the corresponding data type
 """
-function flatten(
-    f :: MeshFunction{GD, SD, DD, Q}
-    ) :: Vector{Q} where {GD, SD, DD, Q <: Number}
-
+function flatten(f :: MeshFunction{GD, SD, DD, Q, AT}) :: Vector{Q} where {GD, SD, DD, Q <: Number, AT <: AbstractArray{Q, DD}}
     x  = Vector{Q}(undef, length(f.data))
     x .= @view f.data[:]
     return x
 end
 
 """
-    function flatten!(
-        f :: MeshFunction,
-        x :: AbstractVector
-        ) :: Nothing
+    function flatten!(f :: MeshFunction{GD, SD, DD, Q, AT}, x :: T
+        ) :: Nothing where {GD, SD, DD, Q <: Number, T <: AbstractVector{Q}, AT <: AbstractArray{Q, DD}}
 
 Flatten data array of MeshFunction into vector
 """
-function flatten!(
-    f :: MeshFunction,
-    x :: AbstractVector
-    ) :: Nothing
+function flatten!(f :: MeshFunction{GD, SD, DD, Q, AT}, x :: T
+    ) :: Nothing where {GD, SD, DD, Q <: Number, T <: AbstractVector{Q}, AT <: AbstractArray{Q, DD}}
 
     x .= @view f.data[:]
     return nothing
 end
 
 """
-    function unflatten!(
-        f :: MeshFunction,
-        x :: AbstractVector
-        ) :: Nothing
+    function unflatten!(f :: MeshFunction{GD, SD, DD, Q, AT}, x :: T
+        ) :: Nothing where {GD, SD, DD, Q <: Number, T <: AbstractVector{Q}, AT <: AbstractArray{Q, DD}}
 
 Initialize data array of MeshFunction from vector
 """
-function unflatten!(
-    f :: MeshFunction,
-    x :: AbstractVector
-    ) :: Nothing
+function unflatten!(f :: MeshFunction{GD, SD, DD, Q, AT}, x :: T
+    ) :: Nothing where {GD, SD, DD, Q <: Number, T <: AbstractVector{Q}, AT <: AbstractArray{Q, DD}}
     
     f.data[:] .= x
     return nothing

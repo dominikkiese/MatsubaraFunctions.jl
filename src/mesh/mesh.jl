@@ -30,127 +30,83 @@ struct Mesh{T <: AbstractMeshPoint} <: AbstractMesh
         hash   :: UInt64,
         points :: Vector{T},
         domain :: Dict  
-        )      :: Mesh{T} where {T <: AbstractMeshPoint}
+        ) where {T <: AbstractMeshPoint}
 
         return new{T}(hash, points, domain)
     end
 
     # copy constructor
-    function Mesh(m :: Mesh) :: Mesh
+    function Mesh(m :: Mesh)
         return Mesh(m.hash, copy(points(m)), copy(domain(m)))
     end
 end
 
 """
-    function points(
-        m :: Mesh{T}
-        ) :: Vector{T} where {T <: AbstractMeshPoint}
+    function points(m :: Mesh{T}) :: Vector{T} where {T <: AbstractMeshPoint}
 
 Returns `m.points`
 """
-function points(
-    m :: Mesh{T}
-    ) :: Vector{T} where {T <: AbstractMeshPoint}
-
+function points(m :: Mesh{T}) :: Vector{T} where {T <: AbstractMeshPoint}
     return m.points
 end
 
 """
-    function points(
-        m   :: Mesh{T},
-        idx :: Int64
-        )   :: T where {T <: AbstractMeshPoint}
+    function points(m :: Mesh{T}, idx :: Int64) :: T where {T <: AbstractMeshPoint}
 
 Returns `m.points[idx]`
 """
-function points(
-    m   :: Mesh{T},
-    idx :: Int64
-    )   :: T where {T <: AbstractMeshPoint}
-
+function points(m :: Mesh{T}, idx :: Int64) :: T where {T <: AbstractMeshPoint}
     return m.points[idx]
 end
 
 """
-    function domain(
-        m :: AbstractMesh
-        ) :: Dict
+    function domain(m :: Mesh) :: Dict
 
 Returns `m.domain`
 """
-function domain(
-    m :: AbstractMesh
-    ) :: Dict
-
+function domain(m :: Mesh) :: Dict
     return m.domain 
 end
 
-function Base.:length(
-    m :: AbstractMesh
-    ) :: Int64
-
+function Base.:length(m :: Mesh)
     return length(points(m))
 end
 
 # indexing
 #-------------------------------------------------------------------------------#
 
-function Base.:eachindex(
-    m :: AbstractMesh
-    ) :: Base.OneTo{Int64}
-
+function Base.:eachindex(m :: Mesh)
     return eachindex(points(m))
 end
 
-function Base.:firstindex(
-    m :: AbstractMesh
-    ) :: Int64
-
+function Base.:firstindex(m :: Mesh)
     return firstindex(points(m))
 end
 
-function Base.:lastindex(
-    m :: AbstractMesh
-    ) :: Int64
-
+function Base.:lastindex(m :: Mesh)
     return lastindex(points(m))
 end
 
-function Base.:getindex(
-    m   :: Mesh{T},
-    idx :: Int64
-    )   :: T where {T <: AbstractMeshPoint}
-
+function Base.:getindex(m :: Mesh, idx :: Int64)
     return points(m, idx)
 end
 
-function Base.:getindex(
-    m    :: Mesh{T},
-    idxs :: UnitRange{Int64}
-    )    :: SubArray{T, 1, Vector{T}, Tuple{UnitRange{Int64}}, true} where {T <: AbstractMeshPoint}
-
+function Base.:getindex(m :: Mesh, idxs :: UnitRange{Int64})
     return @view points(m)[idxs]
 end
 
-function Base.:copy(m :: Mesh) :: Mesh
+function Base.:copy(m :: Mesh)
     return Mesh(m)
 end
 
 # iterate
 #-------------------------------------------------------------------------------#
  
-function Base.:iterate(
-    m :: Mesh{T}
-    ) :: Tuple{T, Int64} where {T <: AbstractMeshPoint}
-
+function Base.:iterate(m :: Mesh) 
     return m[1], 1 
 end 
 
-function Base.:iterate(
-    m     :: Mesh{T},
-    state :: Int64
-    )     :: Union{Nothing, Tuple{T, Int64}} where {T <: AbstractMeshPoint}
-
+function Base.:iterate(m :: Mesh, state :: Int64)
     if state < length(m)
         return m[state + 1], state + 1 
     else 
@@ -158,14 +114,22 @@ function Base.:iterate(
     end
 end
 
+# mapping to mesh index
+#-------------------------------------------------------------------------------#
+
+function mesh_index(x :: T, m :: Mesh{T}) where {T <: AbstractMeshPoint}
+    @DEBUG x.hash == m.hash "Mesh point invalid"
+    return index(x)
+end
+
 # load implementations and export
 #-------------------------------------------------------------------------------#
 
 # for each value type the respective mesh must implement:
 # - outer constructor
-# - mappings from mesh point and value type to mesh index 
-# - boundary conditions
+# - mapping from value type (and if needed plain_value type) to mesh index 
 # - comparison operator
+# boundary conditions are optional and only need to be implemented if meaningful
 
 include("matsubara/matsubara_mesh.jl")
 include("brillouin/brillouin_mesh.jl")

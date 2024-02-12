@@ -5,15 +5,11 @@ include("brillouin_zone.jl")
 #-------------------------------------------------------------------------------#
 
 """
-    function BrillouinZoneMesh(
-        bz :: BrillouinZone{N}
-        )  :: Mesh{MeshPoint{BrillouinPoint{N}}} where {N}
+    function BrillouinZoneMesh(bz :: BrillouinZone{N}) :: Mesh{MeshPoint{BrillouinPoint{N}}} where {N}
 
 Construct uniform mesh for Brillouin zone
 """
-function BrillouinZoneMesh(
-    bz :: BrillouinZone{N}
-    )  :: Mesh{MeshPoint{BrillouinPoint{N}}} where {N}
+function BrillouinZoneMesh(bz :: BrillouinZone{N}) :: Mesh{MeshPoint{BrillouinPoint{N}}} where {N}
 
     HASH     = hash(bz, hash(bz.L, hash(N)))
     ranges   = ntuple(x -> 0 : bz.L - 1, N)
@@ -33,49 +29,30 @@ end
 #-------------------------------------------------------------------------------#
 
 """
-    function euclidean(
-        k :: MeshPoint{BrillouinPoint{N}},
-        m :: Mesh{MeshPoint{BrillouinPoint{N}}}
-        ) :: SVector{N, Float64} where {N}
+    function euclidean(k :: MeshPoint{BrillouinPoint{N}}, m :: Mesh{MeshPoint{BrillouinPoint{N}}}) :: SVector{N, Float64} where {N}
 
 Convert mesh point to euclidean coordinates
 """
-function euclidean(
-    k :: MeshPoint{BrillouinPoint{N}},
-    m :: Mesh{MeshPoint{BrillouinPoint{N}}}
-    ) :: SVector{N, Float64} where {N}
-
+function euclidean(k :: MeshPoint{BrillouinPoint{N}}, m :: Mesh{MeshPoint{BrillouinPoint{N}}}) :: SVector{N, Float64} where {N}
     @DEBUG k.hash == m.hash "Hash must be equal between mesh point and mesh"
     return euclidean(value(k), domain(m)[:bz])
 end
 
 """
-    function euclidean(
-        k :: BrillouinPoint{N},
-        m :: Mesh{MeshPoint{BrillouinPoint{N}}}
-        ) :: SVector{N, Float64} where {N}
+    function euclidean(k :: BrillouinPoint{N}, m :: Mesh{MeshPoint{BrillouinPoint{N}}}) :: SVector{N, Float64} where {N}
 
 Convert reciprocal to euclidean coordinates
 """
-function euclidean(
-    k :: BrillouinPoint{N},
-    m :: Mesh{MeshPoint{BrillouinPoint{N}}}
-    ) :: SVector{N, Float64} where {N}
-
+function euclidean(k :: BrillouinPoint{N}, m :: Mesh{MeshPoint{BrillouinPoint{N}}}) :: SVector{N, Float64} where {N}
     return euclidean(k, domain(m)[:bz])
 end
 
 """
-    function euclideans(
-        m :: Mesh{MeshPoint{BrillouinPoint{N}}}
-        ) :: Vector{SVector{N, Float64}} where {N}
+    function euclideans(m :: Mesh{MeshPoint{BrillouinPoint{N}}}) :: Vector{SVector{N, Float64}} where {N}
 
 Returns euclidean coordinates for all momenta in mesh
 """
-function euclideans(
-    m :: Mesh{MeshPoint{BrillouinPoint{N}}}
-    ) :: Vector{SVector{N, Float64}} where {N}
-
+function euclideans(m :: Mesh{MeshPoint{BrillouinPoint{N}}}) :: Vector{SVector{N, Float64}} where {N}
     return [euclidean(k, m) for k in points(m)]
 end
 
@@ -83,32 +60,21 @@ end
 #-------------------------------------------------------------------------------#
 
 """
-    function reciprocal(
-        k :: SVector{N, Float64},
-        m :: Mesh{MeshPoint{BrillouinPoint{N}}}
-        ) :: SVector{N, Float64} where {N}
+    function reciprocal(k :: T, m :: Mesh{MeshPoint{BrillouinPoint{N}}}) :: SVector{N, Float64} where {N, T <: AbstractVector{Float64}}
 
 Convert euclidean to reciprocal coordinates
 """
-function reciprocal(
-    k :: SVector{N, Float64},
-    m :: Mesh{MeshPoint{BrillouinPoint{N}}}
-    ) :: SVector{N, Float64} where {N}
-
+function reciprocal(k :: T, m :: Mesh{MeshPoint{BrillouinPoint{N}}}) :: SVector{N, Float64} where {N, T <: AbstractVector{Float64}}
+    @DEBUG length(k) == N "Length mismatch for input vector"
     return reciprocal(k, domain(m)[:bz])
 end
 
 """
-    function reciprocals(
-        m :: Mesh{MeshPoint{BrillouinPoint{N}}}
-        ) :: Vector{SVector{N, Int64}} where {N}
+    function reciprocals(m :: Mesh{MeshPoint{BrillouinPoint{N}}}) :: Vector{SVector{N, Int64}} where {N}
 
 Returns reciprocal coordinates for all momenta in mesh
 """
-function reciprocals(
-    m :: Mesh{MeshPoint{BrillouinPoint{N}}}
-    ) :: Vector{SVector{N, Int64}} where {N}
-
+function reciprocals(m :: Mesh{MeshPoint{BrillouinPoint{N}}}) :: Vector{SVector{N, Int64}} where {N}
     return plain_value.(points(m))
 end
 
@@ -116,85 +82,59 @@ end
 #-------------------------------------------------------------------------------#
 
 """
-    function is_inbounds(
-        k :: Union{BrillouinPoint{N}, SVector{N, Float64}},
-        m :: Mesh{MeshPoint{BrillouinPoint{N}}}
-        ) :: Bool where {N}
+    function is_inbounds(k :: BrillouinPoint{N}, m :: Mesh{MeshPoint{BrillouinPoint{N}}}) :: Bool where {N}
 
 Checks if input in mesh
 """
-function is_inbounds(
-    k :: Union{BrillouinPoint{N}, SVector{N, Float64}},
-    m :: Mesh{MeshPoint{BrillouinPoint{N}}}
-    ) :: Bool where {N}
-
+function is_inbounds(k :: BrillouinPoint{N}, m :: Mesh{MeshPoint{BrillouinPoint{N}}}) :: Bool where {N}
     return is_inbounds(k, domain(m)[:bz])
 end
 
-function is_inbounds_bc(
-    k :: MeshPoint{BrillouinPoint{N}},
-    m :: Mesh{MeshPoint{BrillouinPoint{N}}}
-    ) :: Bool where {N}
+"""
+    function is_inbounds(k :: T, m :: Mesh{MeshPoint{BrillouinPoint{N}}}) :: Bool where {N, T <: AbstractVector{Float64}}
 
-    @DEBUG k.hash == m.hash "Mesh point invalid"
-    return true
-end
-
-function is_inbounds_bc(
-    k :: Union{BrillouinPoint{N}, SVector{N, Float64}},
-    m :: Mesh{MeshPoint{BrillouinPoint{N}}}
-    ) :: Bool where {N}
-
-    return true
+Checks if input in mesh
+"""
+function is_inbounds(k :: T, m :: Mesh{MeshPoint{BrillouinPoint{N}}}) :: Bool where {N, T <: AbstractVector{Float64}}
+    @DEBUG length(k) == N "Length mismatch for input vector"
+    return is_inbounds(k, domain(m)[:bz])
 end
 
 # periodic boundary conditions
 #-------------------------------------------------------------------------------#
 
 """
-    function fold_back(
-        k :: Union{BrillouinPoint{N}, SVector{N, Float64}},
-        m :: Mesh{MeshPoint{BrillouinPoint{N}}}
-        ) :: Union{BrillouinPoint{N}, SVector{N, Float64}} where {N}
+    function fold_back(k :: BrillouinPoint{N}, m :: Mesh{MeshPoint{BrillouinPoint{N}}}) :: BrillouinPoint{N} where {N}
 
 Use periodic boundary conditions to fold `k` back into mesh
 """
-function fold_back(
-    k :: Union{BrillouinPoint{N}, SVector{N, Float64}},
-    m :: Mesh{MeshPoint{BrillouinPoint{N}}}
-    ) :: Union{BrillouinPoint{N}, SVector{N, Float64}} where {N}
+function fold_back(k :: BrillouinPoint{N}, m :: Mesh{MeshPoint{BrillouinPoint{N}}}) :: BrillouinPoint{N} where {N}
+    return fold_back(k, domain(m)[:bz])
+end
 
+"""
+    function fold_back(k :: T, m :: Mesh{MeshPoint{BrillouinPoint{N}}}) :: SVector{N, Float64} where {N, T <: AbstractVector{Float64}}
+
+Use periodic boundary conditions to fold `k` back into mesh
+"""
+function fold_back(k :: T, m :: Mesh{MeshPoint{BrillouinPoint{N}}}) :: SVector{N, Float64} where {N, T <: AbstractVector{Float64}}
+    @DEBUG length(k) == N "Length mismatch for input vector"
     return fold_back(k, domain(m)[:bz])
 end
 
 # mapping to mesh index
 #-------------------------------------------------------------------------------#
 
-# from mesh point
-function mesh_index(
-    k :: MeshPoint{BrillouinPoint{N}},
-    m :: Mesh{MeshPoint{BrillouinPoint{N}}}
-    ) :: Int64 where {N}
-    
-    @DEBUG k.hash == m.hash "Mesh point invalid"
-    return index(k)
-end
-
 # from value type
-function mesh_index(
-    k :: BrillouinPoint{N},
-    m :: Mesh{MeshPoint{BrillouinPoint{N}}}
-    ) :: Int64 where {N}
-    
+function mesh_index(k :: BrillouinPoint{N}, m :: Mesh{MeshPoint{BrillouinPoint{N}}}) where {N}
     @DEBUG is_inbounds(k, m) "Momentum not in mesh"
     return domain(m)[:lin_idxs][(value(k) .+ 1)...]
 end
 
-# from Vector of Float
-function mesh_index( # returns index of closest mesh point
-    k :: SVector{N, Float64},
-    m :: Mesh{MeshPoint{BrillouinPoint{N}}}
-    ) :: Int64 where {N}
+# from Vector of Float, returns index of closest mesh point
+function mesh_index(k :: T, m :: Mesh{MeshPoint{BrillouinPoint{N}}}) where {N, T <: AbstractVector{Float64}}
+
+    @DEBUG length(k) == N "Length mismatch for input vector"
     
     # find surrounding box
     x      = reciprocal(k, m)
@@ -218,31 +158,15 @@ function mesh_index( # returns index of closest mesh point
     return mesh_index(fold_back(BrillouinPoint(iters[min_idx]...), m), m)
 end
 
-# from mesh point with bc
-function mesh_index_bc(
-    k :: MeshPoint{BrillouinPoint{N}},
-    m :: Mesh{MeshPoint{BrillouinPoint{N}}}
-    ) :: Int64 where {N}
-    
-    return mesh_index(k, m)
-end
-
 # from value type with bc
-function mesh_index_bc(
-    k :: BrillouinPoint{N},
-    m :: Mesh{MeshPoint{BrillouinPoint{N}}}
-    ) :: Int64 where {N}
-    
+function mesh_index_bc(k :: BrillouinPoint{N}, m :: Mesh{MeshPoint{BrillouinPoint{N}}}) where {N}
     return mesh_index(fold_back(k, m), m)
 end
 
 # comparison operator
 #-------------------------------------------------------------------------------#
 
-function Base.:(==)(
-    m1 :: Mesh{MeshPoint{BrillouinPoint{N}}},
-    m2 :: Mesh{MeshPoint{BrillouinPoint{N}}}
-    )  :: Bool where {N}
+function Base.:(==)(m1 :: Mesh{MeshPoint{BrillouinPoint{N}}}, m2 :: Mesh{MeshPoint{BrillouinPoint{N}}}) where {N}
 
     if m1.hash != m2.hash
         return false
@@ -269,21 +193,12 @@ end
 #-------------------------------------------------------------------------------#
 
 """
-    function to_Wigner_Seitz(
-        m    :: Mesh{MeshPoint{BrillouinPoint{N}}}
-        ;
-        fill :: Bool = false
-        )    :: Vector{SVector{N, Float64}} where {N}
+    function to_Wigner_Seitz(m :: Mesh{MeshPoint{BrillouinPoint{N}}}; fill :: Bool = false) :: Vector{SVector{N, Float64}} where {N}
 
 Generate mesh in Wigner Seitz cell at Γ = 0. If `fill = true`, additional points related 
 by translations on the reciprocal lattice are added to the boundary.
 """
-function to_Wigner_Seitz(
-    m    :: Mesh{MeshPoint{BrillouinPoint{N}}}
-    ;
-    fill :: Bool = false
-    )    :: Vector{SVector{N, Float64}} where {N}
-
+function to_Wigner_Seitz(m :: Mesh{MeshPoint{BrillouinPoint{N}}}; fill :: Bool = false) :: Vector{SVector{N, Float64}} where {N}
     pts = [to_Wigner_Seitz(euclidean(k, m), domain(m)[:bz]) for k in m]
 
     # brute force and slow, can we improve it?
@@ -354,18 +269,11 @@ function save!(
 end
 
 """
-    function load_brillouin_zone_mesh(
-        h :: HDF5.File, 
-        l :: String
-        ) :: AbstractMesh
+    function load_brillouin_zone_mesh(h :: HDF5.File, l :: String) :: AbstractMesh
 
 Load Brillouin zone mesh with label `l` from HDF5 file `h`
 """
-function load_brillouin_zone_mesh(
-    h :: HDF5.File, 
-    l :: String
-    ) :: AbstractMesh
-
+function load_brillouin_zone_mesh(h :: HDF5.File, l :: String) :: AbstractMesh
     @DEBUG read_attribute(h[l], "tag") == "BrillouinZoneMesh" "Dataset $(l) not tagged as BrillouinZoneMesh"
 
     # load metadata

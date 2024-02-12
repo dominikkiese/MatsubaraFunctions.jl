@@ -58,114 +58,74 @@ function MatsubaraMesh(
 end
 
 """
-    function first_index(
-        m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
-        ) :: Int64 where {PT <: AbstractParticle}
+    function first_index(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) :: Int64 where {PT <: AbstractParticle}
 
 Returns the index of the first Matsubara frequency in mesh
 """
-function first_index(
-    m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
-    ) :: Int64 where {PT <: AbstractParticle}
-
+function first_index(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) :: Int64 where {PT <: AbstractParticle}
     return index(value(m[1]))
 end
 
 """
-    function last_index(
-        m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
-        ) :: Int64 where {PT <: AbstractParticle}
+    function last_index(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) :: Int64 where {PT <: AbstractParticle}
 
 Returns the index of the last Matsubara frequency in mesh
 """
-function last_index(
-    m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
-    ) :: Int64 where {PT <: AbstractParticle}
-
+function last_index(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) :: Int64 where {PT <: AbstractParticle}
     return index(value(m[end]))
 end
 
 """
-    function first_frequency(
-        m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
-        ) :: Float64 where {PT <: AbstractParticle}
+    function first_frequency(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) :: Float64 where {PT <: AbstractParticle}
 
 Returns the first Matsubara frequency in mesh
 """
-function first_frequency(
-    m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
-    ) :: Float64 where {PT <: AbstractParticle}
-
+function first_frequency(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) :: Float64 where {PT <: AbstractParticle}
     return value(m[1])
 end
 
 """
-    function last_frequency(
-        m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
-        ) :: Float64 where {PT <: AbstractParticle}
+    function last_frequency(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) :: Float64 where {PT <: AbstractParticle}
 
 Returns the last Matsubara frequency in mesh
 """
-function last_frequency(
-    m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
-    ) :: Float64 where {PT <: AbstractParticle}
-
+function last_frequency(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) :: Float64 where {PT <: AbstractParticle}
     return value(m[end])
 end
 
 """
-    function first_value(
-        m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
-        ) :: Float64 where {PT <: AbstractParticle}
+    function first_value(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) :: Float64 where {PT <: AbstractParticle}
 
 Returns the value of the first Matsubara frequency in mesh
 """
-function first_value(
-    m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
-    ) :: Float64 where {PT <: AbstractParticle}
-
+function first_value(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) :: Float64 where {PT <: AbstractParticle}
     return plain_value(m[1])
 end
 
 """
-    function last_value(
-        m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
-        ) :: Float64 where {PT <: AbstractParticle}
+    function last_value(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) :: Float64 where {PT <: AbstractParticle}
 
 Returns the value of the last Matsubara frequency in mesh
 """
-function last_value(
-    m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
-    ) :: Float64 where {PT <: AbstractParticle}
-
+function last_value(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) :: Float64 where {PT <: AbstractParticle}
     return plain_value(m[end])
 end
 
 """
-    function indices(
-        m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
-        ) :: Vector{Int64} where {PT <: AbstractParticle}
+    function indices(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) :: Vector{Int64} where {PT <: AbstractParticle}
 
 Return indices of all Matsubara frequencies in mesh
 """
-function indices(
-    m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
-    ) :: Vector{Int64} where {PT <: AbstractParticle}
-
+function indices(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) :: Vector{Int64} where {PT <: AbstractParticle}
     return index.(value.(points(m)))
 end
 
 """
-    function values(
-        m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
-        ) :: Vector{Float64} where {PT <: AbstractParticle}
+    function values(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) :: Vector{Float64} where {PT <: AbstractParticle}
 
 Return values of all Matsubara frequencies in mesh
 """
-function Base.:values(
-    m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
-    ) :: Vector{Float64} where {PT <: AbstractParticle}
-
+function Base.:values(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) :: Vector{Float64} where {PT <: AbstractParticle}
     return plain_value.(points(m))
 end
 
@@ -173,107 +133,51 @@ end
 #-------------------------------------------------------------------------------#
 
 """
-    function is_inbounds(
-        w :: MatsubaraFrequency{PT},
-        m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
-        ) :: Bool where {PT <: AbstractParticle}
+    function is_inbounds(w :: MatsubaraFrequency{PT}, m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) :: Bool where {PT <: AbstractParticle}
 
 Checks if Matsubara frequency in mesh
 """
-function is_inbounds(
-    w :: MatsubaraFrequency{PT},
-    m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
-    ) :: Bool where {PT <: AbstractParticle}
-
+function is_inbounds(w :: MatsubaraFrequency{PT}, m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) :: Bool where {PT <: AbstractParticle}
     @DEBUG temperature(w) ≈ domain(m)[:temperature] "Temperature must be equal between Matsubara frequency and grid"
     return first_index(m) <= index(w) <= last_index(m)
 end
 
 """
-    function is_inbounds(
-        w :: Float64, 
-        m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
-        ) :: Bool where {PT <: AbstractParticle}
+    function is_inbounds(w :: Float64, m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) :: Bool where {PT <: AbstractParticle}
 
 Checks if float in mesh
 """
-function is_inbounds(
-    w :: Float64, 
-    m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
-    ) :: Bool where {PT <: AbstractParticle}
-
+function is_inbounds(w :: Float64, m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) :: Bool where {PT <: AbstractParticle}
     return first_value(m) <= w <= last_value(m)
 end
 
-function is_inbounds_bc(
-    w :: MeshPoint{MatsubaraFrequency{PT}},
-    m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
-    ) :: Bool where {PT <: AbstractParticle}
-
-    @DEBUG w.hash == m.hash "Mesh point invalid"
-    return true
-end
-
-function is_inbounds_bc(
-    w :: Union{MatsubaraFrequency{PT}, Float64},
-    m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
-    ) :: Bool where {PT <: AbstractParticle}
-
+# overload dummy function
+function is_inbounds_bc(w :: Union{MatsubaraFrequency{PT}, Float64}, m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) where {PT <: AbstractParticle}
     return is_inbounds(w, m)
 end
 
 # mapping to mesh index
 #-------------------------------------------------------------------------------#
 
-# from mesh point
-function mesh_index(
-    w :: MeshPoint{MatsubaraFrequency{PT}},
-    m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
-    ) :: Int64 where {PT <: AbstractParticle}
-
-    @DEBUG w.hash == m.hash "Mesh point invalid"
-    return index(w)
-end
-
 # from value type
-function mesh_index(
-    w :: MatsubaraFrequency{PT},
-    m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
-    ) :: Int64 where {PT <: AbstractParticle}
-
+function mesh_index(w :: MatsubaraFrequency{PT}, m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) where {PT <: AbstractParticle}
     @DEBUG is_inbounds(w, m) "Matsubara frequency not in mesh"
     @DEBUG temperature(w) ≈ domain(m)[:temperature] "Temperature must be equal between Matsubara frequency and mesh"
     return index(w) - first_index(m) + 1
 end
 
-# from Float
-function mesh_index( # returns index of closest frequency
-    w :: Float64,
-    m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
-    ) :: Int64 where {PT <: AbstractParticle}
-
+# from Float, returns index of closest frequency
+function mesh_index(w :: Float64, m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) where {PT <: AbstractParticle}
     @DEBUG is_inbounds(w, m) "Value not in mesh"
     delta    = plain_value(m[2]) - plain_value(m[1])
     position = (w - plain_value(m[1])) / delta
     return round(Int64, position) + 1
 end
 
-# from mesh point or value type with bc
-function mesh_index_bc(
-    w :: Union{MeshPoint{MatsubaraFrequency{PT}}, MatsubaraFrequency{PT}},
-    m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
-    ) :: Int64 where {PT <: AbstractParticle}
-
-    return mesh_index(w, m)
-end
-
 # comparison operator
 #-------------------------------------------------------------------------------#
 
-function Base.:(==)(
-    m1 :: Mesh{MeshPoint{MatsubaraFrequency{PT}}},
-    m2 :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
-    )  :: Bool where {PT <: AbstractParticle}
+function Base.:(==)(m1 :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}, m2 :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) where {PT <: AbstractParticle}
 
     if m1.hash != m2.hash
         return false
@@ -330,17 +234,11 @@ function save!(
 end
 
 """
-    function load_matsubara_mesh(
-        h :: HDF5.File, 
-        l :: String
-        ) :: AbstractMesh
+    function load_matsubara_mesh(h :: HDF5.File, l :: String) :: AbstractMesh
 
 Load Matsubara mesh with label `l` from HDF5 file `h`
 """
-function load_matsubara_mesh(
-    h :: HDF5.File, 
-    l :: String
-    ) :: AbstractMesh
+function load_matsubara_mesh(h :: HDF5.File, l :: String) :: AbstractMesh
 
     @DEBUG read_attribute(h[l], "tag") == "MatsubaraMesh" "Dataset $(l) not tagged as MatsubaraMesh"
 

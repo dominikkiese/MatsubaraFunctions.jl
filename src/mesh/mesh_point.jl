@@ -33,30 +33,20 @@ struct MeshPoint{T <: AbstractValue} <: AbstractMeshPoint
 end
 
 """
-    function index(
-        x :: AbstractMeshPoint
-        ) :: Int64
+    function index(x :: T) :: Int64 where {T <: AbstractMeshPoint}
 
 Returns `x.index`
 """
-function index(
-    x :: AbstractMeshPoint
-    ) :: Int64
-
+function index(x :: T) :: Int64 where {T <: AbstractMeshPoint}
     return x.index
 end 
 
 """
-    function value(
-        x :: MeshPoint{T}
-        ) :: T where {T <: AbstractValue}  
+    function value(x :: MeshPoint{T}) :: T where {T <: AbstractValue}  
 
 Returns `x.value`
 """
-function value(
-    x :: MeshPoint{T}
-    ) :: T where {T <: AbstractValue} 
-
+function value(x :: MeshPoint{T}) :: T where {T <: AbstractValue} 
     return x.value
 end 
 
@@ -76,70 +66,40 @@ end
 # each value type must implement +, - and sign reversal
 
 # addition
-function Base.:+(
-    x1 :: MeshPoint{T1},
-    x2 :: MeshPoint{T2}
-    ) where {T1 <: AbstractValue, T2 <: AbstractValue} 
-
+function Base.:+(x1 :: MeshPoint{T1}, x2 :: MeshPoint{T2}) where {T1 <: AbstractValue, T2 <: AbstractValue} 
     return value(x1) + value(x2)
 end
 
-function Base.:+(
-    x1 :: T1,
-    x2 :: MeshPoint{T2}
-    ) where {T1 <: AbstractValue, T2 <: AbstractValue} 
-
+function Base.:+(x1 :: T1, x2 :: MeshPoint{T2}) where {T1 <: AbstractValue, T2 <: AbstractValue} 
     return x1 + value(x2)
 end
 
-function Base.:+(
-    x1 :: MeshPoint{T1},
-    x2 :: T2
-    ) where {T1 <: AbstractValue, T2 <: AbstractValue} 
-
+function Base.:+(x1 :: MeshPoint{T1}, x2 :: T2) where {T1 <: AbstractValue, T2 <: AbstractValue} 
     return value(x1) + x2
 end
 
 # subtraction
-function Base.:-(
-    x1 :: MeshPoint{T1},
-    x2 :: MeshPoint{T2}
-    ) where {T1 <: AbstractValue, T2 <: AbstractValue} 
-
+function Base.:-(x1 :: MeshPoint{T1}, x2 :: MeshPoint{T2}) where {T1 <: AbstractValue, T2 <: AbstractValue} 
     return value(x1) - value(x2)
 end
 
-function Base.:-(
-    x1 :: T1,
-    x2 :: MeshPoint{T2}
-    ) where {T1 <: AbstractValue, T2 <: AbstractValue} 
-
+function Base.:-(x1 :: T1, x2 :: MeshPoint{T2}) where {T1 <: AbstractValue, T2 <: AbstractValue} 
     return x1 - value(x2)
 end
 
-function Base.:-(
-    x1 :: MeshPoint{T1},
-    x2 :: T2
-    ) where {T1 <: AbstractValue, T2 <: AbstractValue} 
-
+function Base.:-(x1 :: MeshPoint{T1}, x2 :: T2) where {T1 <: AbstractValue, T2 <: AbstractValue} 
     return value(x1) - x2
 end
 
 # sign reversal
-function Base.:-(
-    x :: MeshPoint{T},
-    ) :: T where {T <: AbstractValue} 
-
+function Base.:-(x :: MeshPoint{T}) where {T <: AbstractValue} 
     return -value(x)
 end
 
 # comparison operator
 #-------------------------------------------------------------------------------#
 
-function Base.:(==)(
-    x1 :: MeshPoint{T},
-    x2 :: MeshPoint{T}
-    )  :: Bool where {T <: AbstractValue} 
+function Base.:(==)(x1 :: MeshPoint{T}, x2 :: MeshPoint{T}) where {T <: AbstractValue} 
 
     if (x1.hash != x2.hash) || (index(x1) != index(x2)) || (value(x1) != value(x2))
         return false

@@ -42,8 +42,7 @@ struct MatsubaraFrequency{PT <: AbstractParticle} <: AbstractValue
     function MatsubaraFrequency(
         temperature :: Float64, 
         index       :: Int64, 
-                    :: Type{Fermion}
-        )           :: MatsubaraFrequency 
+                    :: Type{Fermion})
 
         return new{Fermion}(temperature, pi * temperature * (2 * index + 1), index)
     end 
@@ -52,52 +51,36 @@ struct MatsubaraFrequency{PT <: AbstractParticle} <: AbstractValue
     function MatsubaraFrequency(
         temperature :: Float64, 
         index       :: Int64, 
-                    :: Type{Boson}
-        )           :: MatsubaraFrequency 
+                    :: Type{Boson}) 
 
         return new{Boson}(temperature, 2 * pi * temperature * index, index)
     end 
 end 
 
 """
-    function temperature(
-        w :: MatsubaraFrequency{PT}
-        ) :: Float64 where {PT <: AbstractParticle}
+    function temperature(w :: MatsubaraFrequency{PT}) :: Float64 where {PT <: AbstractParticle}
 
 Returns `w.temperature`
 """
-function temperature(
-    w :: MatsubaraFrequency{PT}
-    ) :: Float64 where {PT <: AbstractParticle}
-
+function temperature(w :: MatsubaraFrequency{PT}) :: Float64 where {PT <: AbstractParticle}
     return w.temperature
 end 
 
 """
-    function value(
-        w :: MatsubaraFrequency{PT}
-        ) :: Float64 where {PT <: AbstractParticle}
+    function value(w :: MatsubaraFrequency{PT}) :: Float64 where {PT <: AbstractParticle}
 
 Returns `w.value`
 """
-function value(
-    w :: MatsubaraFrequency{PT}
-    ) :: Float64 where {PT <: AbstractParticle}
-
+function value(w :: MatsubaraFrequency{PT}) :: Float64 where {PT <: AbstractParticle}
     return w.value
 end 
 
 """
-    function index(
-        w :: MatsubaraFrequency{PT}
-        ) :: Int64 where {PT <: AbstractParticle}
+    function index(w :: MatsubaraFrequency{PT}) :: Int64 where {PT <: AbstractParticle}
 
 Returns `w.index`
 """
-function index(
-    w :: MatsubaraFrequency{PT}
-    ) :: Int64 where {PT <: AbstractParticle}
-
+function index(w :: MatsubaraFrequency{PT}) :: Int64 where {PT <: AbstractParticle}
     return w.index
 end 
 
@@ -105,109 +88,68 @@ end
 #-------------------------------------------------------------------------------#
 
 # addition
-function Base.:+(
-    w1 :: MatsubaraFrequency{Fermion}, 
-    w2 :: MatsubaraFrequency{Fermion}
-    )  :: MatsubaraFrequency{Boson}
-
+function Base.:+(w1 :: MatsubaraFrequency{Fermion}, w2 :: MatsubaraFrequency{Fermion})
     T = temperature(w1)
     @DEBUG temperature(w2) ≈ T "Temperatures must be equal for addition"
     return MatsubaraFrequency(T, index(w1) + index(w2) + 1, Boson)
 end
 
-function Base.:+(
-    w1 :: MatsubaraFrequency{Boson}, 
-    w2 :: MatsubaraFrequency{Boson}
-    )  :: MatsubaraFrequency{Boson}
-
+function Base.:+(w1 :: MatsubaraFrequency{Boson}, w2 :: MatsubaraFrequency{Boson})
     T = temperature(w1)
     @DEBUG temperature(w2) ≈ T "Temperatures must be equal for addition"
     return MatsubaraFrequency(T, index(w1) + index(w2), Boson)
 end
 
-function Base.:+(
-    w1 :: MatsubaraFrequency{Fermion}, 
-    w2 :: MatsubaraFrequency{Boson}
-    )  :: MatsubaraFrequency{Fermion}
-
+function Base.:+(w1 :: MatsubaraFrequency{Fermion}, w2 :: MatsubaraFrequency{Boson})
     T = temperature(w1)
     @DEBUG temperature(w2) ≈ T "Temperatures must be equal for addition"
     return MatsubaraFrequency(T, index(w1) + index(w2), Fermion)
 end
 
-function Base.:+(
-    w1 :: MatsubaraFrequency{Boson}, 
-    w2 :: MatsubaraFrequency{Fermion}
-    )  :: MatsubaraFrequency{Fermion}
-
+function Base.:+(w1 :: MatsubaraFrequency{Boson}, w2 :: MatsubaraFrequency{Fermion})
     T = temperature(w1)
     @DEBUG temperature(w2) ≈ T "Temperatures must be equal for addition"
     return MatsubaraFrequency(T, index(w1) + index(w2), Fermion)
 end
 
 # subtraction
-function Base.:-(
-    w1 :: MatsubaraFrequency{Fermion}, 
-    w2 :: MatsubaraFrequency{Fermion}
-    )  :: MatsubaraFrequency{Boson}
-
+function Base.:-(w1 :: MatsubaraFrequency{Fermion}, w2 :: MatsubaraFrequency{Fermion})
     T = temperature(w1)
     @DEBUG temperature(w2) ≈ T "Temperatures must be equal for subtraction"
     return MatsubaraFrequency(T, index(w1) - index(w2), Boson)
 end
 
-function Base.:-(
-    w1 :: MatsubaraFrequency{Boson}, 
-    w2 :: MatsubaraFrequency{Boson}
-    )  :: MatsubaraFrequency{Boson}
-
+function Base.:-(w1 :: MatsubaraFrequency{Boson}, w2 :: MatsubaraFrequency{Boson})
     T = temperature(w1)
     @DEBUG temperature(w2) ≈ T "Temperatures must be equal for subtraction"
     return MatsubaraFrequency(T, index(w1) - index(w2), Boson)
 end
 
-function Base.:-(
-    w1 :: MatsubaraFrequency{Fermion}, 
-    w2 :: MatsubaraFrequency{Boson}
-    )  :: MatsubaraFrequency{Fermion}
-
+function Base.:-(w1 :: MatsubaraFrequency{Fermion}, w2 :: MatsubaraFrequency{Boson})
     T = temperature(w1)
     @DEBUG temperature(w2) ≈ T "Temperatures must be equal for subtraction"
     return MatsubaraFrequency(T, index(w1) - index(w2), Fermion)
 end
 
-function Base.:-(
-    w1 :: MatsubaraFrequency{Boson}, 
-    w2 :: MatsubaraFrequency{Fermion}
-    )  :: MatsubaraFrequency{Fermion}
-
+function Base.:-(w1 :: MatsubaraFrequency{Boson}, w2 :: MatsubaraFrequency{Fermion})
     T = temperature(w1)
     @DEBUG temperature(w2) ≈ T "Temperatures must be equal for subtraction"
     return MatsubaraFrequency(T, index(w1) - index(w2) - 1, Fermion)
 end
 
 # sign reversal
-function Base.:-(
-    w :: MatsubaraFrequency{Fermion}, 
-    ) :: MatsubaraFrequency{Fermion}
-
+function Base.:-(w :: MatsubaraFrequency{Fermion})
     return MatsubaraFrequency(temperature(w), -index(w) - 1, Fermion)
 end
 
-function Base.:-(
-    w :: MatsubaraFrequency{Boson}, 
-    ) :: MatsubaraFrequency{Boson}
-
+function Base.:-(w :: MatsubaraFrequency{Boson})
     return MatsubaraFrequency(temperature(w), -index(w), Boson)
 end
 
 # comparison operator
 #-------------------------------------------------------------------------------#
 
-function Base.:(==)(
-    w1 :: MatsubaraFrequency{PT},
-    w2 :: MatsubaraFrequency{PT}
-    )  :: Bool where {PT <: AbstractParticle}
+function Base.:(==)(w1 :: MatsubaraFrequency{PT}, w2 :: MatsubaraFrequency{PT}) where {PT <: AbstractParticle}
 
     if !(temperature(w1) ≈ temperature(w2)) || !(value(w1) ≈ value(w2)) || (index(w1) != index(w2))
         return false

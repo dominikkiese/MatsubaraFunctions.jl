@@ -10,32 +10,21 @@ BrillouinPoint type with fields:
 struct BrillouinPoint{N} <: AbstractValue where {N}
     value :: SVector{N, Int64}
 
-    function BrillouinPoint(
-        value :: SVector{N, Int64}
-        )     :: BrillouinPoint{N} where {N}
-
+    function BrillouinPoint(value :: SVector{N, Int64}) where {N}
         return new{N}(value)
     end 
 
-    function BrillouinPoint(
-        value :: Vararg{Int64, N}
-        )     :: BrillouinPoint{N} where {N}
-
+    function BrillouinPoint(value :: Vararg{Int64, N}) where {N}
         return new{N}(SVector{N, Int64}(value...))
     end 
 end
 
 """
-    function value(
-        k :: BrillouinPoint{N}
-        ) :: SVector{N, Int64}
+    function value(k :: BrillouinPoint{N}) :: SVector{N, Int64}
 
 Returns `k.value`
 """ 
-function value(
-    k :: BrillouinPoint{N}
-    ) :: SVector{N, Int64} where {N}
-
+function value(k :: BrillouinPoint{N}) :: SVector{N, Int64} where {N}
     return k.value 
 end
 
@@ -43,39 +32,24 @@ end
 #-------------------------------------------------------------------------------#
 
 # addition 
-function Base.:+(
-    k1 :: BrillouinPoint{N},
-    k2 :: BrillouinPoint{N}
-    )  :: BrillouinPoint{N} where {N} 
-
+function Base.:+(k1 :: BrillouinPoint{N}, k2 :: BrillouinPoint{N}) where {N} 
     return BrillouinPoint(value(k1) .+ value(k2))
 end
 
 # subtraction 
-function Base.:-(
-    k1 :: BrillouinPoint{N},
-    k2 :: BrillouinPoint{N}
-    )  :: BrillouinPoint{N} where {N} 
-
+function Base.:-(k1 :: BrillouinPoint{N}, k2 :: BrillouinPoint{N}) where {N} 
     return BrillouinPoint(value(k1) .- value(k2))
 end
 
 # sign reversal 
-function Base.:-(
-    k :: BrillouinPoint{N}
-    ) :: BrillouinPoint{N} where {N} 
-
+function Base.:-(k :: BrillouinPoint{N}) where {N} 
     return BrillouinPoint(-value(k))
 end
 
 # comparison operator
 #-------------------------------------------------------------------------------#
 
-function Base.:(==)(
-    k1 :: BrillouinPoint{N},
-    k2 :: BrillouinPoint{N},
-    )  :: Bool where {N} 
-
+function Base.:(==)(k1 :: BrillouinPoint{N}, k2 :: BrillouinPoint{N}) where {N} 
     return value(k1) == value(k2)
 end 
 

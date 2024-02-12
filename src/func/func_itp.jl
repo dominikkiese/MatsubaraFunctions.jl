@@ -12,38 +12,22 @@ struct InterpolationParam{N}
     indices :: NTuple{N, Int64}
     weights :: NTuple{N, Float64}
 
-    function InterpolationParam(
-        indices :: NTuple{N, Int64}, 
-        weights :: NTuple{N, Float64}
-        )       :: InterpolationParam{N} where {N}
-
+    function InterpolationParam(indices :: NTuple{N, Int64}, weights :: NTuple{N, Float64}) where {N}
         @DEBUG sum(weights) ≈ 1.0 "Weights must add up to 1"
         return new{N}(indices, weights)
     end 
 
-    function InterpolationParam(
-        index  :: Int64, 
-        weight :: Float64
-        )      :: InterpolationParam{1}
-
+    function InterpolationParam(index :: Int64, weight :: Float64) 
         return InterpolationParam((index,), (weight,))
     end 
 
     # from mesh point or value type 
-    function InterpolationParam(
-        p :: Union{MeshPoint{T}, T},
-        m :: Mesh{MeshPoint{T}}
-        ) :: InterpolationParam{1} where {T <: AbstractValue}
-
+    function InterpolationParam(p :: Union{MeshPoint{T}, T}, m :: Mesh{MeshPoint{T}}) where {T <: AbstractValue}
         return InterpolationParam(mesh_index_bc(p, m), 1.0)
     end
 
     # Matsubara mesh
-    function InterpolationParam(
-        w :: Float64, 
-        m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
-        ) :: InterpolationParam where {PT <: AbstractParticle}
-
+    function InterpolationParam(w :: Float64, m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) where {PT <: AbstractParticle}
         # calculate mesh spacing and position in mesh
         w     = max(first_value(m), min(w, last_value(m)))
         delta = plain_value(m[2]) - plain_value(m[1])
@@ -61,10 +45,8 @@ struct InterpolationParam{N}
     end
 
     # Brillouin zone mesh
-    function InterpolationParam(
-        k :: SVector{N, Float64},
-        m :: Mesh{MeshPoint{BrillouinPoint{N}}}
-        ) :: InterpolationParam where {N}
+    function InterpolationParam(k :: T, m :: Mesh{MeshPoint{BrillouinPoint{N}}}) where {N, T <: AbstractVector{Float64}}
+        @DEBUG length(k) == N "Length mismatch for input vector"
 
         # calculate mesh spacing and position in mesh
         x      = reciprocal(k, m)
@@ -82,30 +64,20 @@ struct InterpolationParam{N}
 end
 
 """
-    function indices(
-        p :: InterpolationParam{N}
-        ) :: NTuple{N, Int64} where {N} 
+    function indices(p :: InterpolationParam{N}) :: NTuple{N, Int64} where {N} 
 
 Returns `p.indices`
 """
-function indices(
-    p :: InterpolationParam{N}
-    ) :: NTuple{N, Int64} where {N} 
-
+function indices(p :: InterpolationParam{N}) :: NTuple{N, Int64} where {N} 
     return p.indices 
 end 
 
 """
-    function weights(
-        p :: InterpolationParam{N}
-        ) :: NTuple{N, Float64} where {N} 
+    function weights(p :: InterpolationParam{N}) :: NTuple{N, Float64} where {N} 
 
 Returns `p.weights`
 """
-function weights(
-    p :: InterpolationParam{N}
-    ) :: NTuple{N, Float64} where {N} 
-
+function weights(p :: InterpolationParam{N}) :: NTuple{N, Float64} where {N}  
     return p.weights
 end 
 

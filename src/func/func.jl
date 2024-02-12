@@ -2,23 +2,23 @@
 #-------------------------------------------------------------------------------#
 
 """
-    struct MeshFunction{MD, SD, DD, Q <: Number}
+    struct MeshFunction{MD, SD, DD, Q <: Number, AT <: AbstractArray{Q, DD}}
 
 MeshFunction type with fields:
-* `meshes :: NTuple{MD, AbstractMesh}` : set of meshes
-* `shape  :: NTuple{SD, Int64}`        : index structure
-* `data   :: AbstractArray{Q, DD}`     : multidimensional data array
+* `meshes :: NTuple{MD, Union{<: AbstractMesh}}` : set of meshes
+* `shape  :: NTuple{SD, Int64}`                  : index structure
+* `data   :: AT`                                 : multidimensional data array
 """
-struct MeshFunction{MD, SD, DD, Q <: Number}
-    meshes :: NTuple{MD, AbstractMesh}
+struct MeshFunction{MD, SD, DD, Q <: Number, AT <: AbstractArray{Q, DD}}
+    meshes :: NTuple{MD, Union{<: AbstractMesh}}
     shape  :: NTuple{SD, Int64}          
-    data   :: AbstractArray{Q, DD}
+    data   :: AT
 
-    function MeshFunction( # parse by reference
-        meshes :: NTuple{MD, AbstractMesh}, 
+    function MeshFunction( # pass by reference
+        meshes :: NTuple{MD, Union{<: AbstractMesh}}, 
         shape  :: NTuple{SD, Int64}, 
-        data   :: AbstractArray{Q, DD}
-        )      :: MeshFunction{MD, SD, DD, Q} where {MD, SD, DD, Q <: Number}
+        data   :: AT
+        ) where {MD, SD, DD, Q <: Number, AT <: AbstractArray{Q, DD}}
 
         if Q <: Integer || Q <: Complex{Int} 
             error("Integer data type not supported") 
@@ -26,146 +26,102 @@ struct MeshFunction{MD, SD, DD, Q <: Number}
 
         @DEBUG MD > 0 "Mesh dimension cannot be zero"
         @DEBUG MD + SD == DD "Data dimension incompatible with meshes and shape"
-        return new{MD, SD, DD, Q}(meshes, shape, data)
+        return new{MD, SD, DD, Q, AT}(meshes, shape, data)
     end
 
-    function MeshFunction( # parse by reference
-        mesh  :: AbstractMesh, 
+    function MeshFunction( # pass by reference
+        mesh  :: MT, 
         shape :: NTuple{SD, Int64}, 
-        data  :: AbstractArray{Q, DD}
-        )     :: MeshFunction{1, SD, DD, Q} where {SD, DD, Q <: Number}
+        data  :: AT
+        ) where {SD, DD, Q <: Number, MT <: AbstractMesh, AT <: AbstractArray{Q, DD}}
 
         return MeshFunction((mesh,), shape, data)
     end
 
-    function MeshFunction( # parse by reference
-        meshes :: NTuple{MD, AbstractMesh}, 
-        data   :: AbstractArray{Q, DD}
-        )      :: MeshFunction{MD, 0, DD, Q} where {MD, DD, Q <: Number}
-
+    # pass by reference
+    function MeshFunction(meshes :: NTuple{MD, Union{<: AbstractMesh}}, data :: AT) where {MD, DD, Q <: Number, AT <: AbstractArray{Q, DD}}
         return MeshFunction(meshes, (), data)
     end
 
-    function MeshFunction( # parse by reference
-        mesh  :: AbstractMesh, 
-        data  :: AbstractArray{Q, DD}
-        )     :: MeshFunction{1, 0, DD, Q} where {DD, Q <: Number}
-
+    # pass by reference
+    function MeshFunction(mesh :: MT, data :: AT) where {DD, Q <: Number, MT <: AbstractMesh, AT <: AbstractArray{Q, DD}}
         return MeshFunction((mesh,), (), data)
     end
 
-    function MeshFunction( # parse meshes by copy
-        meshes :: NTuple{MD, AbstractMesh},
+    function MeshFunction( # pass meshes by copy
+        meshes :: NTuple{MD, Union{<: AbstractMesh}},
         shape  :: Vararg{Int64, SD}
         ;
         data_t :: DataType = ComplexF64
-        )      :: MeshFunction{MD, SD, MD + SD, data_t} where {MD, SD}
+        ) where {MD, SD}
         
         data = Array{data_t, MD + SD}(undef, length.(meshes)..., shape...)
         return MeshFunction(Mesh.(meshes), tuple(shape...), data)
     end
 
-    function MeshFunction( # parse mesh by copy
-        mesh   :: AbstractMesh,
+    function MeshFunction( # pass mesh by copy
+        mesh   :: MT,
         shape  :: Vararg{Int64, SD}
         ;
         data_t :: DataType = ComplexF64
-        )      :: MeshFunction{1, SD, 1 + SD, data_t} where {SD}
+        ) where {SD, MT <: AbstractMesh}
 
         return MeshFunction((mesh,), shape...; data_t)
     end
 
-    function MeshFunction( # parse meshes by copy
-        meshes :: Vararg{AbstractMesh, MD},
-        ;
-        data_t :: DataType = ComplexF64
-        )      :: MeshFunction{MD, 0, MD, data_t} where {MD}
-
+    # pass meshes by copy
+    function MeshFunction(meshes :: Vararg{Union{<: AbstractMesh}, MD}; data_t :: DataType = ComplexF64) where {MD}
         return MeshFunction(tuple(meshes...); data_t)
     end
 
-    function MeshFunction( # parse meshes and data by copy
-        f :: MeshFunction
-        ) :: MeshFunction
-
+    # pass meshes and data by copy
+    function MeshFunction(f :: MeshFunction) :: MeshFunction
         return MeshFunction(Mesh.(meshes(f)), shape(f), copy(f.data))
     end
 
-    # specialization
-    function MeshFunction( # parse mesh by copy
-        mesh   :: AbstractMesh
-        ;
-        data_t :: DataType = ComplexF64
-        )      :: MeshFunction{1, 0, 1, data_t}
-
+    # specialization, pass mesh by copy
+    function MeshFunction(mesh :: MT; data_t :: DataType = ComplexF64) where {MT <: AbstractMesh}
         return MeshFunction((mesh,); data_t)
     end
 end
 
 """
-    function meshes(
-        f :: MeshFunction{MD, SD, DD, Q}
-        ) :: NTuple{MD, AbstractMesh} where {MD, SD, DD, Q <: Number}
+    function meshes(f :: MeshFunction{MD, SD, DD, Q, AT}) :: NTuple{MD, Union{<: AbstractMesh}} where {MD, SD, DD, Q <: Number, AT <: AbstractArray{Q, DD}}
 
 Returns `f.meshes`
 """
-function meshes(
-    f :: MeshFunction{MD, SD, DD, Q}
-    ) :: NTuple{MD, AbstractMesh} where {MD, SD, DD, Q <: Number}
-
+function meshes(f :: MeshFunction{MD, SD, DD, Q, AT}) :: NTuple{MD, Union{<: AbstractMesh}} where {MD, SD, DD, Q <: Number, AT <: AbstractArray{Q, DD}}
     return f.meshes
 end
 
 """
-    function meshes(
-        f   :: MeshFunction,
-        idx :: Int64
-        )   :: AbstractMesh
+    function meshes(f :: MeshFunction, idx :: Int64) :: AbstractMesh
 
 Returns `f.meshes[idx]`
 """
-function meshes(
-    f   :: MeshFunction,
-    idx :: Int64
-    )   :: AbstractMesh
-
+function meshes(f :: MeshFunction, idx :: Int64) :: AbstractMesh
     return f.meshes[idx]
 end
 
 """
-    function shape(
-        f :: MeshFunction{MD, SD, DD, Q}
-        ) :: NTuple{SD, Int64} where {MD, SD, DD, Q <: Number}
+    function shape(f :: MeshFunction{MD, SD, DD, Q, AT}) :: NTuple{SD, Int64} where {MD, SD, DD, Q <: Number, AT <: AbstractArray{Q, DD}}
 
 Returns `f.shape`
 """
-function shape(
-    f :: MeshFunction{MD, SD, DD, Q}
-    ) :: NTuple{SD, Int64} where {MD, SD, DD, Q <: Number}
-
+function shape(f :: MeshFunction{MD, SD, DD, Q, AT}) :: NTuple{SD, Int64} where {MD, SD, DD, Q <: Number, AT <: AbstractArray{Q, DD}}
     return f.shape 
 end 
 
 """
-    function shape(
-        f   :: MeshFunction,
-        idx :: Int64
-        )   :: Int64
+    function shape(f :: MeshFunction, idx :: Int64) :: Int64
 
 Returns `f.shape[idx]`
 """
-function shape(
-    f   :: MeshFunction,
-    idx :: Int64
-    )   :: Int64
-
+function shape(f :: MeshFunction, idx :: Int64) :: Int64
     return f.shape[idx]
 end 
 
-function Base.:copy(
-    f :: MeshFunction
-    ) :: MeshFunction
-
+function Base.:copy(f :: MeshFunction)
     return MeshFunction(f)
 end
 

@@ -1,6 +1,4 @@
-function index_test(
-    f :: MeshFunction{MD, SD, DD, Q}
-    ) :: Nothing where {MD, SD, DD, Q <: Number}
+function index_test(f :: MeshFunction{MD, SD, DD, Q, AT}) where {MD, SD, DD, Q <: Number, AT <: AbstractArray{Q, DD}}
     
     for trial in 1 : 10
         m_idxs = ntuple(i -> rand(eachindex(meshes(f, i))), MD)

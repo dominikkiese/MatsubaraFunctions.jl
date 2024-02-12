@@ -1,50 +1,44 @@
 # call to MeshFunction, only value type and mesh point, no interpolation
-function (f :: MeshFunction{MD, SD, DD, Q})(
-    p   :: NTuple{MD, Union{AbstractValue, AbstractMeshPoint}},
+function (f :: MeshFunction{MD, SD, DD, Q, AT})(
+    p   :: NTuple{MD, Union{<: AbstractValue, <: AbstractMeshPoint}},
     x   :: Vararg{Int64, SD}
     ;
     lim :: Q = Q(0.0)
-    )   :: Q where{MD, SD, DD, Q <: Number}
+    ) where{MD, SD, DD, Q <: Number, AT <: AbstractArray{Q, DD}}
 
     return any(i -> !is_inbounds_bc(p[i], meshes(f, i)), MD) ? lim : f[CartesianIndex_bc(f, p, x...)]
 end
 
-function (f :: MeshFunction{1, SD, DD, Q})(
-    p   :: Union{AbstractValue, AbstractMeshPoint},
+function (f :: MeshFunction{1, SD, DD, Q, AT})(
+    p   :: Union{<: AbstractValue, <: AbstractMeshPoint},
     x   :: Vararg{Int64, SD} 
     ;
     lim :: Q = Q(0.0)
-    )   :: Q where{SD, DD, Q <: Number}
+    ) where{SD, DD, Q <: Number, AT <: AbstractArray{Q, DD}}
 
     return f((p,), x...; lim)
 end
 
-function (f :: MeshFunction{MD, 0, DD, Q})(
-    p   :: Vararg{Union{AbstractValue, AbstractMeshPoint}, MD} 
-    ;
-    lim :: Q = Q(0.0)
-    )   :: Q where{MD, DD, Q <: Number}
+function (f :: MeshFunction{MD, 0, DD, Q, AT})(p :: Vararg{Union{<: AbstractValue, <: AbstractMeshPoint}, MD}; lim :: Q = Q(0.0)
+    ) where{MD, DD, Q <: Number, AT <: AbstractArray{Q, DD}}
 
     return f((p...,); lim)
 end
 
 # specialize 
-function (f :: MeshFunction{1, 0, DD, Q})(
-    p   :: Union{AbstractValue, AbstractMeshPoint},
-    ;
-    lim :: Q = Q(0.0)
-    )   :: Q where{DD, Q <: Number}
+function (f :: MeshFunction{1, 0, DD, Q, AT})(p :: Union{<: AbstractValue, <: AbstractMeshPoint}; lim :: Q = Q(0.0)
+    ) where{DD, Q <: Number, AT <: AbstractArray{Q, DD}}
 
     return f((p,); lim)
 end
 
 # call to MeshFunction, all types, interpolation
-function (f :: MeshFunction{MD, SD, DD, Q})(
-    p   :: NTuple{MD, Union{AbstractValue, AbstractMeshPoint, Float64, SVector}},
+function (f :: MeshFunction{MD, SD, DD, Q, AT})(
+    p   :: NTuple{MD, Union{<: AbstractValue, <: AbstractMeshPoint, Float64, <: AbstractVector{Float64}}},
     x   :: Vararg{Int64, SD} 
     ;
     lim :: Q = Q(0.0)
-    )   :: Q where{MD, SD, DD, Q <: Number}
+    ) where{MD, SD, DD, Q <: Number, AT <: AbstractArray{Q, DD}}
 
     if any(i -> !is_inbounds_bc(p[i], meshes(f, i)), MD)
         return lim 
@@ -62,31 +56,25 @@ function (f :: MeshFunction{MD, SD, DD, Q})(
     return val
 end
 
-function (f :: MeshFunction{1, SD, DD, Q})(
-    p   :: Union{AbstractValue, AbstractMeshPoint, Float64, SVector},
+function (f :: MeshFunction{1, SD, DD, Q, AT})(
+    p   :: Union{<: AbstractValue, <: AbstractMeshPoint, Float64, <: AbstractVector{Float64}},
     x   :: Vararg{Int64, SD} 
     ;
     lim :: Q = Q(0.0)
-    )   :: Q where{SD, DD, Q <: Number}
+    ) where{SD, DD, Q <: Number, AT <: AbstractArray{Q, DD}}
 
     return f((p,), x...; lim)
 end
 
-function (f :: MeshFunction{MD, 0, DD, Q})(
-    p   :: Vararg{Union{AbstractValue, AbstractMeshPoint, Float64, SVector}, MD} 
-    ;
-    lim :: Q = Q(0.0)
-    )   :: Q where{MD, DD, Q <: Number}
+function (f :: MeshFunction{MD, 0, DD, Q, AT})(p :: Vararg{Union{<: AbstractValue, <: AbstractMeshPoint, Float64, <: AbstractVector{Float64}}, MD}; lim :: Q = Q(0.0)
+    ) where{MD, DD, Q <: Number, AT <: AbstractArray{Q, DD}}
 
     return f((p...,); lim)
 end
 
 # specialize 
-function (f :: MeshFunction{1, 0, DD, Q})(
-    p   :: Union{AbstractValue, AbstractMeshPoint, Float64, SVector},
-    ;
-    lim :: Q = Q(0.0)
-    )   :: Q where{DD, Q <: Number}
+function (f :: MeshFunction{1, 0, DD, Q, AT})(p :: Union{<: AbstractValue, <: AbstractMeshPoint, Float64, <: AbstractVector{Float64}}; lim :: Q = Q(0.0)
+    ) where{DD, Q <: Number, AT <: AbstractArray{Q, DD}}
 
     return f((p,); lim)
 end

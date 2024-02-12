@@ -14,80 +14,48 @@ struct BrillouinZone{N}
     basis     :: SMatrix{N, N, Float64}
     inv_basis :: SMatrix{N, N, Float64}
 
-    function BrillouinZone(
-        L     :: Int64,
-        basis :: SMatrix{N, N, Float64}
-        )     :: BrillouinZone{N} where {N}
-
+    function BrillouinZone(L :: Int64, basis :: SMatrix{N, N, Float64}) where {N}
         return new{N}(L, basis, inv(basis))
     end 
 
-    function BrillouinZone(
-        L    :: Int64,
-        vecs :: Vararg{SVector{N, Float64}, N}
-        )    :: BrillouinZone{N} where {N}
-
+    function BrillouinZone(L :: Int64, vecs :: Vararg{SVector{N, Float64}, N}) where {N}
         return BrillouinZone(L, hcat(vecs...))
     end 
 end
 
 """
-    function basis(
-        bz :: BrillouinZone{N}
-        )  :: SMatrix{N, N, Float64} where {N} 
+    function basis(bz :: BrillouinZone{N}) :: SMatrix{N, N, Float64} where {N} 
 
 Returns `bz.basis`
 """
-function basis(
-    bz :: BrillouinZone{N}
-    )  :: SMatrix{N, N, Float64} where {N}
-
+function basis(bz :: BrillouinZone{N}) :: SMatrix{N, N, Float64} where {N}
     return bz.basis 
 end
 
 """
-    function basis(
-        bz  :: BrillouinZone{N},
-        idx :: Int64
-        )   :: SVector{N, Float64} where {N}
+    function basis(bz  :: BrillouinZone{N}, idx :: Int64) :: SVector{N, Float64} where {N}
 
 Returns basis vector with index `idx`
 """
-function basis(
-    bz  :: BrillouinZone{N},
-    idx :: Int64
-    )   :: SVector{N, Float64} where {N}
-
+function basis(bz  :: BrillouinZone{N}, idx :: Int64) :: SVector{N, Float64} where {N}
     return bz.basis[:, idx]
 end
 
 """
-    function inv_basis(
-        bz :: BrillouinZone{N}
-        )  :: SMatrix{N, N, Float64} where {N} 
+    function inv_basis(bz :: BrillouinZone{N}) :: SMatrix{N, N, Float64} where {N} 
 
 Returns `bz.inv_basis`
 """
-function inv_basis(
-    bz :: BrillouinZone{N}
-    )  :: SMatrix{N, N, Float64} where {N} 
-
+function inv_basis(bz :: BrillouinZone{N}) :: SMatrix{N, N, Float64} where {N}
     return bz.inv_basis 
 end
 
 """
-    function inv_basis(
-        bz  :: BrillouinZone{N},
-        idx :: Int64
-        )   :: SVector{N, Float64} where {N}
+    function inv_basis(bz  :: BrillouinZone{N}, idx :: Int64) :: SVector{N, Float64} where {N}
 
 Returns inverse basis vector with index `idx`
 """
-function inv_basis(
-    bz  :: BrillouinZone{N},
-    idx :: Int64
-    )   :: SVector{N, Float64} where {N}
-
+function inv_basis(bz :: BrillouinZone{N}, idx :: Int64) :: SVector{N, Float64} where {N}
     return bz.inv_basis[:, idx]
 end
 
@@ -95,18 +63,11 @@ end
 #-------------------------------------------------------------------------------#
 
 """
-    function euclidean(
-        k  :: BrillouinPoint{N},
-        bz :: BrillouinZone{N}
-        )  :: SVector{N, Float64} where {N}
+    function euclidean(k :: BrillouinPoint{N}, bz :: BrillouinZone{N}) :: SVector{N, Float64} where {N}
 
 Convert reciprocal to euclidean coordinates
 """
-function euclidean(
-    k  :: BrillouinPoint{N},
-    bz :: BrillouinZone{N}
-    )  :: SVector{N, Float64} where {N}
-
+function euclidean(k :: BrillouinPoint{N}, bz :: BrillouinZone{N}) :: SVector{N, Float64} where {N}
     return basis(bz) * (value(k) ./ bz.L)
 end
 
@@ -114,18 +75,12 @@ end
 #-------------------------------------------------------------------------------#
 
 """
-    function reciprocal(
-        k  :: SVector{N, Float64},
-        bz :: BrillouinZone{N}
-        )  :: SVector{N, Float64} where {N}
+    function reciprocal(k :: T, bz :: BrillouinZone{N}) :: SVector{N, Float64} where {N, T <: AbstractVector{Float64}}
 
 Convert euclidean to reciprocal coordinates
 """
-function reciprocal(
-    k  :: SVector{N, Float64},
-    bz :: BrillouinZone{N}
-    )  :: SVector{N, Float64} where {N}
-
+function reciprocal(k :: T, bz :: BrillouinZone{N}) :: SVector{N, Float64} where {N, T <: AbstractVector{Float64}}
+    @DEBUG length(k) == N "Length mismatch for input vector"
     return inv_basis(bz) * (bz.L .* k)
 end
 
@@ -133,34 +88,21 @@ end
 #-------------------------------------------------------------------------------#
 
 """
-    function is_inbounds(
-        k  :: BrillouinPoint{N},
-        bz :: BrillouinZone{N}
-        )  :: Bool where {N}
+    function is_inbounds(k :: BrillouinPoint{N}, bz :: BrillouinZone{N}) :: Bool where {N}
 
 Checks if reciprocal coordinates in bounds
 """
-function is_inbounds(
-    k  :: BrillouinPoint{N},
-    bz :: BrillouinZone{N}
-    )  :: Bool where {N}
-
+function is_inbounds(k :: BrillouinPoint{N}, bz :: BrillouinZone{N}) :: Bool where {N}
     return all(kn -> 0 <= kn < bz.L, value(k))
 end
 
 """
-    function is_inbounds(
-        k  :: SVector{N, Float64},
-        bz :: BrillouinZone{N}
-        )  :: Bool where {N}
+    function is_inbounds(k :: T, bz :: BrillouinZone{N}) :: Bool where {N, T <: AbstractVector{Float64}}
 
 Checks if euclidean coordinates in bounds
 """
-function is_inbounds(
-    k  :: SVector{N, Float64},
-    bz :: BrillouinZone{N}
-    )  :: Bool where {N}
-
+function is_inbounds(k :: T, bz :: BrillouinZone{N}) :: Bool where {N, T <: AbstractVector{Float64}}
+    @DEBUG length(k) == N "Length mismatch for input vector"
     return all(kn -> 0 <= kn < bz.L, reciprocal(k, bz))
 end
 
@@ -173,33 +115,22 @@ function positive_modulo(idx, L)
 end
 
 """
-    function fold_back(
-        k  :: BrillouinPoint{N},
-        bz :: BrillouinZone{N}
-        )  :: BrillouinPoint{N} where {N}
+    function fold_back(k :: BrillouinPoint{N}, bz :: BrillouinZone{N}) :: BrillouinPoint{N} where {N}
 
 Use periodic boundary conditions to fold `k` back into mesh
 """
-function fold_back(
-    k  :: BrillouinPoint{N},
-    bz :: BrillouinZone{N}
-    )  :: BrillouinPoint{N} where {N}
-
+function fold_back(k :: BrillouinPoint{N}, bz :: BrillouinZone{N}) :: BrillouinPoint{N} where {N}
     return BrillouinPoint(map(kn -> positive_modulo(kn, bz.L), value(k)))
 end
 
 """
-    function fold_back(
-        k  :: SVector{N, Float64},
-        bz :: BrillouinZone{N}
-        )  :: SVector{N, Float64} where {N}
+    function fold_back(k :: T, bz :: BrillouinZone{N}) :: SVector{N, Float64} where {N, T <: AbstractVector{Float64}}
 
 Use periodic boundary conditions to fold `k` back into mesh
 """
-function fold_back( # slower than back folding in reciprocal space, should be avoided if possible
-    k  :: SVector{N, Float64},
-    bz :: BrillouinZone{N}
-    )  :: SVector{N, Float64} where {N}
+function fold_back(k :: T, bz :: BrillouinZone{N}) :: SVector{N, Float64} where {N, T <: AbstractVector{Float64}}
+    # slower than back folding in reciprocal space, should be avoided if possible
+    @DEBUG length(k) == N "Length mismatch for input vector"
 
     x = reciprocal(k, bz)
     return basis(bz) * (SVector{N, Float64}(ntuple(n -> positive_modulo(x[n], bz.L), N)...) ./ bz.L)
@@ -209,17 +140,12 @@ end
 #-------------------------------------------------------------------------------#
 
 """
-    function to_Wigner_Seitz(
-        k  :: SVector{N, Float64},
-        bz :: BrillouinZone{N}
-        )  :: SVector{N, Float64} where {N}
+    function to_Wigner_Seitz(k :: T, bz :: BrillouinZone{N}) :: SVector{N, Float64} where {N, T <: AbstractVector{Float64}}
 
 Map k to Wigner Seitz cell at Γ = 0
 """
-function to_Wigner_Seitz(
-    k  :: SVector{N, Float64},
-    bz :: BrillouinZone{N}
-    )  :: SVector{N, Float64} where {N}
+function to_Wigner_Seitz(k :: T, bz :: BrillouinZone{N}) :: SVector{N, Float64} where {N, T <: AbstractVector{Float64}}
+    @DEBUG length(k) == N "Length mismatch for input vector"
 
     reducible = true 
     iters     = Iterators.product(ntuple(n -> -1 : 1, N)...)
