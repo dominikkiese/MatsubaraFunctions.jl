@@ -5,22 +5,28 @@
     m2    = MatsubaraMesh(1.0, 10, Fermion)
     data1 = rand(length(m1))
     data2 = rand(length(m1), 5, 5)
-    data3 = rand(length(m1), length(m2), 5, 5)
 
-    # from data, check if parsed by reference
+    # from data, check if passed by reference
     f1     = MeshFunction(m1, data1)
     f2     = MeshFunction(m1, (5, 5), data2)
-    f3     = MeshFunction((m1, m2), (5, 5), data3)
     data1 .= rand(length(m1))
     data2 .= rand(length(m1), 5, 5)
-    data3 .= rand(length(m1), length(m2), 5, 5)
 
     @test typeof(f1) == MeshFunction{1, 0, 1, Float64, Array{Float64, 1}}
     @test typeof(f2) == MeshFunction{1, 2, 3, Float64, Array{Float64, 3}}
-    @test typeof(f3) == MeshFunction{2, 2, 4, Float64, Array{Float64, 4}}
     @test f1.data ≈ data1
     @test f2.data ≈ data2
-    @test f3.data ≈ data3
+
+    # from data view
+    f1     = MeshFunction(m1, view(data1, :))
+    f2     = MeshFunction(m1, (5, 5), view(data2, :, :, :))
+    data1 .= rand(length(m1))
+    data2 .= rand(length(m1), 5, 5)
+
+    @test typeof(f1) == MeshFunction{1, 0, 1, Float64, SubArray{Float64, 1, Vector{Float64}, Tuple{Base.Slice{Base.OneTo{Int64}}}, true}}
+    @test typeof(f2) == MeshFunction{1, 2, 3, Float64, SubArray{Float64, 3, Array{Float64, 3}, Tuple{Base.Slice{Base.OneTo{Int64}}, Base.Slice{Base.OneTo{Int64}}, Base.Slice{Base.OneTo{Int64}}}, true}}
+    @test f1.data ≈ data1
+    @test f2.data ≈ data2
     
     # from meshes
     @test typeof(MeshFunction(m1)) == MeshFunction{1, 0, 1, ComplexF64, Array{ComplexF64, 1}}
