@@ -6,7 +6,7 @@ function (f :: MeshFunction{MD, SD, DD, Q, AT})(
     lim :: Q = Q(0.0)
     ) where{MD, SD, DD, Q <: Number, AT <: AbstractArray{Q, DD}}
 
-    return any(i -> !is_inbounds_bc(p[i], meshes(f, i)), MD) ? lim : f[CartesianIndex_bc(f, p, x...)]
+    return all(i -> is_inbounds_bc(p[i], meshes(f, i)), 1 : MD) ? f[CartesianIndex_bc(f, p, x...)] : lim
 end
 
 function (f :: MeshFunction{1, SD, DD, Q, AT})(
@@ -40,20 +40,20 @@ function (f :: MeshFunction{MD, SD, DD, Q, AT})(
     lim :: Q = Q(0.0)
     ) where{MD, SD, DD, Q <: Number, AT <: AbstractArray{Q, DD}}
 
-    if any(i -> !is_inbounds_bc(p[i], meshes(f, i)), MD)
+    if all(i -> is_inbounds_bc(p[i], meshes(f, i)), 1 : MD)
+        params    = map((y, m) -> InterpolationParam(y, m), p, meshes(f))
+        idx_iters = Iterators.product(indices.(params)...)
+        wgt_iters = Iterators.product(weights.(params)...)
+        val       = 0.0
+
+        for y in zip(wgt_iters, idx_iters)
+            val += prod(first(y)) * f[last(y)..., x...]
+        end
+
+        return val 
+    else 
         return lim 
     end
-
-    params    = map((y, m) -> InterpolationParam(y, m), p, meshes(f))
-    idx_iters = Iterators.product(indices.(params)...)
-    wgt_iters = Iterators.product(weights.(params)...)
-    val       = 0.0
-
-    for y in zip(wgt_iters, idx_iters)
-        val += prod(first(y)) * f[last(y)..., x...]
-    end
-
-    return val
 end
 
 function (f :: MeshFunction{1, SD, DD, Q, AT})(
