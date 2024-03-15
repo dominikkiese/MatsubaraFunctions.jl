@@ -3,6 +3,7 @@ module MatsubaraFunctions
     using PrecompileTools
 
     @recompile_invalidations begin
+        using Printf
         using LinearAlgebra
         using StaticArrays
         using MPI
@@ -25,4 +26,8 @@ module MatsubaraFunctions
 
     include("mesh/mesh.jl")
     include("func/func.jl")
+
+    include("misc/mpi_helpers.jl")
+    include("misc/pade.jl")
+    include("misc/pulay.jl")
 end
