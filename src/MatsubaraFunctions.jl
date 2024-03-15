@@ -7,6 +7,7 @@ module MatsubaraFunctions
         using LinearAlgebra
         using StaticArrays
         using MPI
+        using Polyester
         using HDF5
         using Aqua
         using Documenter
