@@ -25,6 +25,10 @@ end
     mFermion = MatsubaraMesh(1.0, 10, Fermion)
     mBoson   = MatsubaraMesh(1.0, 10, Boson)
 
+    # length
+    @test length(mFermion) == 20
+    @test length(mBoson)   == 19
+
     # iterator
     @test indices(mFermion) ≈ [index(value(w)) for w in mFermion]
     @test indices(mBoson)   ≈ [index(value(w)) for w in mBoson]

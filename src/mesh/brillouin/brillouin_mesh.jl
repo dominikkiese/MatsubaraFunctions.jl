@@ -283,6 +283,13 @@ function load_brillouin_zone_mesh(h :: HDF5.File, l :: String) :: AbstractMesh
     return BrillouinZoneMesh(BrillouinZone(L, SMatrix{size(basis)..., Float64}(basis)))
 end
 
+"""
+Overload of load_mesh for BrillouinZoneMesh
+"""
+function load_mesh(h :: HDF5.File, l :: String, ::Val{hash("BrillouinZoneMesh")}) :: AbstractMesh
+    return load_brillouin_zone_mesh(h, l)
+end
+
 # export
 #-------------------------------------------------------------------------------#
 

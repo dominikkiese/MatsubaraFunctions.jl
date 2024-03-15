@@ -256,6 +256,13 @@ function load_matsubara_mesh(h :: HDF5.File, l :: String) :: AbstractMesh
     return nothing 
 end
 
+"""
+Overload of load_mesh for MatsubaraMesh
+"""
+function load_mesh(h :: HDF5.File, l :: String, ::Val{hash("MatsubaraMesh")}) :: AbstractMesh
+    return load_matsubara_mesh(h, l)
+end
+
 # export
 #-------------------------------------------------------------------------------#
 
