@@ -245,7 +245,7 @@ function (SG :: SymmetryGroup{GD, SD, DD, Q})(
     ;
     mode     :: Symbol = :serial,
     minbatch :: Int64  = 1
-    )        :: Nothing where {GD, SD, DD, Q <: Number, AT <: AbstractArray{Q, DD}}
+    ) where {GD, SD, DD, Q <: Number, AT <: AbstractArray{Q, DD}}
 
     if mode === :serial 
         for class in SG.classes
