@@ -146,6 +146,7 @@ end
 
 include("matsubara/matsubara_mesh.jl")
 include("brillouin/brillouin_mesh.jl")
+include("index/index_mesh.jl")
 
 export
     AbstractMesh,

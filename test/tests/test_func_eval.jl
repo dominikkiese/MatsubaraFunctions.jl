@@ -21,6 +21,7 @@ end
     k2 = (2.0 * pi / 3) .* SVector{2, Float64}(1, -sqrt(3.0))
     m1 = BrillouinZoneMesh(BrillouinZone(6, k1, k2))
     m2 = MatsubaraMesh(1.0, 10, Fermion)
+    m3 = IndexMesh(7)
 
     f1 = MeshFunction(m1)
     set!(f1, rand(size(f1.data)...))
@@ -37,6 +38,14 @@ end
     f4 = MeshFunction((m1, m2), 5, 5)
     set!(f4, rand(size(f4.data)...))
     eval_test(f4)
+
+    f5 = MeshFunction(m3, 5)
+    set!(f5, rand(size(f5.data)...))
+    eval_test(f5)
+
+    f6 = MeshFunction((m1, m3), 5, 5)
+    set!(f6, rand(size(f6.data)...))
+    eval_test(f6)
 
     # test interpolation
     for trial in 1 : 10

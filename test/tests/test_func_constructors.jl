@@ -3,6 +3,7 @@
     k2    = (2.0 * pi / 3) .* SVector{2, Float64}(1, -sqrt(3.0))
     m1    = BrillouinZoneMesh(BrillouinZone(6, k1, k2))
     m2    = MatsubaraMesh(1.0, 10, Fermion)
+    m3    = IndexMesh(7)
     data1 = rand(length(m1))
     data2 = rand(length(m1), 5, 5)
 
@@ -31,12 +32,15 @@
     # from meshes
     @test typeof(MeshFunction(m1)) == MeshFunction{1, 0, 1, ComplexF64, Array{ComplexF64, 1}}
     @test typeof(MeshFunction((m1, m2))) == MeshFunction{2, 0, 2, ComplexF64, Array{ComplexF64, 2}}
+    @test typeof(MeshFunction((m1, m3))) == MeshFunction{2, 0, 2, ComplexF64, Array{ComplexF64, 2}}
     @test typeof(MeshFunction(m1, 1)) == MeshFunction{1, 1, 2, ComplexF64, Array{ComplexF64, 2}}
     @test typeof(MeshFunction(m1, 1, 1)) == MeshFunction{1, 2, 3, ComplexF64, Array{ComplexF64, 3}}
     @test typeof(MeshFunction((m1, m2), 1)) == MeshFunction{2, 1, 3, ComplexF64, Array{ComplexF64, 3}}
     @test typeof(MeshFunction((m1, m2), 1, 1)) == MeshFunction{2, 2, 4, ComplexF64, Array{ComplexF64, 4}}
+    @test typeof(MeshFunction((m1, m3), 1)) == MeshFunction{2, 1, 3, ComplexF64, Array{ComplexF64, 3}}
+    @test typeof(MeshFunction((m1, m3), 1, 1)) == MeshFunction{2, 2, 4, ComplexF64, Array{ComplexF64, 4}}
     @test typeof(MeshFunction(m1; data_t = Float64)) == MeshFunction{1, 0, 1, Float64, Array{Float64, 1}}
 
     # copy constructor 
-    @test typeof(MeshFunction(MeshFunction((m1, m2), 1, 1))) == MeshFunction{2, 2, 4, ComplexF64, Array{ComplexF64, 4}}
+    @test typeof(MeshFunction(MeshFunction((m1, m2, m3), 1, 1))) == MeshFunction{3, 2, 5, ComplexF64, Array{ComplexF64, 5}}
 end

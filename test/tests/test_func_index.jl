@@ -28,9 +28,12 @@ end
     k2 = (2.0 * pi / 3) .* SVector{2, Float64}(1, -sqrt(3.0))
     m1 = BrillouinZoneMesh(BrillouinZone(6, k1, k2))
     m2 = MatsubaraMesh(1.0, 10, Fermion)
+    m3 = IndexMesh(7)
 
     index_test(MeshFunction(m1))
     index_test(MeshFunction(m1, m2))
     index_test(MeshFunction(m1, 5))
     index_test(MeshFunction((m1, m2), 5, 5))
+    index_test(MeshFunction(m3))
+    index_test(MeshFunction(m1, m3))
 end
