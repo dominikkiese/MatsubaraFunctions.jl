@@ -1,95 +1,85 @@
-"""
-    struct MatsubaraOperation 
+# operation type
+#-------------------------------------------------------------------------------#
 
-MatsubaraOperation type with fields:
+"""
+    struct Operation 
+
+Operation type with fields:
 * `sgn :: Bool` : change sign?
 * `con :: Bool` : complex conjugation?
 """
-struct MatsubaraOperation 
+struct Operation 
     sgn :: Bool 
     con :: Bool
 
-    function MatsubaraOperation(
-        sgn :: Bool,
-        con :: Bool
-        )   :: MatsubaraOperation 
-
+    function Operation(sgn :: Bool, con :: Bool)
         return new(sgn, con)
     end 
 
-    function MatsubaraOperation(; 
-        sgn :: Bool = false,
-        con :: Bool = false
-        )   :: MatsubaraOperation
-        
-        return MatsubaraOperation(sgn, con)
+    function Operation(; sgn :: Bool = false, con :: Bool = false)
+        return Operation(sgn, con)
     end
 end
- 
+
 """
-    sgn(op :: MatsubaraOperation) :: Bool
+    sgn(op :: Operation) :: Bool
 
 Return `op.sgn`
 """
-sgn(op :: MatsubaraOperation) :: Bool = op.sgn
+sgn(op :: Operation) :: Bool = op.sgn
 
 """
-    con(op :: MatsubaraOperation) :: Bool
+    con(op :: Operation) :: Bool
 
 Return `op.con`
 """
-con(op :: MatsubaraOperation) :: Bool = op.con
+con(op :: Operation) :: Bool = op.con
 
-function Base.:*(
-    op1 :: MatsubaraOperation,
-    op2 :: MatsubaraOperation
-    )   :: MatsubaraOperation 
-
-    return MatsubaraOperation(xor(sgn(op1), sgn(op2)), xor(con(op1), con(op2)))
+function Base.:*(op1 :: Operation, op2 :: Operation) 
+    return Operation(xor(sgn(op1), sgn(op2)), xor(con(op1), con(op2)))
 end
 
-function (op :: MatsubaraOperation)(
-    x :: Q
-    ) :: Q where {Q <: Number}
-
+function (op :: Operation)(x :: Q) where {Q <: Number}
     if sgn(op); return con(op) ? -conj(x) : -x; end
     return con(op) ? conj(x) : x
 end
 
-#----------------------------------------------------------------------------------------------#
+# symmetry type
+#-------------------------------------------------------------------------------#
 
-# a symmetry takes Matsubara frequencies / indices & tensor indices and 
-# returns Matsubara frequencies / indices & tensor indices & operation
+# a symmetry takes MeshPoint value types & tensor indices and 
+# returns MeshPoint value types & tensor indices & an operation
 """
-    struct MatsubaraSymmetry{GD, SD}
+    struct Symmetry{GD, SD}
 
-MatsubaraSymmetry type with fields:
+Symmetry type with fields:
 * `f :: Function`
 """
-struct MatsubaraSymmetry{GD, SD}
+struct Symmetry{GD, SD}
     f :: Function
 end
 
-function (S :: MatsubaraSymmetry{GD, SD})(
-    w :: NTuple{GD, <:AbstractValue},
+# explicit return type to enforce proper implementation
+function (S :: Symmetry{GD, SD})(
+    w :: NTuple{GD, Union{<: AbstractValue}},
     x :: NTuple{SD, Int64}
-    ) :: Tuple{NTuple{GD, MatsubaraFrequency}, NTuple{SD, Int64}, MatsubaraOperation} where {GD, SD}
+    ) :: Tuple{NTuple{GD, Union{<: AbstractValue}}, NTuple{SD, Int64}, Operation} where {GD, SD}
 
     return S.f(w, x)
 end
 
 function reduce(
-    w           :: NTuple{GD, <:AbstractValue},
+    w           :: NTuple{GD, Union{<: AbstractValue}},
     x           :: NTuple{SD, Int64},
-    op          :: MatsubaraOperation,
+    op          :: Operation,
     f           :: MeshFunction{GD, SD, DD, Q, AT},
     checked     :: Array{Bool, DD},
-    symmetries  :: Vector{MatsubaraSymmetry{GD, SD}},
-    class       :: Vector{Tuple{Int64, MatsubaraOperation}},
+    symmetries  :: Vector{Symmetry{GD, SD}},
+    class       :: Vector{Tuple{Int64, Operation}},
     path_length :: Int64
     ;
     max_length  :: Int64 = 0
-    )           :: Nothing where {GD, SD, DD, Q <: Number, AT <: AbstractArray{Q, DD}}
+    ) where {GD, SD, DD, Q <: Number, AT <: AbstractArray{Q, DD}}
  
     for S in symmetries 
         wp, xp, opp = S(w, x)
@@ -113,53 +103,49 @@ function reduce(
     end 
 end
 
-#----------------------------------------------------------------------------------------------#
+# symmetry group type
+#-------------------------------------------------------------------------------#
 
 """
-    MatsubaraSymmetryGroup{GD, SD, DD, Q <: Number}
+    SymmetryGroup{GD, SD, DD, Q <: Number}
 
-MatsubaraSymmetryGroup type with fields:
-* `classes :: Vector{Vector{Tuple{Int64, MatsubaraOperation}}}` : collections of symmetry equivalent elements
-* `speedup :: Float64`                                          : expected speedup from the symmetry reduction
+SymmetryGroup type with fields:
+* `classes :: Vector{Vector{Tuple{Int64, Operation}}}` : collections of symmetry equivalent elements
+* `speedup :: Float64`                                 : expected speedup from the symmetry reduction
 """
-struct MatsubaraSymmetryGroup{GD, SD, DD, Q <: Number}
-    classes :: Vector{Vector{Tuple{Int64, MatsubaraOperation}}}
+struct SymmetryGroup{GD, SD, DD, Q <: Number}
+    classes :: Vector{Vector{Tuple{Int64, Operation}}}
     speedup :: Float64
 
-    function MatsubaraSymmetryGroup{GD, SD, DD, Q}(
-        classes :: Vector{Vector{Tuple{Int64, MatsubaraOperation}}},
-        speedup :: Float64
-        )       :: MatsubaraSymmetryGroup{GD, SD, DD, Q} where {GD, SD, DD, Q <: Number}
+    function SymmetryGroup{GD, SD, DD, Q}(
+        classes :: Vector{Vector{Tuple{Int64, Operation}}}, speedup :: Float64
+        ) where {GD, SD, DD, Q <: Number}
 
         return new{GD, SD, DD, Q}(classes, speedup)
     end 
 
-    function MatsubaraSymmetryGroup(
-        f :: MeshFunction{GD, SD, DD, Q, AT}
-        ) :: MatsubaraSymmetryGroup{GD, SD, DD, Q} where {GD, SD, DD, Q <: Number, AT <: AbstractArray{Q, DD}}
-
-        return new{GD, SD, DD, Q}([[(idx, MatsubaraOperation())] for idx in eachindex(f.data)], 1.0)
+    function SymmetryGroup(f :: MeshFunction{GD, SD, DD, Q, AT}) where {GD, SD, DD, Q <: Number, AT <: AbstractArray{Q, DD}}
+        return new{GD, SD, DD, Q}([[(idx, Operation())] for idx in eachindex(f.data)], 1.0)
     end
  
-    function MatsubaraSymmetryGroup(
-        symmetries :: Vector{MatsubaraSymmetry{GD, SD}},
+    function SymmetryGroup(
+        symmetries :: Vector{Symmetry{GD, SD}},
         f          :: MeshFunction{GD, SD, DD, Q, AT}
         ;
         max_length :: Int64 = 0
-        )          :: MatsubaraSymmetryGroup{GD, SD, DD, Q} where {GD, SD, DD, Q <: Number, AT <: AbstractArray{Q, DD}}
+        ) where {GD, SD, DD, Q <: Number, AT <: AbstractArray{Q, DD}}
 
         checked  = Array{Bool, DD}(undef, size(f.data))
-        classes  = Vector{Tuple{Int64, MatsubaraOperation}}[]
+        classes  = Vector{Tuple{Int64, Operation}}[]
         checked .= false
 
         for idx in eachindex(f.data)
             if !checked[idx]
                 checked[idx] = true
                 w, x         = to_meshes(f, idx)
-                w = value.(w)
-                class        = [(idx, MatsubaraOperation())]
+                class        = [(idx, Operation())]
 
-                reduce(w, x, MatsubaraOperation(), f, checked, symmetries, class, 0; max_length)
+                reduce(value.(w), x, Operation(), f, checked, symmetries, class, 0; max_length)
                 push!(classes, class)
             end 
         end
@@ -169,9 +155,9 @@ struct MatsubaraSymmetryGroup{GD, SD, DD, Q <: Number}
 end
 
 # symmetrize data array of the MeshFunction, return error estimate
-function (SG :: MatsubaraSymmetryGroup{GD, SD, DD, Q})(
+function (SG :: SymmetryGroup{GD, SD, DD, Q})(
     f :: MeshFunction{GD, SD, DD, Q, AT}
-    ) :: Float64 where {GD, SD, DD, Q <: Number, AT <: AbstractArray{Q, DD}}
+    ) where {GD, SD, DD, Q <: Number, AT <: AbstractArray{Q, DD}}
 
     err = 0.0
 
@@ -193,14 +179,14 @@ end
 
 """
     function get_reduced(
-        SG :: MatsubaraSymmetryGroup{GD, SD, DD, Q},
+        SG :: SymmetryGroup{GD, SD, DD, Q},
         f  :: MeshFunction{GD, SD, DD, Q, AT}
         )  :: Vector{Q} where {GD, SD, DD, Q <: Number}
 
 Calculate symmetry reduced representation of MeshFunction
 """
 function get_reduced(
-    SG :: MatsubaraSymmetryGroup{GD, SD, DD, Q},
+    SG :: SymmetryGroup{GD, SD, DD, Q},
     f  :: MeshFunction{GD, SD, DD, Q, AT}
     )  :: Vector{Q} where {GD, SD, DD, Q <: Number, AT <: AbstractArray{Q, DD}}
 
@@ -209,7 +195,7 @@ end
 
 """
     function init_from_reduced!(
-        SG   :: MatsubaraSymmetryGroup{GD, SD, DD, Q},
+        SG   :: SymmetryGroup{GD, SD, DD, Q},
         f    :: MeshFunction{GD, SD, DD, Q, AT},
         fvec :: AbstractVector{Q}
         )    :: Nothing where {GD, SD, DD, Q <: Number}
@@ -217,7 +203,7 @@ end
 Initialize MeshFunction from symmetry reduced representation
 """ 
 function init_from_reduced!(
-    SG   :: MatsubaraSymmetryGroup{GD, SD, DD, Q},
+    SG   :: SymmetryGroup{GD, SD, DD, Q},
     f    :: MeshFunction{GD, SD, DD, Q, AT},
     fvec :: AbstractVector{Q}
     )    :: Nothing where {GD, SD, DD, Q <: Number, AT <: AbstractArray{Q, DD}}
@@ -230,30 +216,32 @@ function init_from_reduced!(
     return nothing 
 end
 
-#----------------------------------------------------------------------------------------------#
+# init function type
+#-------------------------------------------------------------------------------#
 
 """
-    struct MatsubaraInitFunction{GD, SD, Q <: Number}
+    struct InitFunction{GD, SD, Q <: Number}
 
-MatsubaraInitFunction type with fields:
+InitFunction type with fields:
 * `f :: Function` 
 """
-struct MatsubaraInitFunction{GD, SD, Q <: Number}
+struct InitFunction{GD, SD, Q <: Number}
     f :: Function
 end
 
-function (I :: MatsubaraInitFunction{GD, SD, Q})(
-    w :: NTuple{GD, MatsubaraFrequency},
+# explicit return type to enforce proper implementation
+function (I :: InitFunction{GD, SD, Q})(
+    w :: NTuple{GD, Union{<: AbstractValue}},
     x :: NTuple{SD, Int64}
     ) :: Q where {GD, SD, Q <: Number}
 
     return I.f(w, x)
 end
 
-# symmetrize MeshFunction from evaluation of MatsubaraInitFunction
-function (SG :: MatsubaraSymmetryGroup{GD, SD, DD, Q})(
+# symmetrize MeshFunction from evaluation of InitFunction
+function (SG :: SymmetryGroup{GD, SD, DD, Q})(
     f        :: MeshFunction{GD, SD, DD, Q, AT},
-    I        :: MatsubaraInitFunction{GD, SD, Q}
+    I        :: InitFunction{GD, SD, Q}
     ;
     mode     :: Symbol = :serial,
     minbatch :: Int64  = 1
@@ -281,7 +269,6 @@ function (SG :: MatsubaraSymmetryGroup{GD, SD, DD, Q})(
         set!(f, 0.0)
 
         Threads.@threads for clidx in mpi_split(1 : length(SG.classes))
-
             w, x = to_meshes(f, SG.classes[clidx][1][1])
             f[SG.classes[clidx][1][1]] = I(value.(w), x)
         end
@@ -293,18 +280,18 @@ function (SG :: MatsubaraSymmetryGroup{GD, SD, DD, Q})(
     end
 
     SG(f)
-
     return nothing 
 end
 
-#----------------------------------------------------------------------------------------------#
+# export
+#-------------------------------------------------------------------------------#
 
 export
-    MatsubaraOperation,
+    Operation,
     sgn,
     con,
-    MatsubaraSymmetry,
-    MatsubaraSymmetryGroup,
+    Symmetry,
+    SymmetryGroup,
     get_reduced,
     init_from_reduced!,
-    MatsubaraInitFunction
+    InitFunction
