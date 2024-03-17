@@ -187,15 +187,7 @@ grids
 ```
 
 ```@docs
-grids_shape
-```
-
-```@docs
 shape
-```
-
-```@docs
-data_shape
 ```
 
 ```@docs
@@ -263,14 +255,6 @@ lower_tail_moments
 ```
 
 ```@docs
-sum_me
-```
-
-```@docs
-density
-```
-
-```@docs
 sgn
 ```
 
@@ -289,7 +273,3 @@ load_matsubara_function
 ```@docs
 save_matsubara_symmetry_group!
 ```    
-
-```@docs
-load_matsubara_symmetry_group
-```     

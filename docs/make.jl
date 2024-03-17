@@ -9,6 +9,7 @@ makedocs(sitename = "MatsubaraFunctions.jl",
           pages   = [
             "Home"               => "index.md", 
             "MatsubaraFrequency" => "matsubara_freq.md",
+            "MatsubaraIndex"     => "matsubara_index.md",
             "MatsubaraGrid"      => "matsubara_grid.md",
             "MatsubaraFunction"  => "matsubara_func.md",
             "Miscellaneous"      => "misc.md"])
