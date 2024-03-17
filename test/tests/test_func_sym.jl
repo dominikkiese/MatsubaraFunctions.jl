@@ -35,7 +35,6 @@
 
     # compute the symmetry group 
     SG = SymmetryGroup([Symmetry{2, 0}(conj), Symmetry{2, 0}(ref), Symmetry{2, 0}((w, x) -> rot(w, x, g1))], f1)
-    @show SG.speedup
 
     # symmetrize f2 and compare to f1 
     for class in SG.classes 

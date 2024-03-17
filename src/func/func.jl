@@ -14,7 +14,7 @@ struct MeshFunction{MD, SD, DD, Q <: Number, AT <: AbstractArray{Q, DD}}
     shape  :: NTuple{SD, Int64}          
     data   :: AT
 
-    function MeshFunction( # pass by reference
+    function MeshFunction(
         meshes :: NTuple{MD, Union{<: AbstractMesh}}, 
         shape  :: NTuple{SD, Int64}, 
         data   :: AT
@@ -29,7 +29,7 @@ struct MeshFunction{MD, SD, DD, Q <: Number, AT <: AbstractArray{Q, DD}}
         return new{MD, SD, DD, Q, AT}(meshes, shape, data)
     end
 
-    function MeshFunction( # pass by reference
+    function MeshFunction(
         mesh  :: MT, 
         shape :: NTuple{SD, Int64}, 
         data  :: AT
@@ -38,17 +38,15 @@ struct MeshFunction{MD, SD, DD, Q <: Number, AT <: AbstractArray{Q, DD}}
         return MeshFunction((mesh,), shape, data)
     end
 
-    # pass by reference
     function MeshFunction(meshes :: NTuple{MD, Union{<: AbstractMesh}}, data :: AT) where {MD, DD, Q <: Number, AT <: AbstractArray{Q, DD}}
         return MeshFunction(meshes, (), data)
     end
 
-    # pass by reference
     function MeshFunction(mesh :: MT, data :: AT) where {DD, Q <: Number, MT <: AbstractMesh, AT <: AbstractArray{Q, DD}}
         return MeshFunction((mesh,), (), data)
     end
 
-    function MeshFunction( # pass meshes by copy
+    function MeshFunction(
         meshes :: NTuple{MD, Union{<: AbstractMesh}},
         shape  :: Vararg{Int64, SD}
         ;
@@ -56,10 +54,10 @@ struct MeshFunction{MD, SD, DD, Q <: Number, AT <: AbstractArray{Q, DD}}
         ) where {MD, SD}
         
         data = Array{data_t, MD + SD}(undef, length.(meshes)..., shape...)
-        return MeshFunction(Mesh.(meshes), tuple(shape...), data)
+        return MeshFunction(meshes, tuple(shape...), data)
     end
 
-    function MeshFunction( # pass mesh by copy
+    function MeshFunction(
         mesh   :: MT,
         shape  :: Vararg{Int64, SD}
         ;
@@ -69,17 +67,14 @@ struct MeshFunction{MD, SD, DD, Q <: Number, AT <: AbstractArray{Q, DD}}
         return MeshFunction((mesh,), shape...; data_t)
     end
 
-    # pass meshes by copy
     function MeshFunction(meshes :: Vararg{Union{<: AbstractMesh}, MD}; data_t :: DataType = ComplexF64) where {MD}
         return MeshFunction(tuple(meshes...); data_t)
     end
 
-    # pass meshes and data by copy
     function MeshFunction(f :: MeshFunction) :: MeshFunction
-        return MeshFunction(Mesh.(meshes(f)), shape(f), copy(f.data))
+        return MeshFunction(meshes(f), shape(f), copy(f.data))
     end
 
-    # specialization, pass mesh by copy
     function MeshFunction(mesh :: MT; data_t :: DataType = ComplexF64) where {MT <: AbstractMesh}
         return MeshFunction((mesh,); data_t)
     end
