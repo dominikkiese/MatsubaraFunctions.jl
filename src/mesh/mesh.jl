@@ -122,6 +122,19 @@ function mesh_index(x :: T, m :: Mesh{T}) where {T <: AbstractMeshPoint}
     return index(x)
 end
 
+# load mesh from file 
+#-------------------------------------------------------------------------------#
+
+"""
+    function load_mesh(h :: HDF5.File, l :: String) :: AbstractMesh
+
+Load mesh with name `l` from file `h`
+"""
+function load_mesh(h :: HDF5.File, l :: String) :: AbstractMesh
+    # direct dispatch on the respective overload
+    return load_mesh(h, l, Val(Symbol(read_attribute(h[l], "tag"))))
+end
+
 # load implementations and export
 #-------------------------------------------------------------------------------#
 
@@ -138,4 +151,5 @@ export
     AbstractMesh,
     Mesh,
     points,
-    domain
+    domain,
+    load_mesh

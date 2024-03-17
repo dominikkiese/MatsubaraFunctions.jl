@@ -10,10 +10,8 @@
     file = h5open(dirname(@__FILE__) * "/test.h5", "w")
     save_mesh_function!(file, "f", f)
 
-    # load f and SG from file 
-    fp  = load_mesh_function(file, "f")
-
-    
+    # load f from file 
+    fp = load_mesh_function(file, "f")
     @test f == fp
 
     # close and remove test file 

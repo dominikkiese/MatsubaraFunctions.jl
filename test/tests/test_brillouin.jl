@@ -54,12 +54,12 @@ end
     end 
 
     # io
-    file = h5open("test.h5", "w")
-
+    file = h5open(dirname(@__FILE__) * "/test.h5", "w")
     save!(file, "testBrillouin", m)
-    mp = load_brillouin_zone_mesh(file, "testBrillouin")
+
+    mp = load_mesh(file, "testBrillouin")
     @test m == mp
 
     close(file)
-    rm("test.h5")
+    rm(dirname(@__FILE__) * "/test.h5")
 end

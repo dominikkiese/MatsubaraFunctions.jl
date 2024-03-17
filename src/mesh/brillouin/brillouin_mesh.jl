@@ -260,8 +260,8 @@ function save!(
     grp = create_group(h, l)
 
     # save metadata
-    attributes(grp)["tag"]   = "BrillouinZoneMesh"
     bz                       = domain(m)[:bz]
+    attributes(grp)["tag"]   = "BrillouinZoneMesh"
     attributes(grp)["basis"] = basis(bz)
     attributes(grp)["L"]     = bz.L
 
@@ -269,11 +269,11 @@ function save!(
 end
 
 """
-    function load_brillouin_zone_mesh(h :: HDF5.File, l :: String) :: AbstractMesh
+    function load_mesh(h :: HDF5.File, l :: String, ::Val{:BrillouinZoneMesh}) :: AbstractMesh
 
-Load Brillouin zone mesh with label `l` from HDF5 file `h`
+Overload of load_mesh for BrillouinZoneMesh
 """
-function load_brillouin_zone_mesh(h :: HDF5.File, l :: String) :: AbstractMesh
+function load_mesh(h :: HDF5.File, l :: String, ::Val{:BrillouinZoneMesh}) :: AbstractMesh
     @DEBUG read_attribute(h[l], "tag") == "BrillouinZoneMesh" "Dataset $(l) not tagged as BrillouinZoneMesh"
 
     # load metadata
@@ -281,13 +281,6 @@ function load_brillouin_zone_mesh(h :: HDF5.File, l :: String) :: AbstractMesh
     L     = read_attribute(h[l], "L")
 
     return BrillouinZoneMesh(BrillouinZone(L, SMatrix{size(basis)..., Float64}(basis)))
-end
-
-"""
-Overload of load_mesh for BrillouinZoneMesh
-"""
-function load_mesh(h :: HDF5.File, l :: String, ::Val{hash("BrillouinZoneMesh")}) :: AbstractMesh
-    return load_brillouin_zone_mesh(h, l)
 end
 
 # export
@@ -303,4 +296,4 @@ export
     fold_back,
     to_Wigner_Seitz,
     save!,
-    load_brillouin_zone_mesh
+    load_mesh

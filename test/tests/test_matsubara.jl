@@ -48,16 +48,16 @@ end
     end 
     
     # io
-    file = h5open("test.h5", "w")
+    file = h5open(dirname(@__FILE__) * "/test.h5", "w")
 
     save!(file, "testFermion", mFermion)
-    mFermion_p = load_matsubara_mesh(file, "testFermion")
+    mFermion_p = load_mesh(file, "testFermion")
     @test mFermion == mFermion_p
 
     save!(file, "testBoson", mBoson)
-    mBoson_p = load_matsubara_mesh(file, "testBoson")
+    mBoson_p = load_mesh(file, "testBoson")
     @test mBoson == mBoson_p
 
     close(file)
-    rm("test.h5")
+    rm(dirname(@__FILE__) * "/test.h5")
 end

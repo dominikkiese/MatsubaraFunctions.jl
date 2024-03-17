@@ -234,12 +234,11 @@ function save!(
 end
 
 """
-    function load_matsubara_mesh(h :: HDF5.File, l :: String) :: AbstractMesh
+    function load_mesh(h :: HDF5.File, l :: String, ::Val{:MatsubaraMesh}) :: AbstractMesh
 
-Load Matsubara mesh with label `l` from HDF5 file `h`
+Overload of load_mesh for MatsubaraMesh
 """
-function load_matsubara_mesh(h :: HDF5.File, l :: String) :: AbstractMesh
-
+function load_mesh(h :: HDF5.File, l :: String, ::Val{:MatsubaraMesh}) :: AbstractMesh
     @DEBUG read_attribute(h[l], "tag") == "MatsubaraMesh" "Dataset $(l) not tagged as MatsubaraMesh"
 
     # load metadata
@@ -251,16 +250,9 @@ function load_matsubara_mesh(h :: HDF5.File, l :: String) :: AbstractMesh
         return MatsubaraMesh(temperature, N, Fermion)
     elseif type == "Boson"
         return MatsubaraMesh(temperature, N, Boson)
+    else 
+        error("Particle type $(type) unknown")
     end
-
-    return nothing 
-end
-
-"""
-Overload of load_mesh for MatsubaraMesh
-"""
-function load_mesh(h :: HDF5.File, l :: String, ::Val{hash("MatsubaraMesh")}) :: AbstractMesh
-    return load_matsubara_mesh(h, l)
 end
 
 # export
@@ -278,4 +270,4 @@ export
     values,
     is_inbounds,
     save!,
-    load_matsubara_mesh
+    load_mesh

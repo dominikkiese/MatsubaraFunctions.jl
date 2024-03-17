@@ -25,7 +25,6 @@ function save_mesh_function!(
 
     # save data
     grp["data"] = f.data
-
     return nothing 
 end
 
@@ -33,7 +32,7 @@ end
     function load_mesh_function(
         h :: HDF5.File,
         l :: String
-        ) :: MeshFunction{MD, SD, DD, Q, Array{Q, DD}}
+        ) :: MeshFunction
 
 Load MeshFunction with label `l` from file `h`
 """
@@ -43,19 +42,15 @@ function load_mesh_function(
     ) :: MeshFunction
 
     # load the metadata 
-    type   = read_attribute(h[l], "type")
-    shape  = read_attribute(h[l], "shape")
+    type  = read_attribute(h[l], "type")
+    shape = read_attribute(h[l], "shape")
 
     @DEBUG type == "MeshFunction" "Type $(l) unknown"
 
     # load the data
-    idxs  = eachindex(keys(h[l * "/meshes"]))
-    grid_gpnames = [l * "/meshes/mesh_$i" for i in idxs]
-    grids = [load_mesh(h, gname, Val(hash(read_attribute(h[gname], "tag")))) for gname in grid_gpnames]
-
+    grids = [load_mesh(h, l * "/meshes/mesh_$i") for i in eachindex(keys(h[l * "/meshes"]))]
     return MeshFunction((grids...,), (shape...,), read(h, l * "/data"))
 end
-
 
 export 
     save_mesh_function!,
