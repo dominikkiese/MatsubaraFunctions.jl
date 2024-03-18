@@ -64,14 +64,14 @@ end
 
 """
     function mpi_allreduce!(
-        f :: MeshFunction{{MD, SD, DD, Q, AT}}
-        ) :: Nothing where {GD, SD, DD, Q <: Number, AT <: AbstractArray{Q, DD}}
+        f :: MeshFunction{{DD, Q, AT}}
+        ) :: Nothing where {DD, Q <: Number, AT <: AbstractArray{Q, DD}}
 
 Inplace MPI reduction (+) for MeshFunction
 """
 function mpi_allreduce!(
-    f :: MeshFunction{GD, SD, DD, Q, AT}
-    ) :: Nothing where {GD, SD, DD, Q <: Number, AT <: AbstractArray{Q, DD}}
+    f :: MeshFunction{DD, Q, AT}
+    ) :: Nothing where {DD, Q <: Number, AT <: AbstractArray{Q, DD}}
 
     MPI.Allreduce!(f.data, +, mpi_comm())
     return nothing

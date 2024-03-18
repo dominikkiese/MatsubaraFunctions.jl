@@ -1,16 +1,16 @@
 # TO DO: add test for out of bounds access
-function eval_test(f :: MeshFunction{MD, SD, DD, Q, AT}) where {MD, SD, DD, Q <: Number, AT <: AbstractArray{Q, DD}}
+function eval_test(f :: MeshFunction{DD, Q, AT}) where {DD, Q <: Number, AT <: AbstractArray{Q, DD}}
 
     for trial in 1 : 10
-        m_idxs = ntuple(i -> rand(eachindex(meshes(f, i))), MD)
-        x_idxs = ntuple(i -> rand(1 : shape(f, i)), SD)
-        pts    = ntuple(i -> meshes(f, i)[m_idxs[i]], MD)
-        val    = f[m_idxs..., x_idxs...]
+        m_idxs = ntuple(i -> rand(eachindex(meshes(f, i))), DD)
+        #x_idxs = ntuple(i -> rand(1 : shape(f, i)), SD)
+        pts    = ntuple(i -> meshes(f, i)[m_idxs[i]], DD)
+        val    = f[m_idxs...]
 
-        @test f[pts, x_idxs...]         ≈ val
-        @test f[value.(pts), x_idxs...] ≈ val
-        @test f(pts, x_idxs...)         ≈ val
-        @test f(value.(pts), x_idxs...) ≈ val
+        @test f[pts...]         ≈ val
+        @test f[value.(pts)...] ≈ val
+        @test f(pts...)         ≈ val
+        @test f(value.(pts)...) ≈ val
     end
 
     return nothing 
@@ -31,21 +31,13 @@ end
     set!(f2, rand(size(f2.data)...))
     eval_test(f2)
 
-    f3 = MeshFunction(m1, 5)
+    f3 = MeshFunction(m1, m3)
     set!(f3, rand(size(f3.data)...))
     eval_test(f3)
 
-    f4 = MeshFunction((m1, m2), 5, 5)
+    f4 = MeshFunction(m1, m2, m3, m3)
     set!(f4, rand(size(f4.data)...))
     eval_test(f4)
-
-    f5 = MeshFunction(m3, 5)
-    set!(f5, rand(size(f5.data)...))
-    eval_test(f5)
-
-    f6 = MeshFunction((m1, m3), 5, 5)
-    set!(f6, rand(size(f6.data)...))
-    eval_test(f6)
 
     # test interpolation
     for trial in 1 : 10
@@ -60,6 +52,6 @@ end
     w = MatsubaraFrequency(1.0, 100, Fermion)
     @test f2(first(m1), w) ≈ ComplexF64(0.0) 
     @test f2(first(m1), w; lim = ComplexF64(1.0)) ≈ ComplexF64(1.0)
-    @test f4((first(m1), w), 1, 2) ≈ ComplexF64(0.0) 
-    @test f4((first(m1), w), 3, 5; lim = ComplexF64(1.0)) ≈ ComplexF64(1.0)
+    @test f4(first(m1), w, MatsubaraFunctions.Index(1), MatsubaraFunctions.Index(2)) ≈ ComplexF64(0.0) 
+    @test f4(first(m1), w, MatsubaraFunctions.Index(3), MatsubaraFunctions.Index(5); lim = ComplexF64(1.0)) ≈ ComplexF64(1.0)
 end

@@ -3,9 +3,10 @@
     k2    = (2.0 * pi / 3) .* SVector{2, Float64}(1, -sqrt(3.0))
     m1    = BrillouinZoneMesh(BrillouinZone(6, k1, k2))
     m2    = MatsubaraMesh(1.0, 10, Fermion)
-    f1    = MeshFunction((m1, m2), 2, 2)
-    f2    = MeshFunction((m1, m2), 2, 2)
-    f3    = MeshFunction((m1, m2), 2, 2)
+    m3    = IndexMesh(10)
+    f1    = MeshFunction(m1, m2, m3, m3)
+    f2    = MeshFunction(m1, m2, m3, m3)
+    f3    = MeshFunction(m1, m2, m3, m3)
     data1 = rand(ComplexF64, size(f1.data)...)
     data2 = rand(ComplexF64, size(f2.data)...)
     data3 = data1 .+ data2

@@ -18,23 +18,23 @@
     end
 
     # complex conjugation for Green's function
-    function conj(w :: Tuple{BrillouinPoint{2}, MatsubaraFrequency}, x :: Tuple{})
-        return (w[1], -w[2]), (), Operation(sgn = false, con = true)
+    function conj(w :: Tuple{BrillouinPoint{2}, MatsubaraFrequency})
+        return (w[1], -w[2]), Operation(sgn = false, con = true)
     end 
 
     # reflection along zone diagonal
-    function ref(w :: Tuple{BrillouinPoint{2}, MatsubaraFrequency}, x :: Tuple{})
-        return (BrillouinPoint(value(w[1])[2], value(w[1])[1]), w[2]), (), Operation()
+    function ref(w :: Tuple{BrillouinPoint{2}, MatsubaraFrequency})
+        return (BrillouinPoint(value(w[1])[2], value(w[1])[1]), w[2]), Operation()
     end 
 
     # rotation by π/2
-    function rot(w :: Tuple{BrillouinPoint{2}, MatsubaraFrequency}, x :: Tuple{}, g :: Mesh{MeshPoint{BrillouinPoint{2}}})
+    function rot(w :: Tuple{BrillouinPoint{2}, MatsubaraFrequency}, g :: Mesh{MeshPoint{BrillouinPoint{2}}})
         kp = fold_back(BrillouinPoint(value(w[1])[2], -value(w[1])[1]), g)
-        return (kp, w[2]), (), Operation()
+        return (kp, w[2]), Operation()
     end 
 
     # compute the symmetry group 
-    SG = SymmetryGroup([Symmetry{2, 0}(conj), Symmetry{2, 0}(ref), Symmetry{2, 0}((w, x) -> rot(w, x, g1))], f1)
+    SG = SymmetryGroup([Symmetry{2}(conj), Symmetry{2}(ref), Symmetry{2}((w) -> rot(w, g1))], f1)
 
     # symmetrize f2 and compare to f1 
     for class in SG.classes 
@@ -51,8 +51,8 @@
     @test f2 == f1
 
     # symmetrize f3 and compare to f1 using InitFunction
-    init(w :: Tuple{BrillouinPoint{2}, MatsubaraFrequency}, x :: Tuple{}) :: ComplexF64 = f1[w]
-    InitFunc = InitFunction{2, 0, ComplexF64}(init)
+    init(w :: Tuple{BrillouinPoint{2}, MatsubaraFrequency}) :: ComplexF64 = f1[w...]
+    InitFunc = InitFunction{2, ComplexF64}(init)
 
     SG(f3, InitFunc; mode = :serial)
     @test f3 == f1

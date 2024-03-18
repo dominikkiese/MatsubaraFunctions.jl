@@ -46,7 +46,7 @@ function mesh_index(w :: Index, m :: Mesh{MeshPoint{Index}})
 end
 
 # from Int
-function mesh_index(w :: Int, m :: Mesh{MeshPoint{Index}})
+function mesh_index(w :: Int, m :: Mesh)
     return w
 end
 

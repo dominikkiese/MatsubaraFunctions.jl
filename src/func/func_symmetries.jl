@@ -50,55 +50,54 @@ end
 # a symmetry takes MeshPoint value types & tensor indices and 
 # returns MeshPoint value types & tensor indices & an operation
 """
-    struct Symmetry{GD, SD}
+    struct Symmetry{DD}
 
 Symmetry type with fields:
 * `f :: Function`
 """
-struct Symmetry{GD, SD}
+struct Symmetry{DD}
     f :: Function
 end
 
 # explicit return type to enforce proper implementation
-function (S :: Symmetry{GD, SD})(
-    w :: NTuple{GD, Union{<: AbstractValue}},
-    x :: NTuple{SD, Int64}
-    ) :: Tuple{NTuple{GD, Union{<: AbstractValue}}, NTuple{SD, Int64}, Operation} where {GD, SD}
+function (S :: Symmetry{DD})(
+    w :: NTuple{DD, Union{<: AbstractValue}}
+    ) :: Tuple{NTuple{DD, Union{<: AbstractValue}}, Operation} where {DD}
 
-    return S.f(w, x)
+    return S.f(w)
 end
 
 function reduce(
-    w           :: NTuple{GD, Union{<: AbstractValue}},
-    x           :: NTuple{SD, Int64},
+    w           :: NTuple{DD, Union{<: AbstractValue}},
+    #x           :: NTuple{SD, Int64},
     op          :: Operation,
-    f           :: MeshFunction{GD, SD, DD, Q, AT},
+    f           :: MeshFunction{DD, Q, AT},
     checked     :: Array{Bool, DD},
-    symmetries  :: Vector{Symmetry{GD, SD}},
+    symmetries  :: Vector{Symmetry{DD}},
     class       :: Vector{Tuple{Int64, Operation}},
     path_length :: Int64
     ;
     max_length  :: Int64 = 0
-    ) where {GD, SD, DD, Q <: Number, AT <: AbstractArray{Q, DD}}
+    ) where {DD, Q <: Number, AT <: AbstractArray{Q, DD}}
  
     for S in symmetries 
-        wp, xp, opp = S(w, x)
+        wp, opp = S(w)
         new_op      = opp * op
 
-        if all(ntuple(i -> is_inbounds(wp[i], meshes(f, i)), GD))
-            idx = LinearIndex(f, ntuple(i -> mesh_index(wp[i], meshes(f, i)), GD)..., xp...)
+        if all(ntuple(i -> is_inbounds(wp[i], meshes(f, i)), DD))
+            idx = LinearIndex(f, ntuple(i -> mesh_index(wp[i], meshes(f, i)), DD)...)
 
             if !checked[idx]
                 checked[idx] = true 
 
                 # add to symmetry class, reset path length and keep going 
                 push!(class, (idx, new_op))
-                reduce(wp, xp, new_op, f, checked, symmetries, class, 0; max_length)
+                reduce(wp, new_op, f, checked, symmetries, class, 0; max_length)
             end 
 
         # if index not valid, increment path length and keep going 
         elseif path_length < max_length
-            reduce(wp, xp, new_op, f, checked, symmetries, class, path_length + 1; max_length)
+            reduce(wp, new_op, f, checked, symmetries, class, path_length + 1; max_length)
         end 
     end 
 end
@@ -107,33 +106,33 @@ end
 #-------------------------------------------------------------------------------#
 
 """
-    SymmetryGroup{GD, SD, DD, Q <: Number}
+    SymmetryGroup{DD, Q <: Number}
 
 SymmetryGroup type with fields:
 * `classes :: Vector{Vector{Tuple{Int64, Operation}}}` : collections of symmetry equivalent elements
 * `speedup :: Float64`                                 : expected speedup from the symmetry reduction
 """
-struct SymmetryGroup{GD, SD, DD, Q <: Number}
+struct SymmetryGroup{DD, Q <: Number}
     classes :: Vector{Vector{Tuple{Int64, Operation}}}
     speedup :: Float64
 
-    function SymmetryGroup{GD, SD, DD, Q}(
+    function SymmetryGroup{DD, Q}(
         classes :: Vector{Vector{Tuple{Int64, Operation}}}, speedup :: Float64
-        ) where {GD, SD, DD, Q <: Number}
+        ) where {DD, Q <: Number}
 
-        return new{GD, SD, DD, Q}(classes, speedup)
+        return new{DD, Q}(classes, speedup)
     end 
 
-    function SymmetryGroup(f :: MeshFunction{GD, SD, DD, Q, AT}) where {GD, SD, DD, Q <: Number, AT <: AbstractArray{Q, DD}}
-        return new{GD, SD, DD, Q}([[(idx, Operation())] for idx in eachindex(f.data)], 1.0)
+    function SymmetryGroup(f :: MeshFunction{DD, Q, AT}) where {DD, Q <: Number, AT <: AbstractArray{Q, DD}}
+        return new{DD, Q}([[(idx, Operation())] for idx in eachindex(f.data)], 1.0)
     end
  
     function SymmetryGroup(
-        symmetries :: Vector{Symmetry{GD, SD}},
-        f          :: MeshFunction{GD, SD, DD, Q, AT}
+        symmetries :: Vector{Symmetry{DD}},
+        f          :: MeshFunction{DD, Q, AT}
         ;
         max_length :: Int64 = 0
-        ) where {GD, SD, DD, Q <: Number, AT <: AbstractArray{Q, DD}}
+        ) where {DD, Q <: Number, AT <: AbstractArray{Q, DD}}
 
         checked  = Array{Bool, DD}(undef, size(f.data))
         classes  = Vector{Tuple{Int64, Operation}}[]
@@ -142,22 +141,22 @@ struct SymmetryGroup{GD, SD, DD, Q <: Number}
         for idx in eachindex(f.data)
             if !checked[idx]
                 checked[idx] = true
-                w, x         = to_meshes(f, idx)
+                w            = to_meshes(f, idx)
                 class        = [(idx, Operation())]
 
-                reduce(value.(w), x, Operation(), f, checked, symmetries, class, 0; max_length)
+                reduce(value.(w), Operation(), f, checked, symmetries, class, 0; max_length)
                 push!(classes, class)
             end 
         end
 
-        return new{GD, SD, DD, Q}(classes, length(f.data) / length(classes))
+        return new{DD, Q}(classes, length(f.data) / length(classes))
     end 
 end
 
 # symmetrize data array of the MeshFunction, return error estimate
-function (SG :: SymmetryGroup{GD, SD, DD, Q})(
-    f :: MeshFunction{GD, SD, DD, Q, AT}
-    ) where {GD, SD, DD, Q <: Number, AT <: AbstractArray{Q, DD}}
+function (SG :: SymmetryGroup{DD, Q})(
+    f :: MeshFunction{DD, Q, AT}
+    ) where {DD, Q <: Number, AT <: AbstractArray{Q, DD}}
 
     err = 0.0
 
@@ -179,34 +178,34 @@ end
 
 """
     function get_reduced(
-        SG :: SymmetryGroup{GD, SD, DD, Q},
-        f  :: MeshFunction{GD, SD, DD, Q, AT}
-        )  :: Vector{Q} where {GD, SD, DD, Q <: Number}
+        SG :: SymmetryGroup{DD, Q},
+        f  :: MeshFunction{DD, Q, AT}
+        )  :: Vector{Q} where {DD, Q <: Number}
 
 Calculate symmetry reduced representation of MeshFunction
 """
 function get_reduced(
-    SG :: SymmetryGroup{GD, SD, DD, Q},
-    f  :: MeshFunction{GD, SD, DD, Q, AT}
-    )  :: Vector{Q} where {GD, SD, DD, Q <: Number, AT <: AbstractArray{Q, DD}}
+    SG :: SymmetryGroup{DD, Q},
+    f  :: MeshFunction{DD, Q, AT}
+    )  :: Vector{Q} where {DD, Q <: Number, AT <: AbstractArray{Q, DD}}
 
     return Q[f[first(first(SG.classes[cl]))] for cl in eachindex(SG.classes)] 
 end
 
 """
     function init_from_reduced!(
-        SG   :: SymmetryGroup{GD, SD, DD, Q},
-        f    :: MeshFunction{GD, SD, DD, Q, AT},
+        SG   :: SymmetryGroup{DD, Q},
+        f    :: MeshFunction{DD, Q, AT},
         fvec :: AbstractVector{Q}
-        )    :: Nothing where {GD, SD, DD, Q <: Number}
+        )    :: Nothing where {DD, Q <: Number}
 
 Initialize MeshFunction from symmetry reduced representation
 """ 
 function init_from_reduced!(
-    SG   :: SymmetryGroup{GD, SD, DD, Q},
-    f    :: MeshFunction{GD, SD, DD, Q, AT},
+    SG   :: SymmetryGroup{DD, Q},
+    f    :: MeshFunction{DD, Q, AT},
     fvec :: AbstractVector{Q}
-    )    :: Nothing where {GD, SD, DD, Q <: Number, AT <: AbstractArray{Q, DD}}
+    )    :: Nothing where {DD, Q <: Number, AT <: AbstractArray{Q, DD}}
 
     for cl in eachindex(fvec)
         f[first(first(SG.classes[cl]))] = fvec[cl]
@@ -220,57 +219,56 @@ end
 #-------------------------------------------------------------------------------#
 
 """
-    struct InitFunction{GD, SD, Q <: Number}
+    struct InitFunction{DD, Q <: Number}
 
 InitFunction type with fields:
 * `f :: Function` 
 """
-struct InitFunction{GD, SD, Q <: Number}
+struct InitFunction{DD, Q <: Number}
     f :: Function
 end
 
 # explicit return type to enforce proper implementation
-function (I :: InitFunction{GD, SD, Q})(
-    w :: NTuple{GD, Union{<: AbstractValue}},
-    x :: NTuple{SD, Int64}
-    ) :: Q where {GD, SD, Q <: Number}
+function (I :: InitFunction{DD, Q})(
+    w :: NTuple{DD, Union{<: AbstractValue}}
+    ) :: Q where {DD, Q <: Number}
 
-    return I.f(w, x)
+    return I.f(w)
 end
 
 # symmetrize MeshFunction from evaluation of InitFunction
-function (SG :: SymmetryGroup{GD, SD, DD, Q})(
-    f        :: MeshFunction{GD, SD, DD, Q, AT},
-    I        :: InitFunction{GD, SD, Q}
+function (SG :: SymmetryGroup{DD, Q})(
+    f        :: MeshFunction{DD, Q, AT},
+    I        :: InitFunction{DD, Q}
     ;
     mode     :: Symbol = :serial,
     minbatch :: Int64  = 1
-    ) where {GD, SD, DD, Q <: Number, AT <: AbstractArray{Q, DD}}
+    ) where {DD, Q <: Number, AT <: AbstractArray{Q, DD}}
 
     if mode === :serial 
         for class in SG.classes
-            w, x = to_meshes(f, class[1][1])
-            f[class[1][1]] = I(value.(w), x)
+            w = to_meshes(f, class[1][1])
+            f[class[1][1]] = I(value.(w))
         end 
 
     elseif mode === :polyester
         @batch minbatch = minbatch for class in SG.classes
-            w, x = to_meshes(f, class[1][1])
-            f[class[1][1]] = I(value.(w), x)
+            w = to_meshes(f, class[1][1])
+            f[class[1][1]] = I(value.(w))
         end
 
     elseif mode === :threads
         Threads.@threads for class in SG.classes
-            w, x = to_meshes(f, class[1][1])
-            f[class[1][1]] = I(value.(w), x)
+            w = to_meshes(f, class[1][1])
+            f[class[1][1]] = I(value.(w))
         end
 
     elseif mode === :hybrid 
         set!(f, 0.0)
 
         Threads.@threads for clidx in mpi_split(1 : length(SG.classes))
-            w, x = to_meshes(f, SG.classes[clidx][1][1])
-            f[SG.classes[clidx][1][1]] = I(value.(w), x)
+            w = to_meshes(f, SG.classes[clidx][1][1])
+            f[SG.classes[clidx][1][1]] = I(value.(w))
         end
 
         mpi_allreduce!(f)

@@ -10,14 +10,13 @@ Save MeshFunction `f` with label `l` to file `h`
 function save_mesh_function!(
     h :: HDF5.File,
     l :: String,
-    f :: MeshFunction{MD, SD, DD, Q, Array{Q, DD}}
-    ) :: Nothing where{MD, SD, DD, Q <: Number}
+    f :: MeshFunction{DD, Q, Array{Q, DD}}
+    ) :: Nothing where{DD, Q <: Number}
 
     grp = create_group(h, l)
 
     # save metadata
     attributes(grp)["type"]   = "MeshFunction"
-    attributes(grp)["shape"]  = Int64[f.shape...]
 
     for i in eachindex(meshes(f))
         save!(h, l * "/meshes/mesh_$i", meshes(f, i))
@@ -43,13 +42,12 @@ function load_mesh_function(
 
     # load the metadata 
     type  = read_attribute(h[l], "type")
-    shape = read_attribute(h[l], "shape")
 
     @DEBUG type == "MeshFunction" "Type $(l) unknown"
 
     # load the data
     grids = [load_mesh(h, l * "/meshes/mesh_$i") for i in eachindex(keys(h[l * "/meshes"]))]
-    return MeshFunction((grids...,), (shape...,), read(h, l * "/data"))
+    return MeshFunction((grids...,), read(h, l * "/data"))
 end
 
 export 

@@ -1,11 +1,10 @@
-function index_test(f :: MeshFunction{MD, SD, DD, Q, AT}) where {MD, SD, DD, Q <: Number, AT <: AbstractArray{Q, DD}}
+function index_test(f :: MeshFunction{DD, Q, AT}) where {DD, Q <: Number, AT <: AbstractArray{Q, DD}}
     
     for trial in 1 : 10
-        m_idxs = ntuple(i -> rand(eachindex(meshes(f, i))), MD)
-        x_idxs = ntuple(i -> rand(1 : shape(f, i)), SD)
-        pts    = ntuple(i -> meshes(f, i)[m_idxs[i]], MD)
-        l_idx  = LinearIndex(f, pts, x_idxs...)
-        c_idx  = CartesianIndex(f, pts, x_idxs...)
+        m_idxs = ntuple(i -> rand(eachindex(meshes(f, i))), DD)
+        pts    = ntuple(i -> meshes(f, i)[m_idxs[i]], DD)
+        l_idx  = LinearIndex(f, pts...)
+        c_idx  = CartesianIndex(f, pts...)
 
         @test CartesianIndex(f, l_idx) == c_idx 
         @test LinearIndex(f, c_idx)    == l_idx
@@ -13,11 +12,9 @@ function index_test(f :: MeshFunction{MD, SD, DD, Q, AT}) where {MD, SD, DD, Q <
         args1 = to_meshes(f, l_idx)
         args2 = to_meshes(f, c_idx)
 
-        @test first(args1) == pts
-        @test first(args2) == pts
+        @test args1 == pts
+        @test args2 == pts
 
-        @test last(args1) == x_idxs 
-        @test last(args2) == x_idxs   
     end
 
     return nothing 
@@ -32,8 +29,7 @@ end
 
     index_test(MeshFunction(m1))
     index_test(MeshFunction(m1, m2))
-    index_test(MeshFunction(m1, 5))
-    index_test(MeshFunction((m1, m2), 5, 5))
-    index_test(MeshFunction(m3))
     index_test(MeshFunction(m1, m3))
+    index_test(MeshFunction((m1, m2, m3, m3)))
+    index_test(MeshFunction(m3))
 end
