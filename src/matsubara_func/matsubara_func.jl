@@ -5,7 +5,7 @@ MatsubaraFunction type with fields:
 * `grids  :: NTuple{GD, AbstractMatsubaraGrid}` : collection of Matsubara grids
 * `shape  :: NTuple{SD, Int64}`                 : shape of tensor structure on every grid point
 * `offset :: NTuple{DD, Int64}`                 : offsets for data access
-* `data   :: OffsetArray{Q, DD, Array{Q, DD}}`  : multidimensional data array
+* `data   :: OffsetArray{Q, DD, Array{Q, DD}}`  : multidimensional data array for which the axes correspond to Matsubara indices for the GD Matsubara grids
 """
 struct MatsubaraFunction{GD, SD, DD, Q <: Number}
     grids  :: NTuple{GD, AbstractMatsubaraGrid}

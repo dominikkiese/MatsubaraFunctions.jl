@@ -5,12 +5,18 @@ A `MatsubaraGrid{PT}` is a sorted (symmetric) set of `MatsubaraFrequency{PT}` ob
 ```julia
 T  = 1.0
 N  = 128
-g1 = MatsubaraGrid(T, N, Fermion) # total no. frequencies is 2N
+g1 = MatsubaraGrid(T, N, Fermion) # total no. frequencies is 2N 
 g2 = MatsubaraGrid(T, N, Boson)   # total no. frequencies is 2N - 1
 ```
 
-where N is the number of positive frequencies. Note that for bosonic grids the frequency at zero is included
-in the positive frequency count. `MatsubaraGrid{PT}` instances are iterable
+where N is the number of non-negative frequencies which are defined as follows:
+|Particle type:             | Fermion | Boson    |
+|---------------------------|---------|----------|
+|total no. of frequencies   | 2N      | 2N-1     |
+|Range of Matsubara index n | -N: N-1 | -N+1:N-1 |
+|def. of frequencies v_n    | (2n+1)πT| 2nπT     |
+
+`MatsubaraGrid{PT}` instances are iterable
 
 ```julia
 T = 1.0
