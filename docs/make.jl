@@ -9,9 +9,14 @@ makedocs(sitename = "MatsubaraFunctions.jl",
           pages   = [
             "Home"               => "index.md", 
             "MatsubaraFrequency" => "matsubara_freq.md",
-            "MatsubaraIndex"     => "matsubara_index.md",
             "MatsubaraGrid"      => "matsubara_grid.md",
             "MatsubaraFunction"  => "matsubara_func.md",
-            "Miscellaneous"      => "misc.md"])
+            "Advanced usage"     => [
+              "Symmetry reduction"   => "matsubara_func_symmetries.md",
+              "Parallelization"      => "matsubara_func_parallelization.md",
+              "Matsubara sums"       => "matsubara_func_sums.md"
+            ],
+            "Miscellaneous"      => "misc.md",
+            "MatsubaraIndex"     => "matsubara_index.md"])
 
 deploydocs(; repo = "github.com/dominikkiese/MatsubaraFunctions.jl",)
