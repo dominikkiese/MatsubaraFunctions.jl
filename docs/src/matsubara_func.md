@@ -180,7 +180,7 @@ MatsubaraSymmetryGroup
 MatsubaraInitFunction
 ```
 
-# Functions
+# Getter Functions
 
 ```@docs
 grids
@@ -189,7 +189,7 @@ grids
 ```@docs
 shape
 ```
-
+# Arithmetic operations
 ```@docs
 absmax
 ```
@@ -222,20 +222,14 @@ mult
 mult!
 ```
 
+# Indexing and assignment
 ```@docs
 set!
 ```
 
-```@docs
-flatten
-```
 
 ```@docs
-flatten!
-```
-
-```@docs
-unflatten!
+grid_axes
 ```
 
 ```@docs
@@ -254,13 +248,7 @@ upper_tail_moments
 lower_tail_moments
 ```
 
-```@docs
-sgn
-```
-
-```@docs
-con
-```
+# I/O to HDF5 files
 
 ```@docs
 save_matsubara_function!
@@ -273,3 +261,38 @@ load_matsubara_function
 ```@docs
 save_matsubara_symmetry_group!
 ```    
+
+# Symmetry reduction
+```@docs
+get_reduced
+```
+
+```@docs
+init_from_reduced!
+```
+
+# Miscellaneous utilities
+```@docs
+Base.length
+```
+
+```@docs
+flatten
+```
+
+```@docs
+flatten!
+```
+
+```@docs
+unflatten!
+```
+
+```@docs
+sgn
+```
+
+```@docs
+con
+```
+
