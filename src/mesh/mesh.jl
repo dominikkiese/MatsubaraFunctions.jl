@@ -117,7 +117,7 @@ end
 # mapping to mesh index
 #-------------------------------------------------------------------------------#
 
-function mesh_index(x :: T, m :: Mesh{T}) where {T <: AbstractMeshPoint}
+@inline function mesh_index(x :: T, m :: Mesh{T}) where {T <: AbstractMeshPoint}
     @DEBUG x.hash == m.hash "Mesh point invalid"
     return index(x)
 end

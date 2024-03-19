@@ -1,18 +1,13 @@
 # call to MeshFunction, only value type and mesh point, no interpolation
-function (f :: MeshFunction{DD, Q, AT})(
-    p   :: Vararg{Union{<: AbstractValue, <: AbstractMeshPoint}, DD}
-    ;
-    lim :: Q = Q(0.0)
+function (f :: MeshFunction{DD, Q, AT})(p :: Vararg{Union{<: AbstractValue, <: AbstractMeshPoint}, DD}; lim :: Q = Q(0.0)
     ) where{DD, Q <: Number, AT <: AbstractArray{Q, DD}}
 
-    return all(i -> is_inbounds_bc(p[i], meshes(f, i)), 1 : DD) ? f[CartesianIndex_bc(f, p...)] : lim
+    return all(i -> is_inbounds_bc(p[i], meshes(f, i)), 1 : DD) ? f[map((y, m) -> mesh_index_bc(y, m), p, meshes(f))...] : lim
 end
 
 # call to MeshFunction, all types, interpolation
 function (f :: MeshFunction{DD, Q, AT})(
-    p   :: Vararg{Union{<: AbstractValue, <: AbstractMeshPoint, Float64, <: AbstractVector{Float64}}, DD} 
-    ;
-    lim :: Q = Q(0.0)
+    p :: Vararg{Union{<: AbstractValue, <: AbstractMeshPoint, Int, Float64, <: AbstractVector{Float64}}, DD}; lim :: Q = Q(0.0)
     ) where{DD, Q <: Number, AT <: AbstractArray{Q, DD}}
 
     if all(i -> is_inbounds_bc(p[i], meshes(f, i)), 1 : DD)

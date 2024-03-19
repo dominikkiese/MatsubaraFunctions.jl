@@ -5,6 +5,7 @@ version = "0.1.0"
 
 [deps]
 Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
+Coverage = "a2441757-f6aa-5fb2-8edb-039e3f45d037"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 HDF5 = "f67ccb44-e63f-5c2f-98bd-6dc0ccc4ba2f"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
@@ -16,6 +17,7 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [compat]
 Aqua = "0.6, 0.7, 0.8"
+Coverage = "0.5, 0.6, 0.7, 0.8, 0.9, 1"
 Documenter = "0.19, 0.20, 0.21, 0.22, 0.23, 0.24, 0.25, 0.26, 0.27, 1"
 HDF5 = "0.9.4, 0.10, 0.11, 0.12, 0.13, 0.14, 0.15, 0.16, 0.17"
 LinearAlgebra = "1.9"

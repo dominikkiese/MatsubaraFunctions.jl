@@ -8,8 +8,8 @@
     data2 = rand(length(m1), length(m2), length(m3))
 
     # from data, check if passed by reference
-    f1     = MeshFunction(m1, data1)
-    f2     = MeshFunction((m1, m2, m3), data2)
+    f1     = MeshFunction(data1, m1)
+    f2     = MeshFunction(data2, m1, m2, m3)
     data1 .= rand(length(m1))
     data2 .= rand(length(m1), length(m2), length(m3))
 
@@ -19,8 +19,8 @@
     @test f2.data ≈ data2
 
     # from data view
-    f1     = MeshFunction(m1, view(data1, :))
-    f2     = MeshFunction((m1, m2, m3), view(data2, :, :, :))
+    f1     = MeshFunction(view(data1, :), m1)
+    f2     = MeshFunction(view(data2, :, :, :), m1, m2, m3)
     data1 .= rand(length(m1))
     data2 .= rand(length(m1), length(m2), length(m3))
 
@@ -31,8 +31,8 @@
     
     # from meshes
     @test typeof(MeshFunction(m1)) == MeshFunction{1, ComplexF64, Array{ComplexF64, 1}}
-    @test typeof(MeshFunction((m1, m2))) == MeshFunction{2, ComplexF64, Array{ComplexF64, 2}}
-    @test typeof(MeshFunction((m1, m2, m3))) == MeshFunction{3, ComplexF64, Array{ComplexF64, 3}}
+    @test typeof(MeshFunction(m1, m2)) == MeshFunction{2, ComplexF64, Array{ComplexF64, 2}}
+    @test typeof(MeshFunction(m1, m2, m3)) == MeshFunction{3, ComplexF64, Array{ComplexF64, 3}}
     @test typeof(MeshFunction(m1; data_t = Float64)) == MeshFunction{1, Float64, Array{Float64, 1}}
 
     # copy constructor 

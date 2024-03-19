@@ -61,6 +61,11 @@ struct InterpolationParam{N}
 
         return InterpolationParam(indices, weights)
     end
+
+    # Index mesh 
+    function InterpolationParam(w :: Int, m :: Mesh{MeshPoint{Index}})
+        return InterpolationParam(w, 1.0)
+    end
 end
 
 """

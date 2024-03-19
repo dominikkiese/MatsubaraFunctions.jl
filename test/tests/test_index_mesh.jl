@@ -5,13 +5,13 @@
     @test length(idxs) == 10
 
     # iterator
-    @test plain_value.(idxs) ≈ [index(value(w)) for w in idxs]
+    @test values(idxs) ≈ [plain_value(w) for w in idxs]
 
     # call to grid
     for trial in 1 : 10
         idx = rand(points(idxs))
-        @test MatsubaraFunctions.mesh_index(value(idx), idxs) == index(idx)
-        @test MatsubaraFunctions.mesh_index(plain_value(idx), idxs) == index(idx)
+        @test MatsubaraFunctions.mesh_index(value(idx), idxs) == plain_value(idx)
+        @test MatsubaraFunctions.mesh_index(plain_value(idx), idxs) == plain_value(idx)
     end 
     
     # io

@@ -16,7 +16,7 @@ function save_mesh_function!(
     grp = create_group(h, l)
 
     # save metadata
-    attributes(grp)["type"]   = "MeshFunction"
+    attributes(grp)["type"] = "MeshFunction"
 
     for i in eachindex(meshes(f))
         save!(h, l * "/meshes/mesh_$i", meshes(f, i))
@@ -41,13 +41,12 @@ function load_mesh_function(
     ) :: MeshFunction
 
     # load the metadata 
-    type  = read_attribute(h[l], "type")
-
+    type = read_attribute(h[l], "type")
     @DEBUG type == "MeshFunction" "Type $(l) unknown"
 
     # load the data
     grids = [load_mesh(h, l * "/meshes/mesh_$i") for i in eachindex(keys(h[l * "/meshes"]))]
-    return MeshFunction((grids...,), read(h, l * "/data"))
+    return MeshFunction(read(h, l * "/data"), grids...)
 end
 
 export 

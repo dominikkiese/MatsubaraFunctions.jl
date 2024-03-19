@@ -1,5 +1,4 @@
 function index_test(f :: MeshFunction{DD, Q, AT}) where {DD, Q <: Number, AT <: AbstractArray{Q, DD}}
-    
     for trial in 1 : 10
         m_idxs = ntuple(i -> rand(eachindex(meshes(f, i))), DD)
         pts    = ntuple(i -> meshes(f, i)[m_idxs[i]], DD)
@@ -30,6 +29,6 @@ end
     index_test(MeshFunction(m1))
     index_test(MeshFunction(m1, m2))
     index_test(MeshFunction(m1, m3))
-    index_test(MeshFunction((m1, m2, m3, m3)))
+    index_test(MeshFunction(m1, m2, m3, m3))
     index_test(MeshFunction(m3))
 end

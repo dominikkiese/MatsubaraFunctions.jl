@@ -52,7 +52,7 @@ Addition of two MeshFunction, returns new MeshFunction. For brevity, use f1 + f2
 """
 function add(f1 :: MeshFunction, f2 :: MeshFunction) :: MeshFunction
     debug_f1_f2(f1, f2)
-    return MeshFunction(Mesh.(meshes(f1)), f1.data .+ f2.data)
+    return MeshFunction(f1.data .+ f2.data, meshes(f1)...)
 end
 
 function Base.:+(f1 :: MeshFunction, f2 :: MeshFunction)
@@ -80,7 +80,7 @@ Subtraction of two MeshFunction, returns new MeshFunction. For brevity, use f1 -
 """
 function subtract(f1 :: MeshFunction, f2 :: MeshFunction) :: MeshFunction
     debug_f1_f2(f1, f2)
-    return MeshFunction(Mesh.(meshes(f1)), f1.data .- f2.data)
+    return MeshFunction(f1.data .- f2.data, meshes(f1)...)
 end
 
 function Base.:-(f1 :: MeshFunction, f2 :: MeshFunction)
@@ -110,7 +110,7 @@ Multiplication of MeshFunction with scalar, returns new MeshFunction. For brevit
 function mult(f :: MeshFunction{DD, Q, AT}, val :: Qp
     ) :: MeshFunction{DD, Q, AT} where {DD, Q <: Number, Qp <: Number, AT <: AbstractArray{Q, DD}}
 
-    return MeshFunction(Mesh.(meshes(f)), val .* f.data)
+    return MeshFunction(val .* f.data, meshes(f)...)
 end
 
 function Base.:*(f :: MeshFunction{DD, Q, AT}, val :: Qp) where {DD, Q <: Number, Qp <: Number, AT <: AbstractArray{Q, DD}}

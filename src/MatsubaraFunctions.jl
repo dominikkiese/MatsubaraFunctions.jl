@@ -10,6 +10,7 @@ module MatsubaraFunctions
         using HDF5
         using Aqua
         using Documenter
+        using Coverage
     end
 
     # macro to unlock debug mode

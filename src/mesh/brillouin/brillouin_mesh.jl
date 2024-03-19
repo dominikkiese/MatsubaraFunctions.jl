@@ -10,7 +10,6 @@ include("brillouin_zone.jl")
 Construct uniform mesh for Brillouin zone
 """
 function BrillouinZoneMesh(bz :: BrillouinZone{N}) :: Mesh{MeshPoint{BrillouinPoint{N}}} where {N}
-
     HASH     = hash(bz, hash(bz.L, hash(N)))
     ranges   = ntuple(x -> 0 : bz.L - 1, N)
     lin_idxs = LinearIndices(ranges)
@@ -133,7 +132,6 @@ end
 
 # from Vector of Float, returns index of closest mesh point
 function mesh_index(k :: T, m :: Mesh{MeshPoint{BrillouinPoint{N}}}) where {N, T <: AbstractVector{Float64}}
-
     @DEBUG length(k) == N "Length mismatch for input vector"
     
     # find surrounding box
@@ -167,7 +165,6 @@ end
 #-------------------------------------------------------------------------------#
 
 function Base.:(==)(m1 :: Mesh{MeshPoint{BrillouinPoint{N}}}, m2 :: Mesh{MeshPoint{BrillouinPoint{N}}}) where {N}
-
     if m1.hash != m2.hash
         return false
     end
