@@ -32,8 +32,6 @@ f4_complex = MatsubaraFunction((g, g), (5, 5))
 f4_real    = MatsubaraFunction((g, g), (5, 5), Float64) 
 ```
 
-
-
 # Indexing and assignment
 
 There are two possible ways to access the data of a `MatsubaraFunction`, using either the bracket `[]` or the parenthesis `()` operator. The former can be used together with a set of linear indices or with a combination of `MatsubaraFrequency` objects and linear indices (for the tensor structure). It will return the value of the function precisely for the given arguments. `()` also allows to substitute `Float64` for the frequency arguments, in which case a multilinear interpolation is performed. In addition, `()` is well defined even for out of bounds access, since it makes use of either polynomial or constant extrapolation in this case.
@@ -62,12 +60,9 @@ vp = MatsubaraFrequency(T, 256, Fermion)
 println(f(vp; extrp = ComplexF64(1.0))) 
 ```
 
-
-
 ```@docs
 set!
 ```
-
 
 ```@docs
 grid_axes
@@ -99,7 +94,6 @@ grids
 shape
 ```
 
-
 ## Arithmetic operations
 
 ```@docs
@@ -126,9 +120,8 @@ mult
 mult!
 ```
 
-
-
 # Miscellaneous utilities
+
 ```@docs
 Base.length
 ```
@@ -153,12 +146,7 @@ absmax
 argmax
 ```
 
-
-
-
-
 # I/O to HDF5 files
-
 
 `MatsubaraFunction` objects can be saved in HDF5 file format as
 
@@ -177,8 +165,6 @@ fp = load_matsubara_function(file, "func")
 close(file)
 ```
 
-
-
 ```@docs
 save_matsubara_function!
 ```    
@@ -186,4 +172,3 @@ save_matsubara_function!
 ```@docs
 load_matsubara_function
 ```    
-

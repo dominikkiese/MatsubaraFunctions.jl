@@ -42,7 +42,6 @@ SG(h, InitFunc)
 
 ## Functions and Functors for symmetry reduction
 
-
 ```@docs
 MatsubaraOperation
 ```
@@ -67,7 +66,6 @@ get_reduced
 init_from_reduced!
 ```
 
-
 ```@docs
 sgn
 ```
@@ -76,12 +74,8 @@ sgn
 con
 ```
 
-
-
 # I/O to HDF5 files
 
 ```@docs
 save_matsubara_symmetry_group!
 ```    
-
-

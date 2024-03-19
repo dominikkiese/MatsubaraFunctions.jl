@@ -10,6 +10,7 @@ g2 = MatsubaraGrid(T, N, Boson)   # total no. frequencies is 2N - 1
 ```
 
 where N is the number of non-negative frequencies which are defined as follows:
+
 |Particle type:             | Fermion | Boson    |
 |---------------------------|---------|----------|
 |total no. of frequencies   | 2N      | 2N-1     |
