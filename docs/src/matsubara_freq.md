@@ -1,12 +1,12 @@
 # MatsubaraFrequency
 
-A `MatsubaraFrequency{PT}` of particle type $PT$ at temperature $T$ and with Matsubara index $n$ can be generated using
+A `MatsubaraFrequency{PT}` of particle type `PT` at temperature $T$ and with Matsubara index $n$ can be generated using
 
 ```julia
 T = 1.0
 n = 5
-v = MatsubaraFrequency(T, n, Fermion) # for fermions:   v = (2 n + 1) \pi T
-w = MatsubaraFrequency(T, n, Boson)   # for bosons:     w = (2 n    ) \pi T
+v = MatsubaraFrequency(T, n, Fermion) # v = \pi T (2 n + 1) 
+w = MatsubaraFrequency(T, n, Boson)   # w = \pi T (2 n    )
 ```
 
 Matsubara frequencies can be added, subtracted and their sign can be reversed, producing a new instance of `MatsubaraFrequency`, 

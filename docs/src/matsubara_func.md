@@ -1,6 +1,6 @@
 # MatsubaraFunction
 
-## Constructor
+# Constructor
 
 A `MatsubaraFunction` is a collection of `MatsubaraGrid` instances together with an associated tensor structure $G_{i_1...i_n}$ for each point $(\omega_1, ..., \omega_m)$ in the cartesian product of the grids. 
 
@@ -84,7 +84,7 @@ upper_tail_moments
 lower_tail_moments
 ```
 
-## Getter Functions
+# Getter Functions
 
 ```@docs
 grids
@@ -94,7 +94,7 @@ grids
 shape
 ```
 
-## Arithmetic operations
+# Arithmetic operations
 
 ```@docs
 add
