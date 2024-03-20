@@ -21,6 +21,7 @@ module MatsubaraFunctions
     end
 
     # dummy functions, use if not overloaded
+    index(p)             = p
     mesh_index(p, m)     = p
     mesh_index_bc(p, m)  = mesh_index(p, m)
     is_inbounds_bc(p, m) = true

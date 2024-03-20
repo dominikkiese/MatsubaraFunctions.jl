@@ -69,11 +69,11 @@ function reciprocal(k :: T, m :: Mesh{MeshPoint{BrillouinPoint{N}}}) :: SVector{
 end
 
 """
-    function reciprocals(m :: Mesh{MeshPoint{BrillouinPoint{N}}}) :: Vector{SVector{N, Int64}} where {N}
+    function reciprocals(m :: Mesh{MeshPoint{BrillouinPoint{N}}}) :: Vector{SVector{N, Int}} where {N}
 
 Returns reciprocal coordinates for all momenta in mesh
 """
-function reciprocals(m :: Mesh{MeshPoint{BrillouinPoint{N}}}) :: Vector{SVector{N, Int64}} where {N}
+function reciprocals(m :: Mesh{MeshPoint{BrillouinPoint{N}}}) :: Vector{SVector{N, Int}} where {N}
     return plain_value.(points(m))
 end
 
@@ -97,6 +97,11 @@ Checks if input in mesh
 function is_inbounds(k :: T, m :: Mesh{MeshPoint{BrillouinPoint{N}}}) :: Bool where {N, T <: AbstractVector{Float64}}
     @DEBUG length(k) == N "Length mismatch for input vector"
     return is_inbounds(k, domain(m)[:bz])
+end
+
+# overload dummy function
+function is_inbounds_bc(idx :: Int, m :: Mesh{MeshPoint{BrillouinPoint{N}}}) where {N}
+    error("No inbounds check available for types `Int` and `Mesh{MeshPoint{BrillouinPoint{N}}}`")
 end
 
 # periodic boundary conditions
@@ -136,7 +141,7 @@ function mesh_index(k :: T, m :: Mesh{MeshPoint{BrillouinPoint{N}}}) where {N, T
     
     # find surrounding box
     x      = reciprocal(k, m)
-    ranges = ntuple(n -> floor(Int64, x[n]) : ceil(Int64, x[n]), N)
+    ranges = ntuple(n -> floor(Int, x[n]) : ceil(Int, x[n]), N)
     iters  = collect(Iterators.product(ranges...))
 
     # determine closest point in box

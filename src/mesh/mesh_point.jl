@@ -22,22 +22,22 @@ abstract type AbstractValue end
     struct MeshPoint{T <: AbstractValue} <: AbstractMeshPoint
 
 MeshPoint type with fields:
-* `hash  :: UInt64` : mesh identifier
-* `index :: Int64`  : mesh index
-* `value :: T`      : mesh coordinates
+* `hash  :: UInt` : mesh identifier
+* `index :: Int`  : mesh index
+* `value :: T`    : mesh coordinates
 """
 struct MeshPoint{T <: AbstractValue} <: AbstractMeshPoint
-    hash  :: UInt64 # no accessor, only for internal use
-    index :: Int64 
+    hash  :: UInt # no accessor, only for internal use
+    index :: Int 
     value :: T 
 end
 
 """
-    function index(x :: T) :: Int64 where {T <: AbstractMeshPoint}
+    function index(x :: T) :: Int where {T <: AbstractMeshPoint}
 
 Returns `x.index`
 """
-function index(x :: T) :: Int64 where {T <: AbstractMeshPoint}
+function index(x :: T) :: Int where {T <: AbstractMeshPoint}
     return x.index
 end 
 

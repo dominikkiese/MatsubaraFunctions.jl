@@ -31,17 +31,17 @@ struct Boson <: AbstractParticle end
 MatsubaraFrequency type with fields:
 * `temperature :: Float64` : temperature
 * `value       :: Float64` : position on the imaginary axis
-* `index       :: Int64`   : Matsubara index
+* `index       :: Int`     : Matsubara index
 """
 struct MatsubaraFrequency{PT <: AbstractParticle} <: AbstractValue
     temperature :: Float64 
     value       :: Float64
-    index       :: Int64 
+    index       :: Int
 
     # constructor for fermionic frequencies 
     function MatsubaraFrequency(
         temperature :: Float64, 
-        index       :: Int64, 
+        index       :: Int, 
                     :: Type{Fermion})
 
         return new{Fermion}(temperature, pi * temperature * (2 * index + 1), index)
@@ -50,7 +50,7 @@ struct MatsubaraFrequency{PT <: AbstractParticle} <: AbstractValue
     # constructor for bosonic frequencies 
     function MatsubaraFrequency(
         temperature :: Float64, 
-        index       :: Int64, 
+        index       :: Int, 
                     :: Type{Boson}) 
 
         return new{Boson}(temperature, 2 * pi * temperature * index, index)
@@ -76,11 +76,11 @@ function value(w :: MatsubaraFrequency{PT}) :: Float64 where {PT <: AbstractPart
 end 
 
 """
-    function index(w :: MatsubaraFrequency{PT}) :: Int64 where {PT <: AbstractParticle}
+    function index(w :: MatsubaraFrequency{PT}) :: Int where {PT <: AbstractParticle}
 
 Returns `w.index`
 """
-function index(w :: MatsubaraFrequency{PT}) :: Int64 where {PT <: AbstractParticle}
+function index(w :: MatsubaraFrequency{PT}) :: Int where {PT <: AbstractParticle}
     return w.index
 end 
 

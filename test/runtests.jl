@@ -10,5 +10,5 @@ MatsubaraFunctions.DEBUG() = true # enable all checks for testing
 Aqua.test_all(MatsubaraFunctions)
 
 for test in readdir(joinpath(dirname(@__FILE__), "tests"))
-    include(joinpath("tests", test))
+    include(joinpath(joinpath(dirname(@__FILE__), "tests"), test))
 end

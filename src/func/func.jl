@@ -2,46 +2,55 @@
 #-------------------------------------------------------------------------------#
 
 """
-    struct MeshFunction{DD, Q <: Number, AT <: AbstractArray{Q, DD}}
+    struct MeshFunction{DD, Q <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
 
 MeshFunction type with fields:
-* `meshes :: NTuple{DD, Union{<: AbstractMesh}}` : set of meshes
-* `data   :: AT`                                 : multidimensional data array
+* `meshes :: MT` : set of meshes
+* `data   :: AT` : multidimensional data array
 """
-struct MeshFunction{DD, Q <: Number, AT <: AbstractArray{Q, DD}}
-    meshes :: NTuple{DD, Union{<: AbstractMesh}}
+struct MeshFunction{DD, Q <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
+    meshes :: MT
     data   :: AT
 
-    function MeshFunction(data :: AT, meshes :: Vararg{Union{<: AbstractMesh}, DD}) where {DD, Q <: Number, AT <: AbstractArray{Q, DD}}
+    function MeshFunction(meshes :: MT, data :: AT) where {DD, Q <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
         if Q <: Integer || Q <: Complex{Int} error("Integer data type not supported") end
         @DEBUG DD > 0 "Mesh dimension cannot be zero"
-        return new{DD, Q, AT}(tuple(meshes...), data)
+        return new{DD, Q, MT, AT}(meshes, data)
     end
 
-    function MeshFunction(meshes :: Vararg{Union{<: AbstractMesh}, DD}; data_t :: DataType = ComplexF64) where {DD}
-        return MeshFunction(Array{data_t, DD}(undef, length.(meshes)...), meshes...)
+    function MeshFunction(meshes :: Vararg{Mesh, DD}; data_t :: DataType = ComplexF64) where {DD}
+        return MeshFunction(tuple(meshes...), Array{data_t, DD}(undef, length.(meshes)...))
     end
 
     function MeshFunction(f :: MeshFunction) :: MeshFunction
-        return MeshFunction(copy(f.data), meshes(f)...)
+        return MeshFunction(meshes(f), copy(f.data))
     end
 end
 
 """
-    function meshes(f :: MeshFunction{DD, Q, AT}) :: NTuple{DD, Union{<: AbstractMesh}} where {DD, Q <: Number, AT <: AbstractArray{Q, DD}}
+    function meshes(f :: MeshFunction{DD, Q, MT, AT}) :: MT where {DD, Q <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
 
 Returns `f.meshes`
 """
-function meshes(f :: MeshFunction{DD, Q, AT}) :: NTuple{DD, Union{<: AbstractMesh}} where {DD, Q <: Number, AT <: AbstractArray{Q, DD}}
+function meshes(f :: MeshFunction{DD, Q, MT, AT}) :: MT where {DD, Q <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
     return f.meshes
 end
 
 """
-    function meshes(f :: MeshFunction, idx :: Int64) :: AbstractMesh
+    function meshes(f :: MeshFunction{DD, Q, MT, AT}, :: Val{idx}) :: Mesh where {DD, Q <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}, idx}
 
-Returns `f.meshes[idx]`
+Returns `f.meshes[idx]`. Since idx is static the return mesh type can be inferred at compile time.
 """
-function meshes(f :: MeshFunction, idx :: Int64) :: AbstractMesh
+function meshes(f :: MeshFunction{DD, Q, MT, AT}, :: Val{idx}) :: Mesh where {DD, Q <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}, idx}
+    return f.meshes[idx]
+end
+
+"""
+    function meshes(f :: MeshFunction{DD, Q, MT, AT}, idx :: Int) :: Mesh where {DD, Q <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
+
+Returns `f.meshes[idx]`. Since idx is only known at runtime the return mesh type is the union of mesh types in MT.
+"""
+function meshes(f :: MeshFunction{DD, Q, MT, AT}, idx :: Int) :: Mesh where {DD, Q <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
     return f.meshes[idx]
 end
 

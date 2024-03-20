@@ -4,11 +4,11 @@ include("index_pt.jl")
 #-------------------------------------------------------------------------------#
 
 """
-    function IndexMesh(N :: Int64) :: Mesh{MeshPoint{Index}}
+    function IndexMesh(N :: Int) :: Mesh{MeshPoint{Index}}
 
 Construct mesh with indices 1 : N
 """
-function IndexMesh(N :: Int64) :: Mesh{MeshPoint{Index}}
+function IndexMesh(N :: Int) :: Mesh{MeshPoint{Index}}
     HASH   = hash(N)
     points = Vector{MeshPoint{Index}}(undef, N)
 
@@ -21,11 +21,11 @@ function IndexMesh(N :: Int64) :: Mesh{MeshPoint{Index}}
 end
 
 """
-    function values(m :: Mesh{MeshPoint{Index}}) :: Vector{Int64}
+    function values(m :: Mesh{MeshPoint{Index}}) :: Vector{Int}
 
 Return values of all Indices in mesh
 """
-function Base.:values(m :: Mesh{MeshPoint{Index}}) :: Vector{Int64}
+function Base.:values(m :: Mesh{MeshPoint{Index}}) :: Vector{Int}
     return plain_value.(points(m))
 end
 

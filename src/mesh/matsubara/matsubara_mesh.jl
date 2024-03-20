@@ -6,7 +6,7 @@ include("matsubara_freq.jl")
 """
     function MatsubaraMesh(
         temperature :: Float64, 
-        N           :: Int64,
+        N           :: Int,
                     :: Type{Fermion}
         )           :: Mesh{MeshPoint{MatsubaraFrequency{Fermion}}}
 
@@ -14,7 +14,7 @@ Constructs fermionic Matsubara mesh with 2 * N symmetrically spaced frequencies
 """
 function MatsubaraMesh(
     temperature :: Float64, 
-    N           :: Int64,
+    N           :: Int,
                 :: Type{Fermion}
     )           :: Mesh{MeshPoint{MatsubaraFrequency{Fermion}}}
 
@@ -33,7 +33,7 @@ end
 """
     function MatsubaraMesh(
         temperature :: Float64, 
-        N           :: Int64,
+        N           :: Int,
                     :: Type{Boson}
         )           :: Mesh{MeshPoint{MatsubaraFrequency{Boson}}}
 
@@ -41,7 +41,7 @@ Constructs bosonic Matsubara mesh with 2 * N - 1 symmetrically spaced frequencie
 """
 function MatsubaraMesh(
     temperature :: Float64, 
-    N           :: Int64,
+    N           :: Int,
                 :: Type{Boson}
     )           :: Mesh{MeshPoint{MatsubaraFrequency{Boson}}}
 
@@ -58,20 +58,20 @@ function MatsubaraMesh(
 end
 
 """
-    function first_index(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) :: Int64 where {PT <: AbstractParticle}
+    function first_index(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) :: Int where {PT <: AbstractParticle}
 
 Returns the index of the first Matsubara frequency in mesh
 """
-function first_index(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) :: Int64 where {PT <: AbstractParticle}
+function first_index(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) :: Int where {PT <: AbstractParticle}
     return index(value(m[1]))
 end
 
 """
-    function last_index(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) :: Int64 where {PT <: AbstractParticle}
+    function last_index(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) :: Int where {PT <: AbstractParticle}
 
 Returns the index of the last Matsubara frequency in mesh
 """
-function last_index(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) :: Int64 where {PT <: AbstractParticle}
+function last_index(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) :: Int where {PT <: AbstractParticle}
     return index(value(m[end]))
 end
 
@@ -112,11 +112,11 @@ function last_value(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) :: Float64 whe
 end
 
 """
-    function indices(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) :: Vector{Int64} where {PT <: AbstractParticle}
+    function indices(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) :: Vector{Int} where {PT <: AbstractParticle}
 
 Return indices of all Matsubara frequencies in mesh
 """
-function indices(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) :: Vector{Int64} where {PT <: AbstractParticle}
+function indices(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) :: Vector{Int} where {PT <: AbstractParticle}
     return index.(value.(points(m)))
 end
 
@@ -156,6 +156,10 @@ function is_inbounds_bc(w :: Union{MatsubaraFrequency{PT}, Float64}, m :: Mesh{M
     return is_inbounds(w, m)
 end
 
+function is_inbounds_bc(idx :: Int, m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) where {PT <: AbstractParticle}
+    error("No inbounds check available for types `Int` and `Mesh{MeshPoint{MatsubaraFrequency{PT}}`")
+end
+
 # mapping to mesh index
 #-------------------------------------------------------------------------------#
 
@@ -171,7 +175,7 @@ function mesh_index(w :: Float64, m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) 
     @DEBUG is_inbounds(w, m) "Value not in mesh"
     delta    = plain_value(m[2]) - plain_value(m[1])
     position = (w - plain_value(m[1])) / delta
-    return round(Int64, position) + 1
+    return round(Int, position) + 1
 end
 
 # comparison operator

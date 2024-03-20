@@ -17,17 +17,17 @@ abstract type AbstractMesh end
     struct Mesh{T <: AbstractMeshPoint} <: AbstractMesh
 
 Mesh type with fields:
-* `hash   :: UInt64`    : mesh identifier
+* `hash   :: UInt`      : mesh identifier
 * `points :: Vector{T}` : mesh points
 * `domain :: Dict`      : implementation details
 """
 struct Mesh{T <: AbstractMeshPoint} <: AbstractMesh
-    hash   :: UInt64 # no accessor, only for internal use
+    hash   :: UInt # no accessor, only for internal use
     points :: Vector{T}  
     domain :: Dict  
 
     function Mesh(
-        hash   :: UInt64,
+        hash   :: UInt,
         points :: Vector{T},
         domain :: Dict  
         ) where {T <: AbstractMeshPoint}
@@ -51,11 +51,11 @@ function points(m :: Mesh{T}) :: Vector{T} where {T <: AbstractMeshPoint}
 end
 
 """
-    function points(m :: Mesh{T}, idx :: Int64) :: T where {T <: AbstractMeshPoint}
+    function points(m :: Mesh{T}, idx :: Int) :: T where {T <: AbstractMeshPoint}
 
 Returns `m.points[idx]`
 """
-function points(m :: Mesh{T}, idx :: Int64) :: T where {T <: AbstractMeshPoint}
+function points(m :: Mesh{T}, idx :: Int) :: T where {T <: AbstractMeshPoint}
     return m.points[idx]
 end
 
@@ -87,11 +87,11 @@ function Base.:lastindex(m :: Mesh)
     return lastindex(points(m))
 end
 
-function Base.:getindex(m :: Mesh, idx :: Int64)
+function Base.:getindex(m :: Mesh, idx :: Int)
     return points(m, idx)
 end
 
-function Base.:getindex(m :: Mesh, idxs :: UnitRange{Int64})
+function Base.:getindex(m :: Mesh, idxs :: UnitRange{Int})
     return @view points(m)[idxs]
 end
 
@@ -106,7 +106,7 @@ function Base.:iterate(m :: Mesh)
     return m[1], 1 
 end 
 
-function Base.:iterate(m :: Mesh, state :: Int64)
+function Base.:iterate(m :: Mesh, state :: Int)
     if state < length(m)
         return m[state + 1], state + 1 
     else 

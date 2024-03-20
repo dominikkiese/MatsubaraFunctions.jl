@@ -1,9 +1,7 @@
-# TO DO: add test for out of bounds access
-function eval_test(f :: MeshFunction{DD, Q, AT}) where {DD, Q <: Number, AT <: AbstractArray{Q, DD}}
+function eval_test(f :: MeshFunction{DD, Q, MT, AT}) where {DD, Q <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
 
     for trial in 1 : 10
         m_idxs = ntuple(i -> rand(eachindex(meshes(f, i))), DD)
-        #x_idxs = ntuple(i -> rand(1 : shape(f, i)), SD)
         pts    = ntuple(i -> meshes(f, i)[m_idxs[i]], DD)
         val    = f[m_idxs...]
 
@@ -52,6 +50,6 @@ end
     w = MatsubaraFrequency(1.0, 100, Fermion)
     @test f2(first(m1), w) ≈ ComplexF64(0.0) 
     @test f2(first(m1), w; lim = ComplexF64(1.0)) ≈ ComplexF64(1.0)
-    @test f4(first(m1), w, MatsubaraFunctions.Index(1), MatsubaraFunctions.Index(2)) ≈ ComplexF64(0.0) 
-    @test f4(first(m1), w, MatsubaraFunctions.Index(3), MatsubaraFunctions.Index(5); lim = ComplexF64(1.0)) ≈ ComplexF64(1.0)
+    @test f4(first(m1), w, 1, 2) ≈ ComplexF64(0.0) 
+    @test f4(first(m1), w, 3, 5; lim = ComplexF64(1.0)) ≈ ComplexF64(1.0)
 end

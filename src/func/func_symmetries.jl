@@ -69,18 +69,18 @@ end
 function reduce(
     w           :: NTuple{DD, Union{<: AbstractValue}},
     op          :: Operation,
-    f           :: MeshFunction{DD, Q, AT},
+    f           :: MeshFunction{DD, Q, MT, AT},
     checked     :: Array{Bool, DD},
     symmetries  :: Vector{Symmetry{DD}},
-    class       :: Vector{Tuple{Int64, Operation}},
-    path_length :: Int64
+    class       :: Vector{Tuple{Int, Operation}},
+    path_length :: Int
     ;
-    max_length  :: Int64 = 0
-    ) where {DD, Q <: Number, AT <: AbstractArray{Q, DD}}
+    max_length  :: Int = 0
+    ) where {DD, Q <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
  
     for S in symmetries 
         wp, opp = S(w)
-        new_op      = opp * op
+        new_op  = opp * op
 
         if all(ntuple(i -> is_inbounds(wp[i], meshes(f, i)), DD))
             idx = LinearIndex(f, ntuple(i -> mesh_index(wp[i], meshes(f, i)), DD)...)
@@ -107,30 +107,30 @@ end
     SymmetryGroup{DD, Q <: Number}
 
 SymmetryGroup type with fields:
-* `classes :: Vector{Vector{Tuple{Int64, Operation}}}` : collections of symmetry equivalent elements
-* `speedup :: Float64`                                 : expected speedup from the symmetry reduction
+* `classes :: Vector{Vector{Tuple{Int, Operation}}}` : collections of symmetry equivalent elements
+* `speedup :: Float64`                               : expected speedup from the symmetry reduction
 """
 struct SymmetryGroup{DD, Q <: Number}
-    classes :: Vector{Vector{Tuple{Int64, Operation}}}
+    classes :: Vector{Vector{Tuple{Int, Operation}}}
     speedup :: Float64
 
-    function SymmetryGroup{DD, Q}(classes :: Vector{Vector{Tuple{Int64, Operation}}}, speedup :: Float64) where {DD, Q <: Number}
+    function SymmetryGroup{DD, Q}(classes :: Vector{Vector{Tuple{Int, Operation}}}, speedup :: Float64) where {DD, Q <: Number}
         return new{DD, Q}(classes, speedup)
     end 
 
-    function SymmetryGroup(f :: MeshFunction{DD, Q, AT}) where {DD, Q <: Number, AT <: AbstractArray{Q, DD}}
+    function SymmetryGroup(f :: MeshFunction{DD, Q, MT, AT}) where {DD, Q <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
         return new{DD, Q}([[(idx, Operation())] for idx in eachindex(f.data)], 1.0)
     end
  
     function SymmetryGroup(
         symmetries :: Vector{Symmetry{DD}},
-        f          :: MeshFunction{DD, Q, AT}
+        f          :: MeshFunction{DD, Q, MT, AT}
         ;
-        max_length :: Int64 = 0
-        ) where {DD, Q <: Number, AT <: AbstractArray{Q, DD}}
+        max_length :: Int = 0
+        ) where {DD, Q <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
 
         checked  = Array{Bool, DD}(undef, size(f.data))
-        classes  = Vector{Tuple{Int64, Operation}}[]
+        classes  = Vector{Tuple{Int, Operation}}[]
         checked .= false
 
         for idx in eachindex(f.data)
@@ -149,7 +149,9 @@ struct SymmetryGroup{DD, Q <: Number}
 end
 
 # symmetrize data array of the MeshFunction, return error estimate
-function (SG :: SymmetryGroup{DD, Q})(f :: MeshFunction{DD, Q, AT}) where {DD, Q <: Number, AT <: AbstractArray{Q, DD}}
+function (SG :: SymmetryGroup{DD, Q})(f :: MeshFunction{DD, Q, MT, AT}
+    ) where {DD, Q <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
+
     err = 0.0
 
     for class in SG.classes
@@ -169,12 +171,13 @@ function (SG :: SymmetryGroup{DD, Q})(f :: MeshFunction{DD, Q, AT}) where {DD, Q
 end
 
 """
-    function get_reduced(SG :: SymmetryGroup{DD, Q}, f :: MeshFunction{DD, Q, AT}) :: Vector{Q} where {DD, Q <: Number}
+    function get_reduced(SG :: SymmetryGroup{DD, Q}, f :: MeshFunction{DD, Q, MT, AT}
+        ) :: Vector{Q} where {DD, Q <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
 
 Calculate symmetry reduced representation of MeshFunction
 """
-function get_reduced(SG :: SymmetryGroup{DD, Q}, f :: MeshFunction{DD, Q, AT}
-    ) :: Vector{Q} where {DD, Q <: Number, AT <: AbstractArray{Q, DD}}
+function get_reduced(SG :: SymmetryGroup{DD, Q}, f :: MeshFunction{DD, Q, MT, AT}
+    ) :: Vector{Q} where {DD, Q <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
 
     return Q[f[first(first(SG.classes[cl]))] for cl in eachindex(SG.classes)] 
 end
@@ -182,17 +185,17 @@ end
 """
     function init_from_reduced!(
         SG   :: SymmetryGroup{DD, Q},
-        f    :: MeshFunction{DD, Q, AT},
+        f    :: MeshFunction{DD, Q, MT, AT},
         fvec :: AbstractVector{Q}
-        )    :: Nothing where {DD, Q <: Number}
+        )    :: Nothing where {DD, Q <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
 
 Initialize MeshFunction from symmetry reduced representation
 """ 
 function init_from_reduced!(
     SG   :: SymmetryGroup{DD, Q},
-    f    :: MeshFunction{DD, Q, AT},
+    f    :: MeshFunction{DD, Q, MT, AT},
     fvec :: AbstractVector{Q}
-    )    :: Nothing where {DD, Q <: Number, AT <: AbstractArray{Q, DD}}
+    )    :: Nothing where {DD, Q <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
 
     for cl in eachindex(fvec)
         f[first(first(SG.classes[cl]))] = fvec[cl]
@@ -222,12 +225,12 @@ end
 
 # symmetrize MeshFunction from evaluation of InitFunction
 function (SG :: SymmetryGroup{DD, Q})(
-    f        :: MeshFunction{DD, Q, AT},
+    f        :: MeshFunction{DD, Q, MT, AT},
     I        :: InitFunction{DD, Q}
     ;
     mode     :: Symbol = :serial,
-    minbatch :: Int64  = 1
-    ) where {DD, Q <: Number, AT <: AbstractArray{Q, DD}}
+    minbatch :: Int    = 1
+    ) where {DD, Q <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
 
     if mode === :serial 
         for class in SG.classes

@@ -5,20 +5,20 @@
     struct BrillouinZone{N}
 
 BrillouinZone struct with fields:
-* `L         :: Int64`                  : linear system size
+* `L         :: Int`                    : linear system size
 * `basis     :: SMatrix{N, N, Float64}` : matrix with reciprocal lattice vectors as columns
 * `inv_basis :: SMatrix{N, N, Float64}` : matrix inverse of `basis`
 """
 struct BrillouinZone{N}
-    L         :: Int64
+    L         :: Int
     basis     :: SMatrix{N, N, Float64}
     inv_basis :: SMatrix{N, N, Float64}
 
-    function BrillouinZone(L :: Int64, basis :: SMatrix{N, N, Float64}) where {N}
+    function BrillouinZone(L :: Int, basis :: SMatrix{N, N, Float64}) where {N}
         return new{N}(L, basis, inv(basis))
     end 
 
-    function BrillouinZone(L :: Int64, vecs :: Vararg{SVector{N, Float64}, N}) where {N}
+    function BrillouinZone(L :: Int, vecs :: Vararg{SVector{N, Float64}, N}) where {N}
         return BrillouinZone(L, hcat(vecs...))
     end 
 end
@@ -33,11 +33,11 @@ function basis(bz :: BrillouinZone{N}) :: SMatrix{N, N, Float64} where {N}
 end
 
 """
-    function basis(bz  :: BrillouinZone{N}, idx :: Int64) :: SVector{N, Float64} where {N}
+    function basis(bz  :: BrillouinZone{N}, idx :: Int) :: SVector{N, Float64} where {N}
 
 Returns basis vector with index `idx`
 """
-function basis(bz  :: BrillouinZone{N}, idx :: Int64) :: SVector{N, Float64} where {N}
+function basis(bz  :: BrillouinZone{N}, idx :: Int) :: SVector{N, Float64} where {N}
     return bz.basis[:, idx]
 end
 
@@ -51,11 +51,11 @@ function inv_basis(bz :: BrillouinZone{N}) :: SMatrix{N, N, Float64} where {N}
 end
 
 """
-    function inv_basis(bz  :: BrillouinZone{N}, idx :: Int64) :: SVector{N, Float64} where {N}
+    function inv_basis(bz  :: BrillouinZone{N}, idx :: Int) :: SVector{N, Float64} where {N}
 
 Returns inverse basis vector with index `idx`
 """
-function inv_basis(bz :: BrillouinZone{N}, idx :: Int64) :: SVector{N, Float64} where {N}
+function inv_basis(bz :: BrillouinZone{N}, idx :: Int) :: SVector{N, Float64} where {N}
     return bz.inv_basis[:, idx]
 end
 

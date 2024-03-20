@@ -5,26 +5,26 @@
     struct BrillouinPoint{N} <: AbstractValue
     
 BrillouinPoint type with fields:
-* `value :: SVector{N, Int64}` : coordinates in reciprocal space
+* `value :: SVector{N, Int}` : coordinates in reciprocal space
 """
 struct BrillouinPoint{N} <: AbstractValue where {N}
-    value :: SVector{N, Int64}
+    value :: SVector{N, Int}
 
-    function BrillouinPoint(value :: SVector{N, Int64}) where {N}
+    function BrillouinPoint(value :: SVector{N, Int}) where {N}
         return new{N}(value)
     end 
 
-    function BrillouinPoint(value :: Vararg{Int64, N}) where {N}
-        return new{N}(SVector{N, Int64}(value...))
+    function BrillouinPoint(value :: Vararg{Int, N}) where {N}
+        return new{N}(SVector{N, Int}(value...))
     end 
 end
 
 """
-    function value(k :: BrillouinPoint{N}) :: SVector{N, Int64}
+    function value(k :: BrillouinPoint{N}) :: SVector{N, Int}
 
 Returns `k.value`
 """ 
-function value(k :: BrillouinPoint{N}) :: SVector{N, Int64} where {N}
+function value(k :: BrillouinPoint{N}) :: SVector{N, Int} where {N}
     return k.value 
 end
 

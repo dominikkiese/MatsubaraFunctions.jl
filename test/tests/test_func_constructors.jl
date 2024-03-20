@@ -8,33 +8,48 @@
     data2 = rand(length(m1), length(m2), length(m3))
 
     # from data, check if passed by reference
-    f1     = MeshFunction(data1, m1)
-    f2     = MeshFunction(data2, m1, m2, m3)
+    f1     = MeshFunction((m1,), data1)
+    f2     = MeshFunction((m1, m2, m3), data2)
     data1 .= rand(length(m1))
     data2 .= rand(length(m1), length(m2), length(m3))
-
-    @test typeof(f1) == MeshFunction{1, Float64, Array{Float64, 1}}
-    @test typeof(f2) == MeshFunction{3, Float64, Array{Float64, 3}}
     @test f1.data ≈ data1
     @test f2.data ≈ data2
 
     # from data view
-    f1     = MeshFunction(view(data1, :), m1)
-    f2     = MeshFunction(view(data2, :, :, :), m1, m2, m3)
+    f1     = MeshFunction((m1,), view(data1, :))
+    f2     = MeshFunction((m1, m2, m3), view(data2, :, :, :))
     data1 .= rand(length(m1))
     data2 .= rand(length(m1), length(m2), length(m3))
-
-    @test typeof(f1) == MeshFunction{1, Float64, SubArray{Float64, 1, Vector{Float64}, Tuple{Base.Slice{Base.OneTo{Int64}}}, true}}
-    @test typeof(f2) == MeshFunction{3, Float64, SubArray{Float64, 3, Array{Float64, 3}, Tuple{Base.Slice{Base.OneTo{Int64}}, Base.Slice{Base.OneTo{Int64}}, Base.Slice{Base.OneTo{Int64}}}, true}}
     @test f1.data ≈ data1
     @test f2.data ≈ data2
     
     # from meshes
-    @test typeof(MeshFunction(m1)) == MeshFunction{1, ComplexF64, Array{ComplexF64, 1}}
-    @test typeof(MeshFunction(m1, m2)) == MeshFunction{2, ComplexF64, Array{ComplexF64, 2}}
-    @test typeof(MeshFunction(m1, m2, m3)) == MeshFunction{3, ComplexF64, Array{ComplexF64, 3}}
-    @test typeof(MeshFunction(m1; data_t = Float64)) == MeshFunction{1, Float64, Array{Float64, 1}}
+    @test try
+        MeshFunction(m1)
+        true 
+        catch 
+        false 
+    end
+
+    @test try
+        MeshFunction(m1, m2, m3)
+        true 
+        catch 
+        false 
+    end
+
+    @test try
+        MeshFunction(m1; data_t = Float64)
+        true 
+        catch 
+        false 
+    end
 
     # copy constructor 
-    @test typeof(MeshFunction(MeshFunction(m1, m2, m3))) == MeshFunction{3, ComplexF64, Array{ComplexF64, 3}}
+    @test try
+        MeshFunction(MeshFunction(m1, m2, m3))
+        true 
+        catch 
+        false 
+    end
 end

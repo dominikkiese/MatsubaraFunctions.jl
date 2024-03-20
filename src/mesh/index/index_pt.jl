@@ -5,18 +5,18 @@
     struct Index <: AbstractValue
 
 Index type with fields:
-* `index :: Int64` : Matsubara index
+* `index :: Int` : Matsubara index
 """
 struct Index <: AbstractValue
-    index :: Int64 
+    index :: Int 
 end 
 
 """
-    function value(w :: Index) :: Int64
+    function value(w :: Index) :: Int
 
 Returns `w.index`
 """
-function value(w :: Index) :: Int64
+function value(w :: Index) :: Int
     return w.index
 end 
 

@@ -10,8 +10,8 @@ Save MeshFunction `f` with label `l` to file `h`
 function save_mesh_function!(
     h :: HDF5.File,
     l :: String,
-    f :: MeshFunction{DD, Q, Array{Q, DD}}
-    ) :: Nothing where{DD, Q <: Number}
+    f :: MeshFunction
+    ) :: Nothing
 
     grp = create_group(h, l)
 
@@ -45,8 +45,8 @@ function load_mesh_function(
     @DEBUG type == "MeshFunction" "Type $(l) unknown"
 
     # load the data
-    grids = [load_mesh(h, l * "/meshes/mesh_$i") for i in eachindex(keys(h[l * "/meshes"]))]
-    return MeshFunction(read(h, l * "/data"), grids...)
+    grids = (load_mesh(h, l * "/meshes/mesh_$i") for i in eachindex(keys(h[l * "/meshes"])))
+    return MeshFunction(tuple(grids...), read(h, l * "/data"))
 end
 
 export 
