@@ -81,7 +81,7 @@ end
 Returns the first Matsubara frequency in mesh
 """
 function first_frequency(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) :: Float64 where {PT <: AbstractParticle}
-    return value(m[1])
+    return plain_value(m[1])
 end
 
 """
@@ -90,7 +90,7 @@ end
 Returns the last Matsubara frequency in mesh
 """
 function last_frequency(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) :: Float64 where {PT <: AbstractParticle}
-    return value(m[end])
+    return plain_value(m[end])
 end
 
 """
@@ -238,11 +238,11 @@ function save!(
 end
 
 """
-    function load_mesh(h :: HDF5.File, l :: String, ::Val{:MatsubaraMesh}) :: AbstractMesh
+    function load_mesh(h :: HDF5.File, l :: String, ::Val{:MatsubaraMesh}) :: Mesh
 
 Overload of load_mesh for MatsubaraMesh
 """
-function load_mesh(h :: HDF5.File, l :: String, ::Val{:MatsubaraMesh}) :: AbstractMesh
+function load_mesh(h :: HDF5.File, l :: String, ::Val{:MatsubaraMesh}) :: Mesh
     @DEBUG read_attribute(h[l], "tag") == "MatsubaraMesh" "Dataset $(l) not tagged as MatsubaraMesh"
 
     # load metadata

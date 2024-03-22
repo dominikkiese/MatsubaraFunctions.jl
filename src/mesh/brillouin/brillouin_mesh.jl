@@ -271,11 +271,11 @@ function save!(
 end
 
 """
-    function load_mesh(h :: HDF5.File, l :: String, ::Val{:BrillouinZoneMesh}) :: AbstractMesh
+    function load_mesh(h :: HDF5.File, l :: String, ::Val{:BrillouinZoneMesh}) :: Mesh
 
 Overload of load_mesh for BrillouinZoneMesh
 """
-function load_mesh(h :: HDF5.File, l :: String, ::Val{:BrillouinZoneMesh}) :: AbstractMesh
+function load_mesh(h :: HDF5.File, l :: String, ::Val{:BrillouinZoneMesh}) :: Mesh
     @DEBUG read_attribute(h[l], "tag") == "BrillouinZoneMesh" "Dataset $(l) not tagged as BrillouinZoneMesh"
 
     # load metadata

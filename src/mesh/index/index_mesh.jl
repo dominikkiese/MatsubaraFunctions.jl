@@ -114,11 +114,11 @@ function save!(
 end
 
 """
-    function load_mesh(h :: HDF5.File, l :: String, ::Val{:IndexMesh}) :: AbstractMesh
+    function load_mesh(h :: HDF5.File, l :: String, ::Val{:IndexMesh}) :: Mesh
 
 Overload of load_mesh for IndexMesh
 """
-function load_mesh(h :: HDF5.File, l :: String, ::Val{:IndexMesh}) :: AbstractMesh
+function load_mesh(h :: HDF5.File, l :: String, ::Val{:IndexMesh}) :: Mesh
     @DEBUG read_attribute(h[l], "tag") == "IndexMesh" "Dataset $(l) not tagged as IndexMesh"
     return IndexMesh(read_attribute(h[l], "N"))
 end

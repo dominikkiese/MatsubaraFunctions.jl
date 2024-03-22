@@ -126,11 +126,11 @@ end
 #-------------------------------------------------------------------------------#
 
 """
-    function load_mesh(h :: HDF5.File, l :: String) :: AbstractMesh
+    function load_mesh(h :: HDF5.File, l :: String) :: Mesh
 
 Load mesh with name `l` from file `h`
 """
-function load_mesh(h :: HDF5.File, l :: String) :: AbstractMesh
+function load_mesh(h :: HDF5.File, l :: String) :: Mesh
     # direct dispatch on the respective overload
     return load_mesh(h, l, Val(Symbol(read_attribute(h[l], "tag"))))
 end
