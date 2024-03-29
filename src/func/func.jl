@@ -39,7 +39,7 @@ end
 """
     function meshes(f :: MeshFunction{DD, Q, MT, AT}, :: Val{idx}) :: Mesh where {DD, Q <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}, idx}
 
-Returns `f.meshes[idx]`. Since idx is static the return mesh type can be inferred at compile time.
+Returns `f.meshes[idx]`. Since idx is static the type of the returned mesh can be inferred at compile time.
 """
 function meshes(f :: MeshFunction{DD, Q, MT, AT}, :: Val{idx}) :: Mesh where {DD, Q <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}, idx}
     return f.meshes[idx]
