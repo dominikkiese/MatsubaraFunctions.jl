@@ -76,24 +76,6 @@ function last_index(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) :: Int where {
 end
 
 """
-    function first_frequency(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) :: Float64 where {PT <: AbstractParticle}
-
-Returns the first Matsubara frequency in mesh
-"""
-function first_frequency(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) :: Float64 where {PT <: AbstractParticle}
-    return plain_value(m[1])
-end
-
-"""
-    function last_frequency(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) :: Float64 where {PT <: AbstractParticle}
-
-Returns the last Matsubara frequency in mesh
-"""
-function last_frequency(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) :: Float64 where {PT <: AbstractParticle}
-    return plain_value(m[end])
-end
-
-"""
     function first_value(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) :: Float64 where {PT <: AbstractParticle}
 
 Returns the value of the first Matsubara frequency in mesh
@@ -166,7 +148,6 @@ end
 # from value type
 function mesh_index(w :: MatsubaraFrequency{PT}, m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) where {PT <: AbstractParticle}
     @DEBUG is_inbounds(w, m) "Matsubara frequency not in mesh"
-    @DEBUG temperature(w) ≈ domain(m)[:temperature] "Temperature must be equal between Matsubara frequency and mesh"
     return index(w) - first_index(m) + 1
 end
 
@@ -182,11 +163,6 @@ end
 #-------------------------------------------------------------------------------#
 
 function Base.:(==)(m1 :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}, m2 :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) where {PT <: AbstractParticle}
-
-    if m1.hash != m2.hash
-        return false
-    end
-
     if !(domain(m1)[:temperature] ≈ domain(m2)[:temperature])
         return false 
     end 
@@ -205,7 +181,7 @@ function Base.:(==)(m1 :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}, m2 :: Mesh{Me
         end 
     end 
 
-    return true
+    return m1.hash === m2.hash
 end
 
 # io
@@ -268,8 +244,6 @@ export
     last_index,
     first_value,
     last_value,
-    first_frequency,
-    last_frequency,
     indices,
     values,
     is_inbounds,

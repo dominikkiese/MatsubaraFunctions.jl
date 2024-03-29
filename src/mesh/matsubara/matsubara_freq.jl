@@ -150,12 +150,7 @@ end
 #-------------------------------------------------------------------------------#
 
 function Base.:(==)(w1 :: MatsubaraFrequency{PT}, w2 :: MatsubaraFrequency{PT}) where {PT <: AbstractParticle}
-
-    if !(temperature(w1) ≈ temperature(w2)) || !(value(w1) ≈ value(w2)) || (index(w1) != index(w2))
-        return false
-    end
-
-    return true
+    return (temperature(w1) ≈ temperature(w2)) && (value(w1) ≈ value(w2)) && (index(w1) == index(w2))
 end
 
 # export

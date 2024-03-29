@@ -20,7 +20,7 @@ function BrillouinZoneMesh(bz :: BrillouinZone{N}) :: Mesh{MeshPoint{BrillouinPo
         points[lin_idx] = MeshPoint(HASH, lin_idx, BrillouinPoint(idxs...))
     end 
 
-    domain = Dict(:lin_idxs => lin_idxs, :bz => bz)
+    domain = Dict(:bz => bz, :lin_idxs => lin_idxs)
     return Mesh(HASH, points, domain)
 end
 
@@ -33,7 +33,7 @@ end
 Convert mesh point to euclidean coordinates
 """
 function euclidean(k :: MeshPoint{BrillouinPoint{N}}, m :: Mesh{MeshPoint{BrillouinPoint{N}}}) :: SVector{N, Float64} where {N}
-    @DEBUG k.hash == m.hash "Hash must be equal between mesh point and mesh"
+    @DEBUG k.hash === m.hash "Hash must be equal between mesh point and mesh"
     return euclidean(value(k), domain(m)[:bz])
 end
 
@@ -170,10 +170,6 @@ end
 #-------------------------------------------------------------------------------#
 
 function Base.:(==)(m1 :: Mesh{MeshPoint{BrillouinPoint{N}}}, m2 :: Mesh{MeshPoint{BrillouinPoint{N}}}) where {N}
-    if m1.hash != m2.hash
-        return false
-    end
-
     if !(basis(domain(m1)[:bz]) ≈ basis(domain(m2)[:bz]))
         return false 
     end 
@@ -188,57 +184,20 @@ function Base.:(==)(m1 :: Mesh{MeshPoint{BrillouinPoint{N}}}, m2 :: Mesh{MeshPoi
         end 
     end 
 
-    return true 
+    return m1.hash === m2.hash
 end
 
 # mapping to Wigner-Seitz cell
 #-------------------------------------------------------------------------------#
 
 """
-    function to_Wigner_Seitz(m :: Mesh{MeshPoint{BrillouinPoint{N}}}; fill :: Bool = false) :: Vector{SVector{N, Float64}} where {N}
+    function to_Wigner_Seitz(m :: Mesh{MeshPoint{BrillouinPoint{N}}}) :: Vector{SVector{N, Float64}} where {N}
 
-Generate mesh in Wigner Seitz cell at Γ = 0. If `fill = true`, additional points related 
-by translations on the reciprocal lattice are added to the boundary.
+Generate list of euclidean points in Wigner Seitz cell at Γ = 0.
 """
-function to_Wigner_Seitz(m :: Mesh{MeshPoint{BrillouinPoint{N}}}; fill :: Bool = false) :: Vector{SVector{N, Float64}} where {N}
-    pts = [to_Wigner_Seitz(euclidean(k, m), domain(m)[:bz]) for k in m]
-
-    # brute force and slow, can we improve it?
-    if fill 
-        bz      = domain(m)[:bz]
-        iters   = Iterators.product(ntuple(n -> -1 : 1, N)...)
-        fillers = SVector{N, Float64}[]
-
-        for k in pts 
-            for iter in iters
-                kp         = to_Wigner_Seitz(k + basis(bz) * SVector{N, Float64}(iter...), bz)
-                in_pts     = false 
-                in_fillers = false
-
-                for kpp in pts 
-                    if kp ≈ kpp 
-                        in_pts = true
-                        break 
-                    end 
-                end 
-
-                for kpp in fillers
-                    if kp ≈ kpp 
-                        in_fillers = true
-                        break 
-                    end 
-                end 
-
-                if !(in_pts || in_fillers)
-                    push!(fillers, kp)
-                end 
-            end
-        end 
-
-        pts = vcat(pts, fillers)
-    end 
-
-    return pts
+function to_Wigner_Seitz(m :: Mesh{MeshPoint{BrillouinPoint{N}}}) :: Vector{SVector{N, Float64}} where {N}
+    shifts = get_shifts(domain(m)[:bz])
+    return [to_Wigner_Seitz(euclidean(k, m), shifts) for k in m]
 end
 
 # io

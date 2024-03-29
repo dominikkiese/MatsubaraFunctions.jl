@@ -17,27 +17,17 @@ abstract type AbstractMesh end
     struct Mesh{T <: AbstractMeshPoint} <: AbstractMesh
 
 Mesh type with fields:
-* `hash   :: UInt`      : mesh identifier
+* `hash   :: Symbol`    : mesh identifier
 * `points :: Vector{T}` : mesh points
 * `domain :: Dict`      : implementation details
 """
 struct Mesh{T <: AbstractMeshPoint} <: AbstractMesh
-    hash   :: UInt # no accessor, only for internal use
+    hash   :: Symbol # no accessor, only for internal use
     points :: Vector{T}  
     domain :: Dict  
 
-    function Mesh(
-        hash   :: UInt,
-        points :: Vector{T},
-        domain :: Dict  
-        ) where {T <: AbstractMeshPoint}
-
-        return new{T}(hash, points, domain)
-    end
-
-    # copy constructor
-    function Mesh(m :: Mesh)
-        return Mesh(m.hash, copy(points(m)), copy(domain(m)))
+    function Mesh(hash, points :: Vector{T}, domain :: Dict) where {T <: AbstractMeshPoint}
+        return new{T}(Symbol(hash), points, domain)
     end
 end
 
@@ -95,10 +85,6 @@ function Base.:getindex(m :: Mesh, idxs :: UnitRange{Int})
     return @view points(m)[idxs]
 end
 
-function Base.:copy(m :: Mesh)
-    return Mesh(m)
-end
-
 # iterate
 #-------------------------------------------------------------------------------#
  
@@ -118,7 +104,7 @@ end
 #-------------------------------------------------------------------------------#
 
 @inline function mesh_index(x :: T, m :: Mesh{T}) where {T <: AbstractMeshPoint}
-    @DEBUG x.hash == m.hash "Mesh point invalid"
+    @DEBUG x.hash === m.hash "Mesh point invalid"
     return index(x)
 end
 

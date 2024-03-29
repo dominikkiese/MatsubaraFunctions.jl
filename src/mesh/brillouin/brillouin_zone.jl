@@ -140,6 +140,16 @@ end
 #-------------------------------------------------------------------------------#
 
 """
+    function get_shifts(bz :: BrillouinZone{N}) :: Matrix{SVector{N, Float64}} where {N}
+
+Generate all primitive shifts in euclidean space from Brillouin zone
+"""
+function get_shifts(bz :: BrillouinZone{N}) :: Matrix{SVector{N, Float64}} where {N}
+    iters = Iterators.product(ntuple(n -> -1 : 1, N)...)
+    return SVector{N, Float64}[basis(bz) * SVector{N, Float64}(iter...) for iter in iters]
+end
+
+"""
     function to_Wigner_Seitz(k :: T, bz :: BrillouinZone{N}) :: SVector{N, Float64} where {N, T <: AbstractVector{Float64}}
 
 Map k to Wigner Seitz cell at Γ = 0
@@ -148,16 +158,16 @@ function to_Wigner_Seitz(k :: T, bz :: BrillouinZone{N}) :: SVector{N, Float64} 
     @DEBUG length(k) == N "Length mismatch for input vector"
 
     reducible = true 
-    iters     = Iterators.product(ntuple(n -> -1 : 1, N)...)
-    kp        = k 
+    shifts    = get_shifts(bz)
+    kp        = fold_back(k, bz) # start at k and fold back into primitive zone
 
     while reducible 
         reducible = false
         
-        for iter in iters 
-            kpp = kp - basis(bz) * SVector{N, Float64}(iter...)
+        for shift in shifts
+            kpp = kp - shift
 
-            if norm(kp) - norm(kpp) > 1e-10
+            if norm(kp) - norm(kpp) > 1e-14
                 kp        = kpp 
                 reducible = true
             end 
@@ -166,6 +176,33 @@ function to_Wigner_Seitz(k :: T, bz :: BrillouinZone{N}) :: SVector{N, Float64} 
 
     return kp 
 end 
+
+"""
+    function to_Wigner_Seitz(k :: T, shifts :: Matrix{SVector{N, Float64}}) :: SVector{N, Float64} where {N, T <: AbstractVector{Float64}}
+
+Map k to Wigner Seitz cell at Γ = 0 using precomputed set of translations. Useful when mapping many points from the primitive zone.
+"""
+function to_Wigner_Seitz(k :: T, shifts :: Matrix{SVector{N, Float64}}) :: SVector{N, Float64} where {N, T <: AbstractVector{Float64}}
+    @DEBUG length(k) == N "Length mismatch for input vector"
+
+    reducible = true 
+    kp        = k 
+
+    while reducible 
+        reducible = false
+        
+        for shift in shifts
+            kpp = kp - shift
+
+            if norm(kp) - norm(kpp) > 1e-14
+                kp        = kpp 
+                reducible = true
+            end 
+        end 
+    end 
+
+    return kp 
+end
 
 # export
 #-------------------------------------------------------------------------------#
@@ -178,4 +215,5 @@ export
     reciprocal,
     is_inbounds,
     fold_back,
+    get_shifts,
     to_Wigner_Seitz

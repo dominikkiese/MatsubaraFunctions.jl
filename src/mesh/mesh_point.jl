@@ -22,14 +22,18 @@ abstract type AbstractValue end
     struct MeshPoint{T <: AbstractValue} <: AbstractMeshPoint
 
 MeshPoint type with fields:
-* `hash  :: UInt` : mesh identifier
-* `index :: Int`  : mesh index
-* `value :: T`    : mesh coordinates
+* `hash  :: Symbol` : mesh identifier
+* `index :: Int`    : mesh index
+* `value :: T`      : mesh coordinates
 """
 struct MeshPoint{T <: AbstractValue} <: AbstractMeshPoint
-    hash  :: UInt # no accessor, only for internal use
+    hash  :: Symbol # no accessor, only for internal use
     index :: Int 
-    value :: T 
+    value :: T
+
+    function MeshPoint(hash, index :: Int, value :: T) where {T <: AbstractValue}
+        return new{T}(Symbol(hash), index, value)
+    end
 end
 
 """
@@ -54,6 +58,7 @@ end
     function plain_value(x :: MeshPoint{T}) where {T <: AbstractValue} 
 
 Returns the plain underlying value of the mesh point `value(value(x))`.
+Assumes that a function `value` is defined for the value type.
 """
 function plain_value(x :: MeshPoint{T}) where {T <: AbstractValue} 
     return value(value(x))
@@ -100,12 +105,7 @@ end
 #-------------------------------------------------------------------------------#
 
 function Base.:(==)(x1 :: MeshPoint{T}, x2 :: MeshPoint{T}) where {T <: AbstractValue} 
-
-    if (x1.hash != x2.hash) || (index(x1) != index(x2)) || (value(x1) != value(x2))
-        return false
-    end
-
-    return true
+    return (x1.hash === x2.hash) && (index(x1) == index(x2)) && (value(x1) == value(x2))
 end
 
 # export

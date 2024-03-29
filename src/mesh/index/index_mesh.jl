@@ -23,7 +23,7 @@ end
 """
     function values(m :: Mesh{MeshPoint{Index}}) :: Vector{Int}
 
-Return values of all Indices in mesh
+Return values of all indices in mesh
 """
 function Base.:values(m :: Mesh{MeshPoint{Index}}) :: Vector{Int}
     return plain_value.(points(m))
@@ -69,10 +69,6 @@ end
 #-------------------------------------------------------------------------------#
 
 function Base.:(==)(m1 :: Mesh{MeshPoint{Index}}, m2 :: Mesh{MeshPoint{Index}})
-    if m1.hash != m2.hash
-        return false
-    end
-
     if domain(m1)[:N] != domain(m2)[:N]
         return false 
     end 
@@ -83,7 +79,7 @@ function Base.:(==)(m1 :: Mesh{MeshPoint{Index}}, m2 :: Mesh{MeshPoint{Index}})
         end 
     end 
 
-    return true
+    return m1.hash === m2.hash
 end
 
 # io

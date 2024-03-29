@@ -1,7 +1,6 @@
 module MatsubaraFunctions
 
     using PrecompileTools
-
     @recompile_invalidations begin
         using LinearAlgebra
         using StaticArrays
@@ -13,7 +12,7 @@ module MatsubaraFunctions
         using Coverage
     end
 
-    # macro to unlock debug mode
+    # macro to enable debug mode
     DEBUG() = false
 
     macro DEBUG(expr, msgs)
