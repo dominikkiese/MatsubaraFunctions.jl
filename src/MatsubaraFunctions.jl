@@ -29,4 +29,5 @@ module MatsubaraFunctions
     include("func/func.jl")
     include("misc/mpi_helpers.jl")
     include("misc/pade.jl")
+    include("misc/triqs_interface.jl")
 end

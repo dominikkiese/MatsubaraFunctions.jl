@@ -5,22 +5,23 @@ include("brillouin_zone.jl")
 #-------------------------------------------------------------------------------#
 
 """
-    function BrillouinZoneMesh(bz :: BrillouinZone{N}) :: Mesh{MeshPoint{BrillouinPoint{N}}} where {N}
+    function BrillouinZoneMesh(bz :: BrillouinZone{N}; reverse = false) :: Mesh{MeshPoint{BrillouinPoint{N}}} where {N}
 
-Construct uniform mesh for Brillouin zone
+Construct uniform mesh for Brillouin zone. If reverse is true, the mesh is constructed using row mayor ordering.
 """
-function BrillouinZoneMesh(bz :: BrillouinZone{N}) :: Mesh{MeshPoint{BrillouinPoint{N}}} where {N}
-    HASH     = hash(bz, hash(bz.L, hash(N)))
+function BrillouinZoneMesh(bz :: BrillouinZone{N}; reverse = false) :: Mesh{MeshPoint{BrillouinPoint{N}}} where {N}
+    HASH     = hash(reverse, hash(bz, hash(bz.L, hash(N))))
     ranges   = ntuple(x -> 0 : bz.L - 1, N)
-    lin_idxs = LinearIndices(ranges)
+    lin_idxs = reverse ? transpose(LinearIndices(ranges)) : LinearIndices(ranges)
+    itrs     = Iterators.product(ranges...)
     points   = Vector{MeshPoint{BrillouinPoint{N}}}(undef, bz.L^N)
 
-    for idxs in Iterators.product(ranges...)
+    for idxs in itrs
         lin_idx         = lin_idxs[(idxs .+ 1)...]
         points[lin_idx] = MeshPoint(HASH, lin_idx, BrillouinPoint(idxs...))
     end 
 
-    domain = Dict(:bz => bz, :lin_idxs => lin_idxs)
+    domain = Dict(:bz => bz, :lin_idxs => lin_idxs, :reverse => reverse)
     return Mesh(HASH, points, domain)
 end
 
@@ -178,6 +179,10 @@ function Base.:(==)(m1 :: Mesh{MeshPoint{BrillouinPoint{N}}}, m2 :: Mesh{MeshPoi
         return false 
     end 
 
+    if domain(m1)[:reverse] != domain(m2)[:reverse]
+        return false 
+    end 
+
     for idx in eachindex(m1)
         if points(m1, idx) != points(m2, idx)
             return false 
@@ -221,10 +226,11 @@ function save!(
     grp = create_group(h, l)
 
     # save metadata
-    bz                       = domain(m)[:bz]
-    attributes(grp)["tag"]   = "BrillouinZoneMesh"
-    attributes(grp)["basis"] = basis(bz)
-    attributes(grp)["L"]     = bz.L
+    bz                         = domain(m)[:bz]
+    attributes(grp)["reverse"] = domain(m)[:reverse]
+    attributes(grp)["tag"]     = "BrillouinZoneMesh"
+    attributes(grp)["basis"]   = basis(bz)
+    attributes(grp)["L"]       = bz.L
 
     return nothing 
 end
@@ -238,10 +244,11 @@ function load_mesh(h :: HDF5.File, l :: String, ::Val{:BrillouinZoneMesh}) :: Me
     @DEBUG read_attribute(h[l], "tag") == "BrillouinZoneMesh" "Dataset $(l) not tagged as BrillouinZoneMesh"
 
     # load metadata
-    basis = read_attribute(h[l], "basis")
-    L     = read_attribute(h[l], "L")
+    reverse = read_attribute(h[l], "reverse")
+    basis   = read_attribute(h[l], "basis")
+    L       = read_attribute(h[l], "L")
 
-    return BrillouinZoneMesh(BrillouinZone(L, SMatrix{size(basis)..., Float64}(basis)))
+    return BrillouinZoneMesh(BrillouinZone(L, SMatrix{size(basis)..., Float64}(basis)); reverse)
 end
 
 # export
