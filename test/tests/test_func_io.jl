@@ -8,7 +8,7 @@
 
     # write f and SG to file 
     file = h5open(dirname(@__FILE__) * "/test.h5", "w")
-    save_mesh_function!(file, "f", f)
+    save!(file, "f", f)
 
     # load f from file 
     fp = load_mesh_function(file, "f")

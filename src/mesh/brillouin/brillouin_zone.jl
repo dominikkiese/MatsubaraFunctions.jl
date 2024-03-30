@@ -120,7 +120,7 @@ end
 Use periodic boundary conditions to fold `k` back into mesh
 """
 function fold_back(k :: BrillouinPoint{N}, bz :: BrillouinZone{N}) :: BrillouinPoint{N} where {N}
-    return BrillouinPoint(map(kn -> positive_modulo(kn, bz.L), value(k)))
+    return BrillouinPoint(ntuple(n -> positive_modulo(k[n], bz.L), N)...)
 end
 
 """

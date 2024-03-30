@@ -1,5 +1,5 @@
 """
-    function save_mesh_function!(
+    function save!(
         h :: HDF5.File,
         l :: String,
         f :: MeshFunction
@@ -7,7 +7,7 @@
 
 Save MeshFunction `f` with label `l` to file `h`  
 """
-function save_mesh_function!(
+function save!(
     h :: HDF5.File,
     l :: String,
     f :: MeshFunction
@@ -50,5 +50,5 @@ function load_mesh_function(
 end
 
 export 
-    save_mesh_function!,
+    save!,
     load_mesh_function
