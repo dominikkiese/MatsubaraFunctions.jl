@@ -44,8 +44,8 @@ end
     for trial in 1 : 10
         p  = rand(points(m))
         n  = SVector{2, Int}(rand(-4 : 4), rand(-4 : 4))
-        q1 = value(p) + BrillouinPoint(domain(m)[:bz].L .* n)
-        q2 = euclidean(p, m) + basis(domain(m)[:bz]) * n
+        q1 = value(p) + BrillouinPoint(bz(m).L .* n)
+        q2 = euclidean(p, m) + basis(bz(m)) * n
 
         @test MatsubaraFunctions.mesh_index(value(p), m) == index(p)
         @test MatsubaraFunctions.mesh_index(euclidean(p, m), m) == index(p)

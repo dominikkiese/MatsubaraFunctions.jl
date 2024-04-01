@@ -10,51 +10,58 @@ AbstractMesh type
 """
 abstract type AbstractMesh end
 
+"""
+    abstract type AbstractDomain
+
+AbstractDomain type
+"""
+abstract type AbstractDomain end
+
 # type def and accessors
 #-------------------------------------------------------------------------------#
 
 """
-    struct Mesh{T <: AbstractMeshPoint} <: AbstractMesh
+    struct Mesh{T <: AbstractMeshPoint, D <: AbstractDomain} <: AbstractMesh
 
 Mesh type with fields:
 * `hash   :: Symbol`    : mesh identifier
 * `points :: Vector{T}` : mesh points
-* `domain :: Dict`      : implementation details
+* `domain :: D`         : implementation details
 """
-struct Mesh{T <: AbstractMeshPoint} <: AbstractMesh
+struct Mesh{T <: AbstractMeshPoint, D <: AbstractDomain} <: AbstractMesh
     hash   :: Symbol # no accessor, only for internal use
     points :: Vector{T}  
-    domain :: Dict  
+    domain :: D
 
-    function Mesh(hash, points :: Vector{T}, domain :: Dict) where {T <: AbstractMeshPoint}
-        return new{T}(Symbol(hash), points, domain)
+    function Mesh(hash, points :: Vector{T}, domain :: D) where {T <: AbstractMeshPoint, D <: AbstractDomain}
+        return new{T, D}(Symbol(hash), points, domain)
     end
 end
 
 """
-    function points(m :: Mesh{T}) :: Vector{T} where {T <: AbstractMeshPoint}
+    function points(m :: Mesh{T, D}) :: Vector{T} where {T <: AbstractMeshPoint, D <: AbstractDomain}
 
 Returns `m.points`
 """
-function points(m :: Mesh{T}) :: Vector{T} where {T <: AbstractMeshPoint}
+function points(m :: Mesh{T, D}) :: Vector{T} where {T <: AbstractMeshPoint, D <: AbstractDomain}
     return m.points
 end
 
 """
-    function points(m :: Mesh{T}, idx :: Int) :: T where {T <: AbstractMeshPoint}
+    function points(m :: Mesh{T, D}, idx :: Int) :: T where {T <: AbstractMeshPoint, D <: AbstractDomain}
 
 Returns `m.points[idx]`
 """
-function points(m :: Mesh{T}, idx :: Int) :: T where {T <: AbstractMeshPoint}
+function points(m :: Mesh{T, D}, idx :: Int) :: T where {T <: AbstractMeshPoint, D <: AbstractDomain}
     return m.points[idx]
 end
 
 """
-    function domain(m :: Mesh) :: Dict
+    function domain(m :: Mesh{T, D}) :: D where {T <: AbstractMeshPoint, D <: AbstractDomain}
 
 Returns `m.domain`
 """
-function domain(m :: Mesh) :: Dict
+function domain(m :: Mesh{T, D}) :: D where {T <: AbstractMeshPoint, D <: AbstractDomain}
     return m.domain 
 end
 
@@ -103,7 +110,7 @@ end
 # mapping to mesh index
 #-------------------------------------------------------------------------------#
 
-@inline function mesh_index(x :: T, m :: Mesh{T}) where {T <: AbstractMeshPoint}
+function mesh_index(x :: T, m :: Mesh{T, D}) where {T <: AbstractMeshPoint, D <: AbstractDomain}
     @DEBUG x.hash === m.hash "Mesh point invalid"
     return index(x)
 end

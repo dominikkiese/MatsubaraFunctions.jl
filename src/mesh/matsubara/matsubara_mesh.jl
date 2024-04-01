@@ -1,5 +1,20 @@
 include("matsubara_freq.jl")
 
+# the domain
+#-------------------------------------------------------------------------------#
+
+"""
+    struct MatsubaraDomain <: AbstractDomain
+
+MatsubaraDomain type with fields:
+* `temperature :: Float64` : temperature of the Matsubara mesh
+* `N           :: Int`     : frequency count
+"""
+struct MatsubaraDomain <: AbstractDomain
+    temperature :: Float64
+    N           :: Int
+end
+
 # outer constructors and accessors
 #-------------------------------------------------------------------------------#
 
@@ -8,7 +23,7 @@ include("matsubara_freq.jl")
         temperature :: Float64, 
         N           :: Int,
                     :: Type{Fermion}
-        )           :: Mesh{MeshPoint{MatsubaraFrequency{Fermion}}}
+        )           :: Mesh{MeshPoint{MatsubaraFrequency{Fermion}}, MatsubaraDomain}
 
 Constructs fermionic Matsubara mesh with 2 * N symmetrically spaced frequencies 
 """
@@ -16,7 +31,7 @@ function MatsubaraMesh(
     temperature :: Float64, 
     N           :: Int,
                 :: Type{Fermion}
-    )           :: Mesh{MeshPoint{MatsubaraFrequency{Fermion}}}
+    )           :: Mesh{MeshPoint{MatsubaraFrequency{Fermion}}, MatsubaraDomain}
 
     HASH      = hash(temperature, hash(N, hash(Fermion)))
     idx_range = -N : N - 1
@@ -26,8 +41,7 @@ function MatsubaraMesh(
         points[lin_idx] = MeshPoint(HASH, lin_idx, MatsubaraFrequency(temperature, idx_range[lin_idx], Fermion))
     end 
 
-    domain = Dict(:temperature => temperature, :N => N, :type => "Fermion")
-    return Mesh(HASH, points, domain)
+    return Mesh(HASH, points, MatsubaraDomain(temperature, N))
 end
 
 """
@@ -35,7 +49,7 @@ end
         temperature :: Float64, 
         N           :: Int,
                     :: Type{Boson}
-        )           :: Mesh{MeshPoint{MatsubaraFrequency{Boson}}}
+        )           :: Mesh{MeshPoint{MatsubaraFrequency{Boson}}, MatsubaraDomain}
 
 Constructs bosonic Matsubara mesh with 2 * N - 1 symmetrically spaced frequencies 
 """
@@ -43,7 +57,7 @@ function MatsubaraMesh(
     temperature :: Float64, 
     N           :: Int,
                 :: Type{Boson}
-    )           :: Mesh{MeshPoint{MatsubaraFrequency{Boson}}}
+    )           :: Mesh{MeshPoint{MatsubaraFrequency{Boson}}, MatsubaraDomain}
 
     HASH      = hash(temperature, hash(N, hash(Boson)))
     idx_range = -N + 1 : N - 1
@@ -53,61 +67,78 @@ function MatsubaraMesh(
         points[lin_idx] = MeshPoint(HASH, lin_idx, MatsubaraFrequency(temperature, idx_range[lin_idx], Boson))
     end 
 
-    domain = Dict(:temperature => temperature, :N => N, :type => "Boson")
-    return Mesh(HASH, points, domain)
+    return Mesh(HASH, points, MatsubaraDomain(temperature, N))
 end
 
 """
-    function first_index(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) :: Int where {PT <: AbstractParticle}
+    function temperature(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}, MatsubaraDomain}) :: Float64 where {PT <: AbstractParticle}
+
+Returns the temperature of the Matsubara mesh
+"""
+function temperature(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}, MatsubaraDomain}) :: Float64 where {PT <: AbstractParticle}
+    return domain(m).temperature
+end
+
+"""
+    function N(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}, MatsubaraDomain}) :: Int where {PT <: AbstractParticle}
+
+Returns the frequency count used for construction of the Matsubara mesh
+"""
+function N(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}, MatsubaraDomain}) :: Int where {PT <: AbstractParticle}
+    return domain(m).N
+end
+
+"""
+    function first_index(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}, MatsubaraDomain}) :: Int where {PT <: AbstractParticle}
 
 Returns the index of the first Matsubara frequency in mesh
 """
-function first_index(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) :: Int where {PT <: AbstractParticle}
+function first_index(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}, MatsubaraDomain}) :: Int where {PT <: AbstractParticle}
     return index(value(m[1]))
 end
 
 """
-    function last_index(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) :: Int where {PT <: AbstractParticle}
+    function last_index(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}, MatsubaraDomain}) :: Int where {PT <: AbstractParticle}
 
 Returns the index of the last Matsubara frequency in mesh
 """
-function last_index(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) :: Int where {PT <: AbstractParticle}
+function last_index(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}, MatsubaraDomain}) :: Int where {PT <: AbstractParticle}
     return index(value(m[end]))
 end
 
 """
-    function first_value(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) :: Float64 where {PT <: AbstractParticle}
+    function first_value(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}, MatsubaraDomain}) :: Float64 where {PT <: AbstractParticle}
 
 Returns the value of the first Matsubara frequency in mesh
 """
-function first_value(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) :: Float64 where {PT <: AbstractParticle}
+function first_value(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}, MatsubaraDomain}) :: Float64 where {PT <: AbstractParticle}
     return plain_value(m[1])
 end
 
 """
-    function last_value(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) :: Float64 where {PT <: AbstractParticle}
+    function last_value(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}, MatsubaraDomain}) :: Float64 where {PT <: AbstractParticle}
 
 Returns the value of the last Matsubara frequency in mesh
 """
-function last_value(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) :: Float64 where {PT <: AbstractParticle}
+function last_value(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}, MatsubaraDomain}) :: Float64 where {PT <: AbstractParticle}
     return plain_value(m[end])
 end
 
 """
-    function indices(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) :: Vector{Int} where {PT <: AbstractParticle}
+    function indices(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}, MatsubaraDomain}) :: Vector{Int} where {PT <: AbstractParticle}
 
 Return indices of all Matsubara frequencies in mesh
 """
-function indices(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) :: Vector{Int} where {PT <: AbstractParticle}
+function indices(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}, MatsubaraDomain}) :: Vector{Int} where {PT <: AbstractParticle}
     return index.(value.(points(m)))
 end
 
 """
-    function values(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) :: Vector{Float64} where {PT <: AbstractParticle}
+    function values(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}, MatsubaraDomain}) :: Vector{Float64} where {PT <: AbstractParticle}
 
 Return values of all Matsubara frequencies in mesh
 """
-function Base.:values(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) :: Vector{Float64} where {PT <: AbstractParticle}
+function Base.:values(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}, MatsubaraDomain}) :: Vector{Float64} where {PT <: AbstractParticle}
     return plain_value.(points(m))
 end
 
@@ -115,30 +146,30 @@ end
 #-------------------------------------------------------------------------------#
 
 """
-    function is_inbounds(w :: MatsubaraFrequency{PT}, m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) :: Bool where {PT <: AbstractParticle}
+    function is_inbounds(w :: MatsubaraFrequency{PT}, m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}, MatsubaraDomain}) :: Bool where {PT <: AbstractParticle}
 
 Checks if Matsubara frequency in mesh
 """
-function is_inbounds(w :: MatsubaraFrequency{PT}, m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) :: Bool where {PT <: AbstractParticle}
-    @DEBUG temperature(w) ≈ domain(m)[:temperature] "Temperature must be equal between Matsubara frequency and grid"
+function is_inbounds(w :: MatsubaraFrequency{PT}, m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}, MatsubaraDomain}) :: Bool where {PT <: AbstractParticle}
+    @DEBUG temperature(w) ≈ temperature(m) "Temperature must be equal between Matsubara frequency and grid"
     return first_index(m) <= index(w) <= last_index(m)
 end
 
 """
-    function is_inbounds(w :: Float64, m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) :: Bool where {PT <: AbstractParticle}
+    function is_inbounds(w :: Float64, m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}, MatsubaraDomain}) :: Bool where {PT <: AbstractParticle}
 
 Checks if float in mesh
 """
-function is_inbounds(w :: Float64, m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) :: Bool where {PT <: AbstractParticle}
+function is_inbounds(w :: Float64, m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}, MatsubaraDomain}) :: Bool where {PT <: AbstractParticle}
     return first_value(m) <= w <= last_value(m)
 end
 
 # overload dummy function
-function is_inbounds_bc(w :: Union{MatsubaraFrequency{PT}, Float64}, m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) where {PT <: AbstractParticle}
+function is_inbounds_bc(w :: Union{MatsubaraFrequency{PT}, Float64}, m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}, MatsubaraDomain}) where {PT <: AbstractParticle}
     return is_inbounds(w, m)
 end
 
-function is_inbounds_bc(idx :: Int, m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) where {PT <: AbstractParticle}
+function is_inbounds_bc(idx :: Int, m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}, MatsubaraDomain}) where {PT <: AbstractParticle}
     error("No inbounds check available for types `Int` and `Mesh{MeshPoint{MatsubaraFrequency{PT}}`")
 end
 
@@ -146,13 +177,13 @@ end
 #-------------------------------------------------------------------------------#
 
 # from value type
-function mesh_index(w :: MatsubaraFrequency{PT}, m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) where {PT <: AbstractParticle}
+function mesh_index(w :: MatsubaraFrequency{PT}, m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}, MatsubaraDomain}) where {PT <: AbstractParticle}
     @DEBUG is_inbounds(w, m) "Matsubara frequency not in mesh"
     return index(w) - first_index(m) + 1
 end
 
 # from Float, returns index of closest frequency
-function mesh_index(w :: Float64, m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) where {PT <: AbstractParticle}
+function mesh_index(w :: Float64, m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}, MatsubaraDomain}) where {PT <: AbstractParticle}
     @DEBUG is_inbounds(w, m) "Value not in mesh"
     delta    = plain_value(m[2]) - plain_value(m[1])
     position = (w - plain_value(m[1])) / delta
@@ -162,16 +193,12 @@ end
 # comparison operator
 #-------------------------------------------------------------------------------#
 
-function Base.:(==)(m1 :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}, m2 :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) where {PT <: AbstractParticle}
-    if !(domain(m1)[:temperature] ≈ domain(m2)[:temperature])
+function Base.:(==)(m1 :: Mesh{MeshPoint{MatsubaraFrequency{PT}}, MatsubaraDomain}, m2 :: Mesh{MeshPoint{MatsubaraFrequency{PT}}, MatsubaraDomain}) where {PT <: AbstractParticle}
+    if !(temperature(m1) ≈ temperature(m2))
         return false 
     end 
 
-    if domain(m1)[:N] != domain(m2)[:N]
-        return false 
-    end 
-
-    if domain(m1)[:type] != domain(m2)[:type]
+    if N(m1) != N(m2)
         return false 
     end 
 
@@ -191,24 +218,50 @@ end
     function save!(
         h :: HDF5.File,
         l :: String,
-        m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
-        ) :: Nothing where {PT <: AbstractParticle}
+        m :: Mesh{MeshPoint{MatsubaraFrequency{Fermion}}, MatsubaraDomain}
+        ) :: Nothing
 
 Save Matsubara mesh to HDF5 file `h` with label `l`
 """
 function save!(
     h :: HDF5.File,
     l :: String,
-    m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}
-    ) :: Nothing where {PT <: AbstractParticle}
+    m :: Mesh{MeshPoint{MatsubaraFrequency{Fermion}}, MatsubaraDomain}
+    ) :: Nothing
 
     grp = create_group(h, l)
 
     # save metadata
     attributes(grp)["tag"]         = "MatsubaraMesh"
-    attributes(grp)["temperature"] = domain(m)[:temperature]
-    attributes(grp)["N"]           = domain(m)[:N]
-    attributes(grp)["type"]        = domain(m)[:type]
+    attributes(grp)["type"]        = "Fermion"
+    attributes(grp)["temperature"] = temperature(m)
+    attributes(grp)["N"]           = N(m)
+
+    return nothing 
+end
+
+"""
+    function save!(
+        h :: HDF5.File,
+        l :: String,
+        m :: Mesh{MeshPoint{MatsubaraFrequency{Boson}}, MatsubaraDomain}
+        ) :: Nothing
+
+Save Matsubara mesh to HDF5 file `h` with label `l`
+"""
+function save!(
+    h :: HDF5.File,
+    l :: String,
+    m :: Mesh{MeshPoint{MatsubaraFrequency{Boson}}, MatsubaraDomain}
+    ) :: Nothing
+
+    grp = create_group(h, l)
+
+    # save metadata
+    attributes(grp)["tag"]         = "MatsubaraMesh"
+    attributes(grp)["type"]        = "Boson"
+    attributes(grp)["temperature"] = temperature(m)
+    attributes(grp)["N"]           = N(m)
 
     return nothing 
 end
@@ -239,7 +292,10 @@ end
 #-------------------------------------------------------------------------------#
 
 export 
+    MatsubaraDomain,
     MatsubaraMesh,
+    temperature,
+    N,
     first_index,
     last_index,
     first_value,

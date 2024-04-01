@@ -27,7 +27,7 @@ struct InterpolationParam{N}
     end
 
     # Matsubara mesh
-    function InterpolationParam(w :: Float64, m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}}) where {PT <: AbstractParticle}
+    function InterpolationParam(w :: Float64, m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}, MatsubaraDomain}) where {PT <: AbstractParticle}
         # calculate mesh spacing and position in mesh
         w     = max(first_value(m), min(w, last_value(m)))
         delta = plain_value(m[2]) - plain_value(m[1])
@@ -45,7 +45,7 @@ struct InterpolationParam{N}
     end
 
     # Brillouin zone mesh
-    function InterpolationParam(k :: T, m :: Mesh{MeshPoint{BrillouinPoint{N}}}) where {N, T <: AbstractVector{Float64}}
+    function InterpolationParam(k :: T, m :: Mesh{MeshPoint{BrillouinPoint{N}}, BrillouinDomain{N}}) where {N, T <: AbstractVector{Float64}}
         @DEBUG length(k) == N "Length mismatch for input vector"
 
         # calculate mesh spacing and position in mesh
@@ -63,7 +63,7 @@ struct InterpolationParam{N}
     end
 
     # Index mesh 
-    function InterpolationParam(x :: Int, m :: Mesh{MeshPoint{Index}})
+    function InterpolationParam(x :: Int, m :: Mesh{MeshPoint{Index}, IndexDomain})
         return InterpolationParam(x, 1.0)
     end
 end
