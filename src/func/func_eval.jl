@@ -2,7 +2,14 @@
 function (f :: MeshFunction{DD, Q, MT, AT})(p :: Vararg{Union{MeshPoint, <: AbstractValue, Int}, DD}; lim :: Q = Q(0.0)
     ) where{DD, Q <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
     
-    return all(ntuple(i -> is_inbounds_bc(p[i], meshes(f, i)), DD)) ? f[ntuple(i -> mesh_index_bc(p[i], meshes(f, i)), DD)...] : lim
+    return all(ntuple(i -> is_inbounds_bc(p[i], meshes(f, i)), DD)) ? _eval_nointerpol(f, p...) : lim
+end
+
+# call to MeshFunction, only value type and mesh point, no interpolation
+@generated function _eval_nointerpol(f :: MeshFunction{DD, Q, MT, AT}, p :: Vararg{Union{MeshPoint, <: AbstractValue, Int}, DD}
+    ) where{DD, Q <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
+    
+    return Meta.parse("f["*prod(["mesh_index_bc(p[$i], meshes(f, $i)), " for i in 1:DD])[1:end-2]*"]")
 end
 
 # call to MeshFunction, all types, interpolation

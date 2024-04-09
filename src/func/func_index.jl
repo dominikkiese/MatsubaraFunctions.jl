@@ -99,10 +99,15 @@ end
 # getindex
 #----------------------------------------------------------------------------------------------#
 
-function Base.:getindex(f :: MeshFunction{DD, Q, MT, AT}, x :: Vararg{Union{MeshPoint, <: AbstractValue, Int, UnitRange, Colon}, DD}
-    ) where {DD, Q <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
+#function Base.:getindex(f :: MeshFunction{DD, Q, MT, AT}, x :: Vararg{Union{MeshPoint, <: AbstractValue, Int, UnitRange, Colon}, DD}
+#    ) where {DD, Q <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
+#
+#    return f.data[ntuple(i -> mesh_index(x[i], meshes(f, i)), DD)...]
+#end
 
-    return f.data[ntuple(i -> mesh_index(x[i], meshes(f, i)), DD)...]
+@generated function Base.:getindex(f :: MeshFunction{DD, Q, MT, AT}, x :: Vararg{Union{MeshPoint, <: AbstractValue, Int, UnitRange, Colon}, DD}
+    ) where {DD, Q <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
+    return Meta.parse("f.data["*prod(["mesh_index(x[$i], meshes(f, $i)), " for i in 1:DD])[1:end-2]*"]")
 end
 
 function Base.:getindex(f :: MeshFunction{DD, Q, MT, AT}, x :: Vararg{Union{Int, UnitRange, Colon}, DD}
