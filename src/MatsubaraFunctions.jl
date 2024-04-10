@@ -27,6 +27,7 @@ module MatsubaraFunctions
 
     include("mesh/mesh.jl")
     include("func/func.jl")
+    include("boilerplate/boilerplate.jl")
     include("misc/mpi_helpers.jl")
     include("misc/pade.jl")
     include("misc/triqs_interface.jl")

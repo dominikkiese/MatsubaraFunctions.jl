@@ -4,13 +4,13 @@
 function Base.:CartesianIndex(f :: MeshFunction{DD, Q, MT, AT}, x :: Vararg{Union{MeshPoint, <: AbstractValue}, DD}
     ) where {DD, Q <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
 
-    return CartesianIndex(ntuple(i -> mesh_index(x[i], meshes(f, i)), DD)...)
+    return CartesianIndex(_mesh_indices(f, x...)...)
 end
 
 function CartesianIndex_bc(f :: MeshFunction{DD, Q, MT, AT}, x :: Vararg{Union{MeshPoint, <: AbstractValue}, DD}
     ) where {DD, Q <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
 
-    return CartesianIndex(ntuple(i -> mesh_index_bc(x[i], meshes(f, i)), DD)...)
+    return CartesianIndex(_mesh_indices_bc(f, x...)...)
 end
 
 # linear index
@@ -25,7 +25,7 @@ Returns linear index for access to `f.data`
 function LinearIndex(f :: MeshFunction{DD, Q, MT, AT}, x :: Vararg{Union{MeshPoint, <: AbstractValue}, DD}
     ) :: Int where {DD, Q <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
 
-    return LinearIndices(size(f.data))[ntuple(i -> mesh_index(x[i], meshes(f, i)), DD)...]
+    return LinearIndices(size(f.data))[_mesh_indices(f, x...)...]
 end
 
 """
@@ -37,7 +37,7 @@ Returns linear index for access to `f.data` under boundary conditions
 function LinearIndex_bc(f :: MeshFunction{DD, Q, MT, AT}, x :: Vararg{Union{MeshPoint, <: AbstractValue}, DD}
     ) :: Int where {DD, Q <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
 
-    return LinearIndices(size(f.data))[ntuple(i -> mesh_index_bc(x[i], meshes(f, i)), DD)...]
+    return LinearIndices(size(f.data))[_mesh_indices_bc(f, x...)...]
 end
 
 """
@@ -73,18 +73,6 @@ end
 #----------------------------------------------------------------------------------------------#
 
 """
-    function to_meshes(f :: MeshFunction{DD, Q, MT, AT}, cidx :: CartesianIndex{DD}
-        ) :: NTuple{DD, Union{MeshPoint}} where {DD, Q <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
-
-Returns mesh points
-"""
-function to_meshes(f :: MeshFunction{DD, Q, MT, AT}, cidx :: CartesianIndex{DD}
-    ) :: NTuple{DD, Union{MeshPoint}} where {DD, Q <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
-
-    return ntuple(i -> meshes(f, i)[cidx[i]], DD)
-end
-
-"""
     function to_meshes(f :: MeshFunction{DD, Q, MT, AT}, idx :: Int
         ) :: NTuple{DD, Union{MeshPoint}} where {DD, Q <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
 
@@ -99,11 +87,10 @@ end
 # getindex
 #----------------------------------------------------------------------------------------------#
 
-@generated function Base.:getindex(f :: MeshFunction{DD, Q, MT, AT}, x :: Vararg{Union{MeshPoint, <: AbstractValue, Int, UnitRange, Colon}, DD}
+function Base.:getindex(f :: MeshFunction{DD, Q, MT, AT}, x :: Vararg{Union{MeshPoint, <: AbstractValue, Int, UnitRange, Colon}, DD}
     ) where {DD, Q <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
 
-    # force compiler to dispatch properly for every input type
-    return Meta.parse("f.data["*prod(["mesh_index(x[$i], meshes(f, $i)), " for i in 1 : DD])[1 : end - 2]*"]")
+    return f.data[_mesh_indices(f, x...)...]
 end
 
 function Base.:getindex(f :: MeshFunction{DD, Q, MT, AT}, x :: Vararg{Union{Int, UnitRange, Colon}, DD}
@@ -133,7 +120,7 @@ end
 function Base.:view(f :: MeshFunction{DD, Q, MT, AT}, x :: Vararg{Union{MeshPoint, <: AbstractValue, Int, UnitRange, Colon}, DD}
     ) where {DD, Q <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
 
-    return view(f.data, ntuple(i -> mesh_index(x[i], meshes(f, i)), DD)...)
+    return f[_mesh_indices(f, x...)...]
 end
 
 function Base.:view(f :: MeshFunction{DD, Q, MT, AT}, x :: Vararg{Union{Int, UnitRange, Colon}, DD}
@@ -148,7 +135,7 @@ end
 function Base.:setindex!(f :: MeshFunction{DD, Q, MT, AT}, val :: Qp, x :: Vararg{Union{MeshPoint, <: AbstractValue, Int, UnitRange, Colon}, DD}
     ) where {DD, Q <: Number, Qp <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
 
-    f.data[ntuple(i -> mesh_index(x[i], meshes(f, i)), DD)...] = val
+    f.data[_mesh_indices(f, x...)...] = val
     return nothing
 end
 

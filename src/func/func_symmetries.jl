@@ -82,8 +82,8 @@ function reduce(
         wp, opp = S(w)
         new_op  = opp * op
 
-        if all(ntuple(i -> is_inbounds(wp[i], meshes(f, i)), DD))
-            idx = LinearIndex(f, ntuple(i -> mesh_index(wp[i], meshes(f, i)), DD)...)
+        if _all_inbounds(f, wp...)
+            idx = LinearIndex(f, _mesh_indices(f, wp...)...)
 
             if !checked[idx]
                 checked[idx] = true 

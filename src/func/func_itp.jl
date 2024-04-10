@@ -45,7 +45,7 @@ struct InterpolationParam{N}
     end
 
     # Brillouin zone mesh
-    function InterpolationParam(k :: T, m :: Mesh{MeshPoint{BrillouinPoint{N}}, BrillouinDomain{N}}) where {N, T <: AbstractVector{Float64}}
+    function InterpolationParam(k :: T, m :: Mesh{MeshPoint{BrillouinPoint{N}}, BrillouinDomain{N, P}}) where {N, P, T <: AbstractVector{Float64}}
         @DEBUG length(k) == N "Length mismatch for input vector"
 
         # calculate mesh spacing and position in mesh
