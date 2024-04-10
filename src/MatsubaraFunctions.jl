@@ -23,6 +23,7 @@ module MatsubaraFunctions
     index(p)             = p
     mesh_index(p, m)     = index(p)
     mesh_index_bc(p, m)  = mesh_index(p, m)
+    is_inbounds(p, m)    = true
     is_inbounds_bc(p, m) = true
 
     include("mesh/mesh.jl")
