@@ -120,7 +120,7 @@ end
 function Base.:view(f :: MeshFunction{DD, Q, MT, AT}, x :: Vararg{Union{MeshPoint, <: AbstractValue, Int, UnitRange, Colon}, DD}
     ) where {DD, Q <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
 
-    return f[_mesh_indices(f, x...)...]
+    return view(f, _mesh_indices(f, x...)...)
 end
 
 function Base.:view(f :: MeshFunction{DD, Q, MT, AT}, x :: Vararg{Union{Int, UnitRange, Colon}, DD}
