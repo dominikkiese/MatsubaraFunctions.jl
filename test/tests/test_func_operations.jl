@@ -42,6 +42,11 @@
 
     set!(f2, data2)
 
+    # multiplication + addition 
+    set!(f4, data1)
+    mult_add!(f4, f2, 2.0)
+    @test f4.data == data1 .+ 2.0 .* data2
+
     # flatten / unflatten
     x = flatten(f1)
     y = copy(x)

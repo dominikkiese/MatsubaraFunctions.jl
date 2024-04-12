@@ -132,6 +132,23 @@ function mult!(f :: MeshFunction{DD, Q, MT, AT}, val :: Qp
     return nothing
 end
 
+# multiplication + addition
+#-------------------------------------------------------------------------------#
+
+"""
+    function mult_add!(f1 :: MeshFunction{DD, Q, MT, AT}, f2 :: MeshFunction{DD, Q, MT, AT}, val :: Qp
+        ) :: Nothing where {DD, Q <: Number, Qp <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
+
+Inplace multiplication of `f2` with `val` and addition to `f1` (`f1 += val * f2`)
+"""
+function mult_add!(f1 :: MeshFunction{DD, Q, MT, AT}, f2 :: MeshFunction{DD, Q, MT, AT}, val :: Qp
+    ) :: Nothing where {DD, Q <: Number, Qp <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
+
+    debug_f1_f2(f1, f2)
+    f1.data .+= val .* f2.data
+    return nothing 
+end
+
 # set data
 #-------------------------------------------------------------------------------#
 
@@ -224,6 +241,7 @@ export
     subtract!,
     mult,
     mult!,
+    mult_add!,
     set!,
     flatten, 
     flatten!,
