@@ -5,17 +5,31 @@ include("brillouin_zone.jl")
 #-------------------------------------------------------------------------------#
 
 """
+    struct LinMap{N}
+
+LinMap type with fields:
+* `ranges  :: NTuple{N, UnitRange{Int}}` : ranges for linear indices
+* `reverse :: Bool`                      : if reverse is true, use row mayor ordering
+"""
+struct LinMap{N}
+    ranges  :: NTuple{N, UnitRange{Int}}
+    reverse :: Bool
+end
+
+function Base.getindex(lm :: LinMap{N}, x :: Vararg{Int64, N}) where {N}
+    return lm.reverse ? transpose(LinearIndices(lm.ranges))[x...] : LinearIndices(lm.ranges)[x...]
+end
+
+"""
     struct BrillouinDomain{N, P} <: AbstractDomain
 
 BrillouinDomain type with fields:
-* `bz       :: BrillouinZone{N, P}`                                         : Brillouin zone
-* `lin_idxs :: LinearIndices{2, Tuple{UnitRange{Int64}, UnitRange{Int64}}}` : linear indices
-* `reverse  :: Bool`                                                        : reverse flag
+* `bz       :: BrillouinZone{N, P}` : Brillouin zone
+* `lin_idxs :: LinMap{N}`           : linear indices
 """
 struct BrillouinDomain{N, P} <: AbstractDomain
     bz       :: BrillouinZone{N, P}
-    lin_idxs :: LinearIndices{2, Tuple{UnitRange{Int64}, UnitRange{Int64}}}
-    reverse  :: Bool
+    lin_idxs :: LinMap{N}
 end
 
 # outer constructors and accessors
@@ -28,9 +42,8 @@ Construct uniform mesh for Brillouin zone. If reverse is true, the mesh is const
 """
 function BrillouinZoneMesh(bz :: BrillouinZone{N, P}; reverse = false) :: Mesh{MeshPoint{BrillouinPoint{N}}, BrillouinDomain{N, P}} where {N, P}
     HASH     = hash(reverse, hash(bz, hash(bz.L, hash(N))))
-    ranges   = ntuple(x -> 0 : bz.L - 1, N)
-    lin_idxs = reverse ? transpose(LinearIndices(ranges)) : LinearIndices(ranges)
-    itrs     = Iterators.product(ranges...)
+    lin_idxs = LinMap(ntuple(x -> 0 : bz.L - 1, N), reverse)
+    itrs     = Iterators.product(lin_idxs.ranges...)
     points   = Vector{MeshPoint{BrillouinPoint{N}}}(undef, bz.L^N)
 
     for idxs in itrs
@@ -38,7 +51,7 @@ function BrillouinZoneMesh(bz :: BrillouinZone{N, P}; reverse = false) :: Mesh{M
         points[lin_idx] = MeshPoint(HASH, lin_idx, BrillouinPoint(idxs...))
     end 
 
-    return Mesh(HASH, points, BrillouinDomain{N, P}(bz, lin_idxs, reverse))
+    return Mesh(HASH, points, BrillouinDomain{N, P}(bz, lin_idxs))
 end
 
 """
@@ -51,11 +64,11 @@ function bz(m :: Mesh{MeshPoint{BrillouinPoint{N}}, BrillouinDomain{N, P}}) :: B
 end
 
 """
-    function lin_idxs(m :: Mesh{MeshPoint{BrillouinPoint{N}}, BrillouinDomain{N, P}}) :: LinearIndices{2, Tuple{UnitRange{Int64}, UnitRange{Int64}}} where {N, P}
+    function lin_idxs(m :: Mesh{MeshPoint{BrillouinPoint{N}}, BrillouinDomain{N, P}}) :: LinMap{N} where {N, P}
 
 Returns linear indices of mesh
 """
-function lin_idxs(m :: Mesh{MeshPoint{BrillouinPoint{N}}, BrillouinDomain{N, P}}) :: LinearIndices{2, Tuple{UnitRange{Int64}, UnitRange{Int64}}} where {N, P}
+function lin_idxs(m :: Mesh{MeshPoint{BrillouinPoint{N}}, BrillouinDomain{N, P}}) :: LinMap{N} where {N, P}
     return domain(m).lin_idxs
 end
 
@@ -65,7 +78,7 @@ end
 Returns reverse flag of mesh
 """
 function reverse(m :: Mesh{MeshPoint{BrillouinPoint{N}}, BrillouinDomain{N, P}}) :: Bool where {N, P}
-    return domain(m).reverse
+    return lin_idxs(m).reverse
 end
 
 # conversion from reciprocal to euclidean coordinates
@@ -330,6 +343,7 @@ end
 #-------------------------------------------------------------------------------#
 
 export 
+    LinMap,
     BrillouinDomain,
     BrillouinZoneMesh,
     bz,
