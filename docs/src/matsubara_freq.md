@@ -1,6 +1,6 @@
 # MatsubaraFrequency
 
-A `MatsubaraFrequency{PT}` of particle type `PT` at temperature $T$ and with Matsubara index $n$ can be generated using
+A `MatsubaraFrequency{PT}` of particle type PT at temperature $T$ and with Matsubara index $n$ can be generated using
 
 ```julia
 T = 1.0

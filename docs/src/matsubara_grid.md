@@ -11,11 +11,11 @@ g2 = MatsubaraGrid(T, N, Boson)   # total no. frequencies is 2N - 1
 
 where $N$ is the number of non-negative frequencies defined as follows:
 
-| Particle type            | Fermion  | Boson    |
-|--------------------------|----------|----------|
-| total no. frequencies    | 2N       | 2N-1     |
-| range of Matsubara index | -N: N-1  | -N+1:N-1 |
-| definition               | (2n+1)πT | 2nπT     |
+| Particle type              | Fermion  | Boson    |
+|----------------------------|----------|----------|
+| total no. frequencies      | 2N       | 2N-1     |
+| range of Matsubara index n | -N: N-1  | -N+1:N-1 |
+| definition                 | (2n+1)πT | 2nπT     |
 
 `MatsubaraGrid{PT}` instances are iterable
 
