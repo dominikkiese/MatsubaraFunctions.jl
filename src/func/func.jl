@@ -58,6 +58,14 @@ function Base.:copy(f :: MeshFunction)
     return MeshFunction(f)
 end
 
+function Base.:size(f :: MeshFunction)
+    return size(f.data)
+end
+
+function Base.:length(f :: MeshFunction)
+    return length(f.data)
+end
+
 # load implementation details and export
 #-------------------------------------------------------------------------------#
 
