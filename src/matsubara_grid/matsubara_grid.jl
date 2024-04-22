@@ -1,289 +1,262 @@
-# we do not allow MatsubaraGrid to be dispatched on the particle type 
-# to allow for mixed grids in the construction of MatsubaraFunctions
 """
-    struct MatsubaraGrid
+    struct MatsubaraGrid{PT <: AbstractParticle} <: AbstractMatsubaraGrid
 
 MatsubaraGrid type with fields:
-* `T    :: Float64`                    : temperature
-* `data :: Vector{MatsubaraFrequency}` : list of MatsubaraFrequency objects
-* `type :: Symbol`                     : particle type
+* `T    :: Float64` : temperature
+* `data :: OffsetVector{MatsubaraFrequency{PT}, Vector{MatsubaraFrequency{PT}}}` : list of MatsubaraFrequency objects
 """
-struct MatsubaraGrid
-    T     :: Float64 
-    data  :: Vector{MatsubaraFrequency}
-    type  :: Symbol          
+struct MatsubaraGrid{PT <: AbstractParticle} <: AbstractMatsubaraGrid
+    T    :: Float64 
+    data :: OffsetVector{MatsubaraFrequency{PT}, Vector{MatsubaraFrequency{PT}}}
 
-    # default constructor 
     function MatsubaraGrid(
         T    :: Float64,
-        data :: Vector{MatsubaraFrequency},
-        type :: Symbol
-        )    :: MatsubaraGrid
+        data :: OffsetVector{MatsubaraFrequency{PT}, Vector{MatsubaraFrequency{PT}}},
+        )    :: MatsubaraGrid{PT} where {PT <: AbstractParticle}
 
         for w in data 
-            @check type === w.type "Particle type must be equal between frequencies and grid"
-            @check T ≈ temperature(w) "Temperature must be equal between frequencies and grid"
+            @DEBUG T ≈ temperature(w) "Temperature must be equal between frequencies and grid"
         end  
     
-        return new(T, data, type)
+        return new{PT}(T, data)
     end
 
-    # convenience constructor for fermionic grid (total no. frequencies generated is 2 * N)
     function MatsubaraGrid(
         T :: Float64,
         N :: Int64,
           :: Type{Fermion}
-        ) :: MatsubaraGrid
+        ) :: MatsubaraGrid{Fermion}
 
-        grid = MatsubaraFrequency[MatsubaraFrequency(T, n, Fermion) for n in -N : N - 1]
-        return MatsubaraGrid(T, grid, :Fermion)
+        return MatsubaraGrid(T, OffsetVector([MatsubaraFrequency(T, n, Fermion) for n in -N : N - 1], -N - 1))
     end
 
-    # convenience constructor for bosonic grid (total no. frequencies generated is 2 * N - 1)
     function MatsubaraGrid(
         T :: Float64,
         N :: Int64,
           :: Type{Boson}
-        ) :: MatsubaraGrid
+        ) :: MatsubaraGrid{Boson}
 
-        grid = MatsubaraFrequency[MatsubaraFrequency(T, n, Boson) for n in -N + 1 : N - 1]
-        return MatsubaraGrid(T, grid, :Boson)
+        return MatsubaraGrid(T, OffsetVector([MatsubaraFrequency(T, n, Boson) for n in -N + 1 : N - 1], -N))
     end
 
-    # copy constructor 
     function MatsubaraGrid(
-        grid :: MatsubaraGrid
-        )    :: MatsubaraGrid
+        grid :: AbstractMatsubaraGrid
+        )    :: AbstractMatsubaraGrid
 
-        return MatsubaraGrid(temperature(grid), copy(grid.data), type(grid))
+        return MatsubaraGrid(temperature(grid), copy(grid.data))
     end
 end
 
 """
     function temperature(
-        grid :: MatsubaraGrid
+        grid :: AbstractMatsubaraGrid
         )    :: Float64
 
 Returns `grid.T`
 """
 function temperature(
-    grid :: MatsubaraGrid
+    grid :: AbstractMatsubaraGrid
     )    :: Float64
 
     return grid.T 
 end 
 
-"""
-    function type(
-        grid :: MatsubaraGrid
-        )    :: Symbol
-
-Returns `grid.type`
-"""
-function type(
-    grid :: MatsubaraGrid
-    )    :: Symbol
-
-    return grid.type 
-end
-
 function Base.:length(
-    grid :: MatsubaraGrid
+    grid :: AbstractMatsubaraGrid
     )    :: Int64
 
     return length(grid.data)
 end
 
 """
-    function first_index(
-        grid :: MatsubaraGrid
-        )    :: Int64 
+    function firstindex(
+        grid :: AbstractMatsubaraGrid
+        )    :: Int64
 
 Returns the index of the first Matsubara frequency in grid
 """
-function first_index(
-    grid :: MatsubaraGrid
-    )    :: Int64 
+function Base.:firstindex(
+    grid :: AbstractMatsubaraGrid
+    )    :: Int64
 
-    return index(grid.data[1])
+    return firstindex(grid.data)
 end
 
 """
-    function last_index(
-        grid :: MatsubaraGrid
-        )    :: Int64 
+    function lastindex(
+        grid :: AbstractMatsubaraGrid
+        )    :: Int64
 
 Returns the index of the last Matsubara frequency in grid
 """
-function last_index(
-    grid :: MatsubaraGrid
-    )    :: Int64 
+function Base.:lastindex(
+    grid :: AbstractMatsubaraGrid
+    )    :: Int64
 
-    return index(grid.data[end])
+    return lastindex(grid.data)
 end
 
 """
-    function index_range(
-        grid :: MatsubaraGrid
-        )    :: NTuple{2, Int64}
+    function axes(grid :: AbstractMatsubaraGrid)
 
-Returns indices of the first and last Matsubara frequency in grid
+Returns range of valid indices for Matsubara grid
 """
-function index_range(
-    grid :: MatsubaraGrid
-    )    :: NTuple{2, Int64}
-
-    return first_index(grid), last_index(grid)
+function Base.:axes(grid :: AbstractMatsubaraGrid)
+    return first(axes(grid.data))
 end
 
 function Base.:copy(
-    grid :: MatsubaraGrid
-    )    :: MatsubaraGrid
+    grid :: AbstractMatsubaraGrid
+    )    :: AbstractMatsubaraGrid
 
     return MatsubaraGrid(grid)
 end
 
 """
     function is_inbounds(
-        w    :: MatsubaraFrequency,
-        grid :: MatsubaraGrid
-        )    :: Bool
+        w    :: MatsubaraFrequency{PT},
+        grid :: MatsubaraGrid{PT}
+        )    :: Bool where {PT <: AbstractParticle}
 
 Checks if `w` is contained in grid
 """
 function is_inbounds(
-    w    :: MatsubaraFrequency,
-    grid :: MatsubaraGrid
-    )    :: Bool
+    w    :: MatsubaraFrequency{PT},
+    grid :: MatsubaraGrid{PT}
+    )    :: Bool where {PT <: AbstractParticle}
 
-    # perform checks, otherwise question is ill-defined
-    @check type(w) === type(grid) "Particle type must be equal between frequency and grid"
-    @check temperature(w) ≈ temperature(grid) "Temperature must be equal between frequency and grid"
-    return first_index(grid) <= index(w) <= last_index(grid)
+    @DEBUG temperature(w) ≈ temperature(grid) "Temperature must be equal between frequency and grid"
+    return firstindex(grid) <= index(w) <= lastindex(grid)
+end
+
+"""
+    function is_inbounds(
+        x    :: MatsubaraIndex{PT},
+        grid :: MatsubaraGrid{PT}
+        )    :: Bool where {PT <: AbstractParticle}
+
+Checks if `x` is contained in grid
+"""
+function is_inbounds(
+    x    :: MatsubaraIndex{PT},
+    grid :: MatsubaraGrid{PT}
+    )    :: Bool where {PT <: AbstractParticle}
+
+    return firstindex(grid) <= index(x) <= lastindex(grid)
 end
 
 """
     function N(
-        grid :: MatsubaraGrid
+        grid :: AbstractMatsubaraGrid
         )    :: Int64
 
 Returns that value `N` used to construct the grid
 """
 function N(
-    grid :: MatsubaraGrid
+    grid :: AbstractMatsubaraGrid
     )    :: Int64
 
-    return last_index(grid) + 1
+    return lastindex(grid) + 1
 end
 
 """
-    function first_value(
-        grid :: MatsubaraGrid
+    function firstvalue(
+        grid :: AbstractMatsubaraGrid
         )    :: Float64
 
 Returns the value of the first Matsubara frequency in grid
 """
-function first_value(
-    grid :: MatsubaraGrid
+function firstvalue(
+    grid :: AbstractMatsubaraGrid
     )    :: Float64
 
-    return value(grid.data[1])
+    return value(grid.data[firstindex(grid)])
 end
 
 """
-    function last_value(
-        grid :: MatsubaraGrid
+    function lastvalue(
+        grid :: AbstractMatsubaraGrid
         )    :: Float64
 
 Returns the value of the last Matsubara frequency in grid
 """
-function last_value(
-    grid :: MatsubaraGrid
+function lastvalue(
+    grid :: AbstractMatsubaraGrid
     )    :: Float64
-
+    
     return value(grid.data[end])
-end
-
-"""
-    function value_range(
-        grid :: MatsubaraGrid
-        )    :: NTuple{2, Float64}
-
-Returns values of the first and last Matsubara frequency in grid
-"""
-function value_range(
-    grid :: MatsubaraGrid
-    )    :: NTuple{2, Float64}
-
-    return first_value(grid), last_value(grid)
 end
 
 """
     function is_inbounds(
         w    :: Float64,
-        grid :: MatsubaraGrid
+        grid :: AbstractMatsubaraGrid
         )    :: Bool
 
 Checks if `w` lies within grid bounds
 """
 function is_inbounds(
     w    :: Float64,
-    grid :: MatsubaraGrid
+    grid :: AbstractMatsubaraGrid
     )    :: Bool
 
-    return first_value(grid) <= w <= last_value(grid)
+    return firstvalue(grid) <= w <= lastvalue(grid)
 end
 
 """
-    function indices(
-        grid :: MatsubaraGrid
-        )    :: Vector{Int64}
+    function indices(grid :: AbstractMatsubaraGrid)   
 
 Returns list of indices for Matsubara frequencies in grid
 """
-function indices(
-    grid :: MatsubaraGrid
-    )    :: Vector{Int64}
-
+function indices(grid :: AbstractMatsubaraGrid)    
     return index.(grid.data)
 end 
 
 """
-    function values(
-        grid :: MatsubaraGrid
-        )    :: Vector{Float64}
+    Base.:values(grid :: AbstractMatsubaraGrid)
 
 Returns list of values for Matsubara frequencies in grid
 """
-function Base.:values(
-    grid :: MatsubaraGrid
-    )    :: Vector{Float64}
-
+function Base.:values(grid :: AbstractMatsubaraGrid)
     return value.(grid.data)
 end 
 
 """
     function info(
-        grid :: MatsubaraGrid
-        )    :: Nothing
+        grid :: MatsubaraGrid{PT}
+        )    :: Nothing where {PT <: AbstractParticle}
 
 Prints summary of grid properties
 """
 function info(
-    grid :: MatsubaraGrid
-    )    :: Nothing
+    grid :: MatsubaraGrid{PT}
+    )    :: Nothing where {PT <: AbstractParticle}
 
     println("MatsubaraGrid properties")
     println("------------------------")
-    println("Particle type : $(type(grid))")
+    println("Particle type : $(string(PT))")
     println("Temperature   : $(temperature(grid))")
     println("Length        : $(length(grid))")
-    println("Index range   : $(index_range(grid))")
-    println("Value range   : $(value_range(grid))")
+    println("Index range   : $(axes(grid))")
+    println("Value range   : ($(firstvalue(grid)), $(lastvalue(grid)))")
 
     return nothing
 end
 
-# load methods
+#----------------------------------------------------------------------------------------------#
+
 include("matsubara_grid_index.jl")
 include("matsubara_grid_io.jl")
+
+#----------------------------------------------------------------------------------------------#
+
+export 
+    MatsubaraGrid,
+    temperature, 
+    is_inbounds,
+    N,
+    firstvalue,
+    lastvalue,
+    indices, 
+    values,
+    info

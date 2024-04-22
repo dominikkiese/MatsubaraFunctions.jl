@@ -10,13 +10,12 @@ struct PadeApprox{Q <: Number}
     coeffs :: Vector{Q}
     xdat   :: Vector{Q}
 
-    # convenience constructor from input data 
     function PadeApprox(
         xdat :: Vector{Q},
         ydat :: Vector{Q}
         )    :: PadeApprox{Q} where {Q <: Number}
         
-        @check length(xdat) > 1 "More than one data point must be provided"
+        @DEBUG length(xdat) > 1 "More than one data point must be provided"
         g        = zeros(Q, length(xdat), length(xdat))
         g[1, :] .= ydat
         
@@ -38,7 +37,6 @@ struct PadeApprox{Q <: Number}
     end   
 end 
 
-# getter functions 
 """
     function coeffs(
         PA :: PadeApprox{Q}
@@ -67,7 +65,6 @@ function xdat(
     return PA.xdat
 end
 
-# make PadeApprox type callable
 function (PA :: PadeApprox{Q})(
     z :: Q
     ) :: Q where {Q <: Number}
@@ -96,3 +93,10 @@ function (PA :: PadeApprox{Q})(
         
     return A2 / B2
 end
+
+#----------------------------------------------------------------------------------------------#
+
+export 
+    PadeApprox,
+    coeffs,
+    xdat

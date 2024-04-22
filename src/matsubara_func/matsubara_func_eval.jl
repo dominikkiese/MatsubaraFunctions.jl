@@ -16,10 +16,10 @@ function upper_tail_moments(
     x  :: Vararg{Int64, SD} 
     )  :: Tuple{Q, Q} where {SD, DD, Q <: Number}
 
-    # compute interpolation nodes
+    # compute nodes
     dist = ceil(Int64, 1.0 / min(temperature(grids(f, 1)), 1.0))
-    idx  = grids_shape(f, 1) - dist
-    @check idx > ceil(Int64, 0.75 * grids_shape(f, 1)) "Grid is too small for extrapolation"
+    idx  = lastindex(grids(f, 1)) - dist
+    @DEBUG idx > ceil(Int64, 0.75 * lastindex(grids(f, 1))) "Grid is too small for extrapolation"
 
     # read data
     y1, y2     = f.data[end, x...] - α0, f.data[idx, x...] - α0
@@ -48,21 +48,21 @@ function lower_tail_moments(
     x  :: Vararg{Int64, SD} 
     )  :: Tuple{Q, Q} where {SD, DD, Q <: Number}
 
-    # compute interpolation nodes
+    # compute nodes
     dist = ceil(Int64, 1.0 / min(temperature(grids(f, 1)), 1.0))
-    idx  = 1 + dist
-    @check idx < floor(Int64, 0.25 * grids_shape(f, 1)) "Grid is too small for extrapolation"
+    idx1 = firstindex(grids(f, 1))
+    idx2 = idx1 + dist
+    @DEBUG idx2 < floor(Int64, 0.75 * idx1) "Grid is too small for extrapolation"
 
     # read data
-    y1, y2     = f.data[1, x...] - α0, f.data[idx, x...] - α0
-    x1, x2     = 1.0 / value(grids(f, 1)[1]), 1.0 / value(grids(f, 1)[idx])
+    y1, y2     = f.data[idx1, x...] - α0, f.data[idx2, x...] - α0
+    x1, x2     = 1.0 / value(grids(f, 1)[idx1]), 1.0 / value(grids(f, 1)[idx2])
     x1sq, x2sq = x1 * x1, x2 * x2
     dtinv      = 1.0 / (x1 * x2sq - x2 * x1sq)
 
     return dtinv * (x2sq * y1 - x1sq * y2), dtinv * (x1 * y2 - x2 * y1)
 end
 
-# extrapolate 1D Matsubara function using tail moments
 function extrapolate(
     f  :: MatsubaraFunction{1, SD, DD, Q},
     w  :: Float64,
@@ -79,6 +79,8 @@ function extrapolate(
     end
 end
 
+#----------------------------------------------------------------------------------------------#
+
 # call to MatsubaraFunction with MatsubaraFrequency
 # Note: in contrast to the [] operator used for indexing with MatsubaraFrequency, 
 #       () has well-defined behavior for out of bounds access (extrapolation)
@@ -90,7 +92,7 @@ function (f :: MatsubaraFunction{GD, SD, DD, Q})(
     return f[CartesianIndex_extrp(f, w, x...)]
 end
 
-# specialize for GD = 1
+# specialization
 function (f :: MatsubaraFunction{1, SD, DD, Q})(
     w     :: Tuple{MatsubaraFrequency},
     x     :: Vararg{Int64, SD} 
@@ -102,7 +104,7 @@ function (f :: MatsubaraFunction{1, SD, DD, Q})(
         return extrapolate(f, value(w[1]), extrp, x...)
     end
 
-    return f[grid_index(w[1], grids(f, 1)), x ...]
+    return f[grid_index(w[1]), x ...]
 end
 
 function (f :: MatsubaraFunction{1, SD, DD, Q})(
@@ -115,24 +117,32 @@ function (f :: MatsubaraFunction{1, SD, DD, Q})(
     return f((w,), x...; extrp)
 end
 
-# specialize for SD = 1
-function (f :: MatsubaraFunction{GD, 1, DD, Q})(
+function (f :: MatsubaraFunction{GD, 0, DD, Q})(
     w :: Vararg{MatsubaraFrequency, GD}
     ) :: Q where{GD, DD, Q <: Number}
 
-    @check shape(f, 1) == 1 "MatsubaraFunction is not scalar but vector valued"
-    return f((w...,), 1)
+    return f((w...,))
 end
 
-function (f :: MatsubaraFunction{1, 1, 2, Q})(
+function (f :: MatsubaraFunction{1, 0, DD, Q})(
+    w     :: MatsubaraFrequency
+    ; 
+    extrp :: Q = Q(0.0)
+    )     :: Q where{DD, Q <: Number}
+
+    return f((w,); extrp)
+end
+
+function (f :: MatsubaraFunction{1, 0, 1, Q})(
     w     :: MatsubaraFrequency
     ; 
     extrp :: Q = Q(0.0)
     )     :: Q where{Q <: Number}
 
-    @check shape(f, 1) == 1 "MatsubaraFunction is not scalar but vector valued"
-    return f((w,), 1; extrp)
+    return f((w,); extrp)
 end
+
+#----------------------------------------------------------------------------------------------#
 
 # Note: we do not use the () operator to find the closest index in a MatsubaraGrid
 #       in order to to avoid duplicate boundary checks
@@ -140,7 +150,6 @@ struct Param
     idxs :: NTuple{2, Int64}
     wgts :: NTuple{2, Float64}
 
-    # default constructor
     function Param(
         idxs :: NTuple{2, Int64}, 
         wgts :: NTuple{2, Float64}
@@ -149,20 +158,19 @@ struct Param
         return new(idxs, wgts)
     end
 
-    # convenience constructor
     function Param(
         val  :: Float64, 
         grid :: MatsubaraGrid
         )    :: Param
 
         delta    = value(grid[2]) - value(grid[1])
-        position = (val - value(grid[1])) / delta
+        position = (val - value(grid[0])) / delta
 
-        # compute nearest-neighbor indices
+        # nearest-neighbor indices
         # add min to upper index to improve robustness with respect to rounding errors
-        dn_idx, up_idx = floor(Int64, position) + 1, min(ceil(Int64, position) + 1, length(grid))
+        dn_idx, up_idx = floor(Int64, position), min(ceil(Int64, position), length(grid))
 
-        # compute interpolation weights
+        # interpolation weights
         if dn_idx < up_idx
             return Param((dn_idx, up_idx), ((value(grid[up_idx]) - val) / delta, (val - value(grid[dn_idx])) / delta))
         else
@@ -177,7 +185,7 @@ function (f :: MatsubaraFunction{GD, SD, DD, Q})(
     x :: Vararg{Int64, SD} 
     ) :: Q where{GD, SD, DD, Q <: Number}
 
-    p   = ntuple(i -> Param(max(first_value(grids(f, i)), min(w[i], last_value(grids(f, i)))), grids(f, i)), GD)
+    p   = ntuple(i -> Param(max(firstvalue(grids(f, i)), min(w[i], lastvalue(grids(f, i)))), grids(f, i)), GD)
     val = 0.0
 
     for cidx in CartesianIndices(ntuple(i -> 2, GD))
@@ -189,7 +197,7 @@ function (f :: MatsubaraFunction{GD, SD, DD, Q})(
     return val
 end
 
-# specialize for GD = 1
+# specialization
 function (f :: MatsubaraFunction{1, SD, DD, Q})(
     w     :: Tuple{Float64},
     x     :: Vararg{Int64, SD} 
@@ -215,26 +223,31 @@ function (f :: MatsubaraFunction{1, SD, DD, Q})(
     return f((w,), x...; extrp)
 end
 
-# specialize for SD = 1
-function (f :: MatsubaraFunction{GD, 1, DD, Q})(
+function (f :: MatsubaraFunction{GD, 0, DD, Q})(
     w :: Vararg{Float64, GD}
     ) :: Q where{GD, DD, Q <: Number}
 
-    @check shape(f, 1) == 1 "MatsubaraFunction is not scalar but vector valued"
-    return f((w...,), 1)
+    return f((w...,))
 end
 
-function (f :: MatsubaraFunction{1, 1, 2, Q})(
+function (f :: MatsubaraFunction{1, 0, DD, Q})(
+    w     :: Float64
+    ;
+    extrp :: Q = Q(0.0)
+    )     :: Q where{DD, Q <: Number}
+
+    return f((w,); extrp)
+end
+
+function (f :: MatsubaraFunction{1, 0, 1, Q})(
     w     :: Float64
     ;
     extrp :: Q = Q(0.0)
     )     :: Q where{Q <: Number}
 
-    @check shape(f, 1) == 1 "MatsubaraFunction is not scalar but vector valued"
-    return f((w,), 1; extrp)
+    return f((w,); extrp)
 end
 
-# specializations to avoid method ambiguities 
 function (:: MatsubaraFunction{0, SD, DD, Q})(
     :: Tuple{}, 
     :: Vararg{Int64, SD}
@@ -243,99 +256,12 @@ function (:: MatsubaraFunction{0, SD, DD, Q})(
     error("The type MatsubaraFunction{0, SD, DD, Q} is not supported, grid dimension cannot be zero") 
 end
 
-function (:: MatsubaraFunction{0, 1, DD, Q})() where {DD, Q <: Number}
-    error("The type MatsubaraFunction{0, 1, DD, Q} is not supported, grid dimension cannot be zero")
+function (:: MatsubaraFunction{0, 0, DD, Q})() where {DD, Q <: Number}
+    error("The type MatsubaraFunction{0, 0, DD, Q} is not supported, grid dimension cannot be zero") 
 end
 
-"""
-    function sum_me(
-        f :: MatsubaraFunction{1, SD, DD, Q},
-        x :: Vararg{Int64, SD}
-        ) :: Q where {SD, DD, Q <: Complex}
+#----------------------------------------------------------------------------------------------#
 
-Computes the fermionic Matsubara sum (with regulator exp(-iw0+)) for a complex valued MatsubaraFunction on a 1D grid. This is only viable if `f` has 
-a Laurent series representation with respect to an annulus about the imaginary axis and decays to zero.
-"""
-function sum_me(
-    f :: MatsubaraFunction{1, SD, DD, Q},
-    x :: Vararg{Int64, SD}
-    ) :: Q where {SD, DD, Q <: Complex}
-
-    # sanity check for current implementation, lift this restriction as soon as possible
-    @check type(grids(f, 1)) === :Fermion "Extrapolation is currently limited to fermionic grids"
-
-    # compute tail moments 
-    upper_moments = upper_tail_moments(f, Q(0.0), x...); upper_max = max(abs.(upper_moments)...)
-    lower_moments = lower_tail_moments(f, Q(0.0), x...); lower_max = max(abs.(lower_moments)...)
-
-    # check self-consistency 
-    diff  = max(abs.(upper_moments .- lower_moments)...);
-    scale = 1e-3 + max(upper_max, lower_max) * 1e-2;
-    err   = diff / scale
-
-    if err >= 1.0 
-        @warn "Tail fits are inconsistent: upper_moments = $(upper_moments), lower_moments = $(lower_moments)" 
-    end
-
-    # compute expansion coefficients
-    α1 = +0.5 * (upper_moments[1] + lower_moments[1]) * im
-    α2 = -0.5 * (upper_moments[2] + lower_moments[2])
-
-    # compute the Matsubara sum using quadratic asymptotic model
-    T   = temperature(grids(f, 1))
-    num = grids_shape(f, 1)
-    val = T * sum(view(f, :, x...)) - 0.5 * (α1 + 0.5 * α2 / T)
-
-    for w in 1 : num
-        val += T * α2 / value(grids(f, 1)[w]) / value(grids(f, 1)[w])
-    end
-
-    return val
-end
-
-"""
-    function sum_me(
-        f :: MatsubaraFunction{1, 1, 2, Q},
-        ) :: Q where {Q <: Complex}
-
-Computes fermionic the Matsubara sum (with regulator exp(-iw0+)) for a complex valued MatsubaraFunction on a 1D grid. This is only viable if `f` has 
-a Laurent series representation with respect to an annulus about the imaginary axis and decays to zero. Requires `shape(f, 1) == 1`.
-"""
-function sum_me(
-    f :: MatsubaraFunction{1, 1, 2, Q},
-    ) :: Q where {Q <: Complex}
-
-    @check shape(f, 1) == 1 "MatsubaraFunction is not scalar but vector valued"
-    return sum_me(f, 1)
-end
-
-"""
-    function density(
-        f :: MatsubaraFunction{1, SD, DD, Q},
-        x :: Vararg{Int64, SD}
-        ) :: Q where {SD, DD, Q <: Complex}
-
-Computes the fermionic density for a complex valued MatsubaraFunction on a 1D grid.
-"""
-function density(
-    f :: MatsubaraFunction{1, SD, DD, Q},
-    x :: Vararg{Int64, SD}
-    ) :: Q where {SD, DD, Q <: Complex}
-
-    return 1.0 + sum_me(f, x...)
-end
-
-"""
-    function density(
-        f :: MatsubaraFunction{1, 1, 2, Q}
-        ) :: Q where {Q <: Complex}
-
-Computes the fermionic density for a complex valued MatsubaraFunction on a 1D grid. Requires `shape(f, 1) == 1`.
-"""
-function density(
-    f :: MatsubaraFunction{1, 1, 2, Q}
-    ) :: Q where {Q <: Complex}
-
-    @check shape(f, 1) == 1 "MatsubaraFunction is not scalar but vector valued"
-    return 1.0 + sum_me(f, 1)
-end
+export 
+    upper_tail_moments,
+    lower_tail_moments

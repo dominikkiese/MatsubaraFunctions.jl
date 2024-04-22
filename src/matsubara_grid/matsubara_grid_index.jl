@@ -1,153 +1,72 @@
-"""
-    struct MatsubaraIndex 
-
-MatsubaraIndex type with fields:
-* `idx :: Int64` : Matsubara frequency index
-"""
-struct MatsubaraIndex 
-    idx :: Int64
-    
-    # default constructor
-    function MatsubaraIndex(
-        idx :: Int64
-        )   :: MatsubaraIndex 
-
-        return new(idx)
-    end
-
-    # convenience constructor
-    function MatsubaraIndex(
-        w :: MatsubaraFrequency
-        ) :: MatsubaraIndex 
-
-        return new(index(w))
-    end
-end
-
-"""
-    function index( 
-        x :: MatsubaraIndex
-        ) :: Int64 
-
-Returns `x.idx`
-"""
-function index( 
-    x :: MatsubaraIndex
-    ) :: Int64 
-
-    return x.idx 
-end
-
-# unsafe method for converting MatsubaraFrequency or MatsubaraIndex to grid index (no bounds check)
+# unsafe method for to grid index
 function grid_index(
-    w    :: MatsubaraFrequency,
-    grid :: MatsubaraGrid
-    )    :: Int64 
+    w :: MatsubaraFrequency{PT}
+    ) :: Int64 where {PT <: AbstractParticle}
 
-    @check temperature(w) ≈ temperature(grid) "Temperature must be equal between frequency and grid"
-    @check type(w) === type(grid) "Particle type must be equal between frequency and grid"
-    return index(w) - first_index(grid) + 1
+    return index(w)
 end
 
 function grid_index(
-    w    :: MatsubaraIndex,
-    grid :: MatsubaraGrid
-    )    :: Int64 
+    w :: MatsubaraIndex{PT}
+    ) :: Int64 where {PT <: AbstractParticle}
 
-    return index(w) - first_index(grid) + 1
+    return index(w)
 end
 
-# safer method for converting MatsubaraFrequency or MatsubaraIndex to grid index
-# (i.e. frequencies which are out of bounds will be reset to mesh boundaries)
+# safer method for converting to grid index
 function grid_index_extrp(
-    w    :: Union{MatsubaraFrequency, MatsubaraIndex},
-    grid :: MatsubaraGrid
+    w    :: AbstractMatsubaraFrequency,
+    grid :: AbstractMatsubaraGrid
     )    :: Int64 
-
-    return max(1, min(grid_index(w, grid), length(grid)))
+    
+    @DEBUG temperature(w) ≈ temperature(grid) "Temperature must be equal between frequency and grid"
+    return max(firstindex(grid), min(grid_index(w), lastindex(grid)))
 end
 
-# make Matsubara grid indexable
-function Base.:eachindex(
-    grid :: MatsubaraGrid
-    )    :: Base.OneTo{Int64}
-
+function Base.:eachindex(grid :: AbstractMatsubaraGrid)
     return eachindex(grid.data)
 end
 
-function Base.:firstindex(
-    grid :: MatsubaraGrid
-    )    :: Int64
-
-    return firstindex(grid.data)
-end
-
-function Base.:lastindex(
-    grid :: MatsubaraGrid
-    )    :: Int64
-
-    return lastindex(grid.data)
-end
-
 function Base.:getindex(
-    grid :: MatsubaraGrid,
+    grid :: AbstractMatsubaraGrid,
     idx  :: Int64 
     )    :: MatsubaraFrequency
 
-    # bounds check performed by Base
     return grid.data[idx]
 end
 
 function Base.:getindex(
-    grid :: MatsubaraGrid,
-    x    :: MatsubaraIndex
+    grid :: AbstractMatsubaraGrid,
+    x    :: AbstractMatsubaraFrequency
     )    :: MatsubaraFrequency
 
-    # bounds check performed by Base
-    return grid[grid_index(x, grid)]
+    return grid[grid_index(x)]
 end
 
 function Base.:getindex(
-    grid :: MatsubaraGrid,
+    grid :: AbstractMatsubaraGrid,
     idxs :: UnitRange{Int64}
     )    :: SubArray{MatsubaraFrequency, 1, Vector{MatsubaraFrequency}, Tuple{UnitRange{Int64}}, true}
 
-    # bounds check performed by Base
     return @view grid.data[idxs]
 end  
 
-# make MatsubaraGrid callable with MatsubaraFrequency or MatsubaraIndex
+#----------------------------------------------------------------------------------------------#
+
 # returns index to data array corresponding to this frequency if in grid
-"""
-    function is_inbounds(
-        x    :: MatsubaraIndex,
-        grid :: MatsubaraGrid
-        )    :: Bool
-
-Checks if `x` is contained in grid
-"""
-function is_inbounds(
-    x    :: MatsubaraIndex,
-    grid :: MatsubaraGrid
-    )    :: Bool
-
-    return first_index(grid) <= index(x) <= last_index(grid)
-end
-
-function (f :: MatsubaraGrid)(
-    w :: Union{MatsubaraFrequency, MatsubaraIndex}
+function (f :: AbstractMatsubaraGrid)(
+    w :: AbstractMatsubaraFrequency
     ) :: Int64
 
     if is_inbounds(w, f)
-        return grid_index(w, f)
+        return grid_index(w)
     else 
         error("Frequency index not in grid")
     end 
 end
 
-# make MatsubaraGrid callable with Float64
 # returns index to data array corresponding to closest frequency if in grid
-function (f :: MatsubaraGrid)(
+function (f :: AbstractMatsubaraGrid)(
     w :: Float64
     ) :: Int64
 
@@ -160,21 +79,22 @@ function (f :: MatsubaraGrid)(
     end 
 end
 
-# make Matsubara grid iterable
+#----------------------------------------------------------------------------------------------#
+
 function Base.:iterate(
-    grid :: MatsubaraGrid
+    grid :: AbstractMatsubaraGrid
     )    :: Tuple{MatsubaraFrequency, Int64}
 
-    return grid[1], 1 
+    return grid[firstindex(grid)], 1 
 end
 
 function Base.:iterate(
-    grid  :: MatsubaraGrid,
+    grid  :: AbstractMatsubaraGrid,
     state :: Int64
     )     :: Union{Nothing, Tuple{MatsubaraFrequency, Int64}}
 
     if state < length(grid)
-        return grid[state + 1], state + 1 
+        return grid[state + firstindex(grid)], state + 1 
     else 
         return nothing 
     end

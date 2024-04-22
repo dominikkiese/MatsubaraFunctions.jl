@@ -22,7 +22,7 @@ struct PeriodicPulay{Q <: Number}
         m :: Int64 = 5
         ) :: PeriodicPulay{Q} where {Q <: Number}
         
-        @check m >= 1 "Memory size must be >= 1"
+        @DEBUG m >= 1 "Memory size must be >= 1"
         Fs = Matrix{Q}(undef, length(x), m)
         Xs = Matrix{Q}(undef, length(x), m)
         
@@ -72,13 +72,6 @@ function solve!(
     aerrs = P.aerrs 
     rerrs = P.rerrs
     m     = size(Fs, 2)
-    
-    # throw warning if not in comfort zone
-    mdiv2 = iseven(m) ? Int64(m / 2) : Int64((m + 1) / 2)
-    
-    if !(2 <= p <= mdiv2) && mpi_ismain()
-        @warn "Pulay period not in (2, $(mdiv2)), convergence might be suboptimal"
-    end
 
     # allocate buffers 
     F  = copy(x)
@@ -114,12 +107,13 @@ function solve!(
             # linear mixing
             x .+= α .* F
         else 
-            # Pulay mixing (use whole history thus far)
-            Fmat = view(Fs, :, 1 : midx)
-            Xmat = view(Xs, :, 1 : midx)
-            
-            # use Moore-Penrose pseudoinverse for better stability, prefer matrix * vector for performance
-            x .+= α .* F .- (Xmat .+ α .* Fmat) * (pinv(Fmat) * F)
+            # Pulay mixing Moore-Penrose pseudoinverse
+            Fmat  = view(Fs, :, 1 : midx)
+            Xmat  = view(Xs, :, 1 : midx)
+            temp  = pinv(Fmat) * F
+            x    .= Xmat * temp
+            F    .= Fmat * temp 
+            x    .= xp .+ α .* Fp .- (x .+ α .* F)
         end
         
         push!(aerrs, aerr)
@@ -151,3 +145,9 @@ function solve!(
             
     return nothing
 end
+
+#----------------------------------------------------------------------------------------------#
+
+export 
+    PeriodicPulay,
+    solve!

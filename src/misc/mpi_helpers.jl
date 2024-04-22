@@ -73,8 +73,7 @@ function mpi_allreduce!(
     f :: MatsubaraFunction{GD, SD, DD, Q}
     ) :: Nothing where {GD, SD, DD, Q <: Number}
 
-    MPI.Allreduce!(f.data, +, mpi_comm())
-
+    MPI.Allreduce!(OffsetArrays.no_offset_view(f.data), +, mpi_comm())
     return nothing
 end
 
@@ -123,3 +122,16 @@ function mpi_barrier() :: Nothing
     MPI.Barrier(mpi_comm())
     return nothing 
 end
+
+#----------------------------------------------------------------------------------------------#
+
+export 
+    mpi_comm,
+    mpi_rank,
+    mpi_size,
+    mpi_split,
+    mpi_allreduce!,
+    mpi_ismain,
+    mpi_println,
+    mpi_info,
+    mpi_barrier
