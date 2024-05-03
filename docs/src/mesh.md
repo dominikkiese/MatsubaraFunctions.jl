@@ -53,12 +53,47 @@ close(file)
 # Types
 
 ```@docs
-MatsubaraGrid
+Mesh
 ```
 
 ```@docs
-MatsubaraIndex
+AbstractMesh
 ```
+
+```@docs
+AbstractMeshPoint
+```
+
+```@docs
+MeshPoint
+```
+
+
+```@docs
+MatsubaraFunctions.AbstractDomain
+```
+
+
+```@docs
+AbstractValue
+```
+
+
+
+# To be implemented for each mesh type
+
+```@docs
+plain_value
+```
+
+
+# Getter functions
+```@docs
+points
+```
+
+
+
 
 # Functions
 
@@ -71,7 +106,7 @@ last_index
 ```
 
 ```@docs
-index_range
+domain
 ```
 
 ```@docs
@@ -91,25 +126,9 @@ last_value
 ```
 
 ```@docs
-value_range
-```
-
-```@docs
-indices
-```
-
-```@docs
 values
 ```
 
 ```@docs
-info
-```
-
-```@docs
-save_matsubara_grid!
-```       
-
-```@docs
-load_matsubara_grid
+load_mesh
 ```    
