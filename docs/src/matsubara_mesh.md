@@ -1,34 +1,10 @@
-# Matsubara frequency mesh
-
-A `MatsubaraGrid{PT}` is a sorted (symmetric) set of `MatsubaraFrequency{PT}` objects and can be constructed by
-
-```julia
-T  = 1.0
-M  = 128
-g1 = MatsubaraGrid(T, M, Fermion) # total no. frequencies is 2M 
-g2 = MatsubaraGrid(T, M, Boson)   # total no. frequencies is 2M - 1
-```
-
-where $N$ is the number of non-negative frequencies defined as follows:
-
-| Particle type            | Fermion  | Boson    |
-|--------------------------|----------|----------|
-| total no. frequencies    | 2M       | 2M-1     |
-| range of Matsubara index | -M: M-1  | -M+1:M-1 |
-| definition               | (2m+1)πT | 2mπT     |
-
-
-
-
-
+# Matsubara mesh
 
 ## Constructor
 
 ```@docs
 MatsubaraMesh
 ```
-
-
 
 ## Types
 
@@ -48,17 +24,11 @@ Boson
 MatsubaraFrequency
 ```
 
-
 ```@docs
 MatsubaraDomain
 ```
 
-
-
 ## Functions
-
-
-
 
 ```@docs
 temperature
@@ -68,16 +38,13 @@ temperature
 N(:: Mesh{MeshPoint{MatsubaraFrequency{PT}}, MatsubaraDomain}) where {PT <: AbstractParticle}
 ```
 
-
 ```@docs
 index(:: MatsubaraFrequency{PT}) where {PT <: AbstractParticle}
 ```
 
-
 ```@docs
 indices(:: Mesh{MeshPoint{MatsubaraFrequency{PT}}, MatsubaraDomain}) where PT<:AbstractParticle
 ```
-
 
 ```@docs
 first_index
@@ -91,7 +58,6 @@ last_index
 is_inbounds(:: MatsubaraFrequency{PT}, :: Mesh{MeshPoint{MatsubaraFrequency{PT}}, MatsubaraDomain}) where {PT <: AbstractParticle}
 is_inbounds(:: Float64, :: Mesh{MeshPoint{MatsubaraFrequency{PT}}, MatsubaraDomain}) where {PT <: AbstractParticle}
 ```
-
 
 ```@docs
 value(:: MatsubaraFrequency{PT}) where {PT <: AbstractParticle}

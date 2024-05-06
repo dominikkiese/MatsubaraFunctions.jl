@@ -47,8 +47,7 @@ end
 # symmetry type
 #-------------------------------------------------------------------------------#
 
-# a symmetry takes MeshPoint value types & tensor indices and 
-# returns MeshPoint value types & tensor indices & an operation
+# a symmetry takes MeshPoint value types and returns MeshPoint value types and an operation
 """
     struct Symmetry{DD}
 
