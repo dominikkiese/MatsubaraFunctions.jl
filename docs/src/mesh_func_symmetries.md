@@ -1,41 +1,41 @@
 # Advanced Usage: Automated Symmetry Reduction
 
-In many cases, the numerical effort of computing functions in the Matsubara domain can be drastically reduced by the use of symmetries. For one-particle Green's functions $G_{i_1 i_2}(i\omega)$, for example, hermicity of the Hamiltonian dictates that $G_{i_1 i_2}(i\omega) = G^{\star}_{i_2 i_1}(-i\omega)$, relating positive and negative Matsubara frequencies. We offer an automated way to compute the set of irreducible (i.e. unrelatable by symmetries) `MatsubaraFunction` components, as is illustrated in the following example
+In many cases, the numerical effort of computing functions in the Matsubara domain can be drastically reduced by the use of symmetries. For one-particle Green's functions $G_{i_1 i_2}(i\omega)$, for example, hermicity of the Hamiltonian dictates that $G_{i_1 i_2}(i\omega) = G^{\star}_{i_2 i_1}(-i\omega)$, relating positive and negative Matsubara frequencies. We offer an automated way to compute the set of irreducible (i.e. unrelatable by symmetries) `MeshFunction` components, as is illustrated in the following example
 
 ```julia
+using MatsubaraFunctions
+
 ξ = 0.5
 T = 1.0
 N_= 128
-g = MatsubaraGrid(T, N_, Fermion)
-f = MatsubaraFunction(g, 1)
+g = MatsubaraMesh(T, N_, Fermion)
+f = MeshFunction(g)
 
 for v in g
-    f[v, 1] = 1.0 / (im * value(v) - ξ)
+    f[v] = 1.0 / (im * plain_value(v) - ξ)
 end 
 
 # complex conjugation acting on Green's function
 function conj(
-    w :: Tuple{MatsubaraFrequency},
-    x :: Tuple{Int64}
-    ) :: Tuple{Tuple{MatsubaraFrequency}, Tuple{Int64}, MatsubaraOperation}
+    w :: Tuple{MatsubaraFrequency}
+    ) :: Tuple{Tuple{MatsubaraFrequency}, Operation}
 
-    return (-w[1],), (x[1],), MatsubaraOperation(false, true)
+    return (-w[1],), Operation(false, true)
 end 
 
 # compute the symmetry group 
-SG = MatsubaraSymmetryGroup([MatsubaraSymmetry{1, 1}(conj)], f)
+SG = SymmetryGroup([Symmetry{1}(conj)], f)
 
 # obtain another Green's function by symmetrization
 function init(
-    w :: Tuple{MatsubaraFrequency},
-    x :: Tuple{Int64}
+    w :: Tuple{MatsubaraFrequency}
     ) :: ComplexF64
 
-    return f[w, x...]
+    return f(w...)
 end 
 
-InitFunc = MatsubaraInitFunction{1, 1, ComplexF64}(init)
-h        = MatsubaraFunction(g, 1)
+InitFunc = InitFunction{1, ComplexF64}(init)
+h        = MeshFunction(g)
 SG(h, InitFunc)
 @assert h == f
 ```

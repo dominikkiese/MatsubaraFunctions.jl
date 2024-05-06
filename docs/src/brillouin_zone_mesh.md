@@ -1,22 +1,32 @@
 # Brillouin zone mesh
 
 
+## Constructor
 ```@docs
 BrillouinZoneMesh
 ```
 
+## Types 
 
 ```@docs
-BrillouinZone
+BrillouinPoint
 ```
+
 
 ```@docs
 BrillouinDomain
 ```
 
 ```@docs
+BrillouinZone
+```
+
+```@docs
 LinMap
 ```
+
+
+## Functions
 
 ```@docs
 basis
@@ -31,6 +41,19 @@ inv_basis
 bz
 ```
 
+
+
+
+```@docs
+is_inbounds(:: BrillouinPoint{N}, :: BrillouinZone{N, P}) where {N, P}
+is_inbounds(:: T, :: BrillouinZone{N, P}) where {N, P, T <: AbstractVector{Float64}}
+is_inbounds(:: BrillouinPoint{N}, :: Mesh{MeshPoint{BrillouinPoint{N}}, BrillouinDomain{N, P}}) where {N, P}
+is_inbounds(:: T, :: Mesh{MeshPoint{BrillouinPoint{N}}, BrillouinDomain{N, P}}) where {N, P, T <: AbstractVector{Float64}}
+```
+
+```@docs
+value( :: BrillouinPoint{N}) where N
+```
 
 
 ```@docs
@@ -77,8 +100,11 @@ MatsubaraFunctions.reverse
 to_Wigner_Seitz
 ```
 
-## Brilloin point
 
 ```@docs
-BrillouinPoint
-```
+save!(:: HDF5.File, :: String, :: Mesh{MeshPoint{BrillouinPoint{N}}, BrillouinDomain{N, P}}) where{N, P}
+```   
+
+```@docs
+load_mesh(:: HDF5.File, :: String, ::Val{:BrillouinZoneMesh})
+```    

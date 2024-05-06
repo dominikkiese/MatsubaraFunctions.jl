@@ -1,84 +1,36 @@
-# MatsubaraMesh
+# Matsubara frequency mesh
 
 A `MatsubaraGrid{PT}` is a sorted (symmetric) set of `MatsubaraFrequency{PT}` objects and can be constructed by
 
 ```julia
 T  = 1.0
-N  = 128
-g1 = MatsubaraGrid(T, N, Fermion) # total no. frequencies is 2N 
-g2 = MatsubaraGrid(T, N, Boson)   # total no. frequencies is 2N - 1
+M  = 128
+g1 = MatsubaraGrid(T, M, Fermion) # total no. frequencies is 2M 
+g2 = MatsubaraGrid(T, M, Boson)   # total no. frequencies is 2M - 1
 ```
 
 where $N$ is the number of non-negative frequencies defined as follows:
 
 | Particle type            | Fermion  | Boson    |
 |--------------------------|----------|----------|
-| total no. frequencies    | 2N       | 2N-1     |
-| range of Matsubara index | -N: N-1  | -N+1:N-1 |
-| definition               | (2n+1)πT | 2nπT     |
-
-`MatsubaraGrid{PT}` instances are iterable
-
-```julia
-T = 1.0
-N = 128
-g = MatsubaraGrid(T, N, Fermion)
-
-for v in g
-  println(value(v)) 
-  println(index(v))
-end
-```
-
-and can be evaluated using either a `MatsubaraFrequency{PT}`, `MatsubaraIndex{PT}` or `Float64`. As long as the input argument is in bounds, this will return the corresponding linear index of the grid in the two former cases and the linear index of the closest frequency in the latter case 
-
-```julia
-T   = 1.0
-N   = 128
-g   = MatsubaraGrid(T, N, Fermion)
-idx = rand(eachindex(g))
-@assert g(g[idx]) == idx 
-@assert g(value(g[idx])) == idx 
-```
-
-`MatsubaraGrid{PT}` objects can be saved in HDF5 file format as
-
-```julia
-using MatsubaraFunctions 
-using HDF5
-
-file = h5open("test.h5", "w")
-T    = 1.0
-N    = 128
-g    = MatsubaraGrid(T, N, Fermion)
-
-save_matsubara_grid!(file, "grid", g) 
-gp = load_matsubara_grid(file, "grid")
-close(file)
-```
+| total no. frequencies    | 2M       | 2M-1     |
+| range of Matsubara index | -M: M-1  | -M+1:M-1 |
+| definition               | (2m+1)πT | 2mπT     |
 
 
-# Functions
 
 
+
+
+## Constructor
 
 ```@docs
 MatsubaraMesh
 ```
 
-%```@docs
-%lastvalue
-%```
-
-%```@docs
-%indices
-%```
 
 
-
-
-
-# Types
+## Types
 
 ```@docs
 AbstractParticle
@@ -103,20 +55,65 @@ MatsubaraDomain
 
 
 
-# Functions
+## Functions
+
+
+
 
 ```@docs
 temperature
 ```
 
 ```@docs
-value
+N(:: Mesh{MeshPoint{MatsubaraFrequency{PT}}, MatsubaraDomain}) where {PT <: AbstractParticle}
+```
+
+
+```@docs
+index(:: MatsubaraFrequency{PT}) where {PT <: AbstractParticle}
+```
+
+
+```@docs
+indices(:: Mesh{MeshPoint{MatsubaraFrequency{PT}}, MatsubaraDomain}) where PT<:AbstractParticle
+```
+
+
+```@docs
+first_index
 ```
 
 ```@docs
-index
+last_index
 ```
 
-%```@docs
-%type
-%```
+```@docs
+is_inbounds(:: MatsubaraFrequency{PT}, :: Mesh{MeshPoint{MatsubaraFrequency{PT}}, MatsubaraDomain}) where {PT <: AbstractParticle}
+is_inbounds(:: Float64, :: Mesh{MeshPoint{MatsubaraFrequency{PT}}, MatsubaraDomain}) where {PT <: AbstractParticle}
+```
+
+
+```@docs
+value(:: MatsubaraFrequency{PT}) where {PT <: AbstractParticle}
+```
+
+```@docs
+values(:: Mesh{MeshPoint{MatsubaraFrequency{PT}}, MatsubaraDomain}) where {PT <: AbstractParticle}
+```
+
+```@docs
+first_value
+```
+
+```@docs
+last_value
+```
+
+```@docs
+save!(:: HDF5.File, :: String, :: Mesh{MeshPoint{MatsubaraFrequency{Fermion}}, MatsubaraDomain})
+save!(:: HDF5.File, :: String, :: Mesh{MeshPoint{MatsubaraFrequency{Boson}}, MatsubaraDomain})
+```   
+
+```@docs
+load_mesh(:: HDF5.File, :: String, ::Val{:MatsubaraMesh})
+```    
