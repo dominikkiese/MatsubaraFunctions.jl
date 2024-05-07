@@ -60,6 +60,15 @@ function Base.:(==)(k1 :: BrillouinPoint{N}, k2 :: BrillouinPoint{N}) where {N}
     return value(k1) == value(k2)
 end 
 
+# print 
+#-------------------------------------------------------------------------------#
+
+function Base.:show(io :: IO, k :: BrillouinPoint{N}) where {N}
+    println(io, CYAN, BOLD, "BrillouinPoint ", RESET, "of dimension ", CYAN, BOLD, "$(N)", RESET)
+    println(io, "=> value : $(value(k))")
+    return nothing 
+end
+
 # export
 #-------------------------------------------------------------------------------#
 

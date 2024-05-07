@@ -108,6 +108,18 @@ function Base.:(==)(x1 :: MeshPoint{T}, x2 :: MeshPoint{T}) where {T <: Abstract
     return (x1.hash === x2.hash) && (index(x1) == index(x2)) && (value(x1) == value(x2))
 end
 
+# print 
+#-------------------------------------------------------------------------------#
+
+function Base.:show(io :: IO, x :: MeshPoint{T}) where {T <: AbstractValue}
+    println(io, CYAN, BOLD, "MeshPoint ", RESET, "with value type ", CYAN, BOLD, "$(T)", RESET)
+    println(io, "=> hash  : $(x.hash)")
+    println(io, "=> index : $(index(x))")
+    println(io, "-----------------------------")
+    println(io, value(x))
+    return nothing 
+end
+
 # export
 #-------------------------------------------------------------------------------#
 

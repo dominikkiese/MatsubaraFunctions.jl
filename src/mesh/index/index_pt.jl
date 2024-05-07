@@ -20,6 +20,15 @@ function value(w :: Index) :: Int
     return w.index
 end 
 
+# print 
+#-------------------------------------------------------------------------------#
+
+function Base.:show(io :: IO, w :: Index)
+    println(io, CYAN, BOLD, "Index", RESET)
+    println(io, "=> value : $(value(w))")
+    return nothing 
+end
+
 # export
 #-------------------------------------------------------------------------------#
 

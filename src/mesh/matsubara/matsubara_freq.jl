@@ -153,6 +153,17 @@ function Base.:(==)(w1 :: MatsubaraFrequency{PT}, w2 :: MatsubaraFrequency{PT}) 
     return (temperature(w1) ≈ temperature(w2)) && (value(w1) ≈ value(w2)) && (index(w1) == index(w2))
 end
 
+# print 
+#-------------------------------------------------------------------------------#
+
+function Base.:show(io :: IO, w :: MatsubaraFrequency{PT}) where {PT <: AbstractParticle}
+    println(io, CYAN, BOLD, "MatsubaraFrequency ", RESET, "of type ", CYAN, BOLD, "$(PT)", RESET)
+    println(io, "=> temperature : $(temperature(w))")
+    println(io, "=> value       : $(value(w))")
+    println(io, "=> index       : $(index(w))")
+    return nothing 
+end
+
 # export
 #-------------------------------------------------------------------------------#
 

@@ -19,6 +19,11 @@ module MatsubaraFunctions
         esc(:(if $(@__MODULE__).DEBUG() @assert($expr, $msgs...) end))
     end
 
+    # ANSI codes for printing 
+    const CYAN  = "\u001b[36m"
+    const BOLD  = "\u001b[1m"
+    const RESET = "\u001b[0m"
+
     # dummy functions, use if not overloaded
     index(p)             = p
     mesh_index(p, m)     = index(p)
