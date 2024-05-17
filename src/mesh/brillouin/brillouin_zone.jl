@@ -109,9 +109,9 @@ end
 # periodic boundary conditions
 #-------------------------------------------------------------------------------#
 
-function positive_modulo(idx, L)
-    idxp = idx % L 
-    return idxp >= 0 ? idxp : idxp + L 
+function positive_modulo(idx :: T, L; thresh = T(0)) :: T where {T}
+    idxp = T(idx % L) 
+    return idxp >= thresh ? idxp : idxp + L 
 end
 
 """
@@ -133,7 +133,7 @@ function fold_back(k :: T, bz :: BrillouinZone{N, P}) :: SVector{N, Float64} whe
     @DEBUG length(k) == N "Length mismatch for input vector"
 
     x = reciprocal(k, bz)
-    return basis(bz) * (SVector{N, Float64}(ntuple(n -> positive_modulo(x[n], bz.L), N)...) ./ bz.L)
+    return basis(bz) * (SVector{N, Float64}(ntuple(n -> positive_modulo(x[n], bz.L; thresh = -1e-14), N)...) ./ bz.L)
 end
 
 # mapping to Wigner-Seitz cell
