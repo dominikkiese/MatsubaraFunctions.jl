@@ -11,6 +11,7 @@ struct PadeApprox{Q <: Number}
     xdat   :: Vector{Q}
 
     function PadeApprox(xdat :: Vector{Q}, ydat :: Vector{Q}) where {Q <: Number}  
+
         @DEBUG length(xdat) > 1 "More than one data point must be provided"
         g        = zeros(Q, length(xdat), length(xdat))
         g[1, :] .= ydat
@@ -76,8 +77,7 @@ function (PA :: PadeApprox{Q})(z :: Q) where {Q <: Number}
     return A2 / B2
 end
 
-# export
-#-------------------------------------------------------------------------------#
+#----------------------------------------------------------------------------------------------#
 
 export 
     PadeApprox,

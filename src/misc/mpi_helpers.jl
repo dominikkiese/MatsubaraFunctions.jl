@@ -123,8 +123,9 @@ function mpi_barrier() :: Nothing
     return nothing 
 end
 
-# export
+
 #-------------------------------------------------------------------------------#
+
 
 export 
     mpi_comm,

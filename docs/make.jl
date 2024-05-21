@@ -26,4 +26,5 @@ makedocs(sitename = "MatsubaraFunctions.jl",
 
             "Miscellaneous" => "misc.md"])
 
+
 deploydocs(; repo = "github.com/dominikkiese/MatsubaraFunctions.jl",)
