@@ -141,12 +141,13 @@ end
 function Base.:show(io :: IO, ms :: NTuple{DD, Mesh}) where{DD}
     print(io, "( ")
     show(io, ms[1])
+    
     for m in ms[2:end]
         print(io, ", ")
         show(io, m)
     end
+
     println(io, ")")
-    
     return nothing 
 end
 
