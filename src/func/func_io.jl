@@ -49,6 +49,18 @@ function load_mesh_function(
     return MeshFunction(tuple(grids...), read(h, l * "/data"))
 end
 
+
+# print 
+#-------------------------------------------------------------------------------#
+
+function Base.:show(io :: IO, m :: MeshFunction)
+    println(io, CYAN, BOLD, "MeshFunction ", RESET, "with size ", "$(size(m.data))", RESET, " and meshes:")
+    show(io, m.meshes)
+    return nothing 
+end
+
+
+
 export 
     save!,
     load_mesh_function

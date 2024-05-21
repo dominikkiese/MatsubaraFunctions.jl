@@ -65,7 +65,7 @@ end
 
 function Base.:show(io :: IO, k :: BrillouinPoint{N}) where {N}
     println(io, CYAN, BOLD, "BrillouinPoint ", RESET, "of dimension ", CYAN, BOLD, "$(N)", RESET)
-    println(io, "=> value : $(value(k))")
+    println(io, "\t=> value : $(value(k))")
     return nothing 
 end
 
