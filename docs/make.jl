@@ -1,5 +1,6 @@
 push!(LOAD_PATH, "../src/")
 import Pkg; Pkg.add("Documenter")
+Pkg.add("HDF5")
 
 using MatsubaraFunctions
 using Documenter
