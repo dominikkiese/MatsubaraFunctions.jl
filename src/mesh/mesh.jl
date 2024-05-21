@@ -132,25 +132,11 @@ end
 #-------------------------------------------------------------------------------#
 
 function Base.:show(io :: IO, m :: Mesh{T, D}) where {T <: AbstractMeshPoint, D <: AbstractDomain}
-    println(io, CYAN, BOLD, "Mesh ", RESET, "for ", CYAN, BOLD, "$(D)", RESET)
-    println(io, "\t=> hash   : $(m.hash)")
-    println(io, "\t=> length : $(length(m))")
+    print(io, CYAN, BOLD, "Mesh ", RESET, "for ", CYAN, BOLD, "$(D) \n", RESET)
+    print(io, "=> hash   : $(m.hash) \n")
+    print(io, "=> length : $(length(m))")
     return nothing 
 end
-
-function Base.:show(io :: IO, ms :: NTuple{DD, Mesh}) where{DD}
-    print(io, "( ")
-    show(io, ms[1])
-    
-    for m in ms[2:end]
-        print(io, ", ")
-        show(io, m)
-    end
-
-    println(io, ")")
-    return nothing 
-end
-
 
 # load implementations and export
 #-------------------------------------------------------------------------------#

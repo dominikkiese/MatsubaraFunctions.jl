@@ -208,9 +208,9 @@ end
 #-------------------------------------------------------------------------------#
 
 function Base.:show(io :: IO, bz :: BrillouinZone{N, P}) where {N, P}
-    println(io, CYAN, BOLD, "BrillouinZone ", RESET, "of dimension ", CYAN, BOLD, "$(N)", RESET)
-    println(io, "=> L     : $(bz.L)")
-    println(io, "=> basis : $(basis(bz))")
+    print(io, CYAN, BOLD, "BrillouinZone ", RESET, "of dimension ", CYAN, BOLD, "$(N) \n", RESET)
+    print(io, "=> L     : $(bz.L) \n")
+    print(io, "=> basis : $(basis(bz))")
     return nothing 
 end
 

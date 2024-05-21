@@ -157,10 +157,10 @@ end
 #-------------------------------------------------------------------------------#
 
 function Base.:show(io :: IO, w :: MatsubaraFrequency{PT}) where {PT <: AbstractParticle}
-    println(io, CYAN, BOLD, "MatsubaraFrequency ", RESET, "of type ", CYAN, BOLD, "$(PT)", RESET)
-    println(io, "\t=> temperature : $(temperature(w))")
-    println(io, "\t=> value       : $(value(w))")
-    println(io, "\t=> index       : $(index(w))")
+    print(io, CYAN, BOLD, "MatsubaraFrequency ", RESET, "of type ", CYAN, BOLD, "$(PT) \n", RESET)
+    print(io, "=> temperature : $(temperature(w)) \n")
+    print(io, "=> value       : $(value(w)) \n")
+    print(io, "=> index       : $(index(w))")
     return nothing 
 end
 

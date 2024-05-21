@@ -24,8 +24,8 @@ end
 #-------------------------------------------------------------------------------#
 
 function Base.:show(io :: IO, w :: Index)
-    println(io, CYAN, BOLD, "Index", RESET)
-    println(io, "\t=> value : $(value(w))")
+    print(io, CYAN, BOLD, "Index \n", RESET)
+    print(io, "=> value : $(value(w))")
     return nothing 
 end
 

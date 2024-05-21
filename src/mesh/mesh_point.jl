@@ -112,11 +112,11 @@ end
 #-------------------------------------------------------------------------------#
 
 function Base.:show(io :: IO, x :: MeshPoint{T}) where {T <: AbstractValue}
-    println(io, CYAN, BOLD, "MeshPoint ", RESET, "with value type ", CYAN, BOLD, "$(T)", RESET)
-    println(io, "\t=> hash  : $(x.hash)")
-    println(io, "\t=> index : $(index(x))")
-    println(io, "-----------------------------")
-    println(io, value(x))
+    print(io, CYAN, BOLD, "MeshPoint ", RESET, "with value type ", CYAN, BOLD, "$(T) \n", RESET)
+    print(io, "=> hash  : $(x.hash) \n")
+    print(io, "=> index : $(index(x)) \n")
+    print(io, "----------------------------- \n")
+    print(io, value(x))
     return nothing 
 end
 
