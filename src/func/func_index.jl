@@ -1,3 +1,12 @@
+# eachindex method
+#----------------------------------------------------------------------------------------------#
+
+function Base.:eachindex(f :: MeshFunction{DD, Q, MT, AT}
+    ) where {DD, Q <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
+    
+    return eachindex(f.data)
+end
+
 # cartesian index
 #----------------------------------------------------------------------------------------------#
 

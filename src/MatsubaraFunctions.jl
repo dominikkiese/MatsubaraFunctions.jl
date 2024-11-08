@@ -1,11 +1,9 @@
 module MatsubaraFunctions
-
     using PrecompileTools
     @recompile_invalidations begin
         using LinearAlgebra
         using StaticArrays
         using MPI
-        using Polyester
         using HDF5
         using Aqua
         using Documenter
@@ -14,7 +12,6 @@ module MatsubaraFunctions
     
     # macro to enable debug mode
     DEBUG() = false
-
 
     macro DEBUG(expr, msgs)
         esc(:(if $(@__MODULE__).DEBUG() @assert($expr, $msgs...) end))
@@ -38,5 +35,4 @@ module MatsubaraFunctions
     include("misc/mpi_helpers.jl")
     include("misc/pade.jl")
     include("misc/triqs_interface.jl")
-
 end

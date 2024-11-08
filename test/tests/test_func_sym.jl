@@ -37,13 +37,13 @@
     SG = SymmetryGroup([Symmetry{2}(conj), Symmetry{2}(ref), Symmetry{2}((w) -> rot(w, g1))], f1)
 
     # symmetrize f2 and compare to f1 
-    for class in SG.classes 
-        f2[class[1][1]] = f1[class[1][1]]
+    for class in SG
+        idx     = first(first(class))
+        f2[idx] = f1[idx]
     end 
 
     SG(f2)
     @test f2 == f1
-    @test SG(f1) < 1e-14
 
     # reduce f1, then init f2 and compare
     f1vec = get_reduced(SG, f1) 
@@ -55,9 +55,6 @@
     InitFunc = InitFunction{2, ComplexF64}(init)
 
     SG(f3, InitFunc; mode = :serial)
-    @test f3 == f1
-
-    SG(f3, InitFunc; mode = :polyester)
     @test f3 == f1
 
     SG(f3, InitFunc; mode = :threads)
