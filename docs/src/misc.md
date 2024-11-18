@@ -4,12 +4,8 @@
 PadeApprox
 ```
 
-```@docs
-PeriodicPulay
-```
 
 # Functions
-
 
 ```@docs
 coeffs
@@ -18,7 +14,3 @@ coeffs
 ```@docs
 xdat
 ``` 
-
-```@docs
-solve!
-```

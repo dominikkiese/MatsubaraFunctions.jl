@@ -10,31 +10,31 @@ Return the MPI communicator
 mpi_comm() :: MPI.Comm = MPI.COMM_WORLD
 
 """
-    function mpi_rank() :: Int64
+    function mpi_rank() :: Int
 
 Return the current MPI rank
 """
-mpi_rank() :: Int64 = MPI.Comm_rank(mpi_comm())
+mpi_rank() :: Int = MPI.Comm_rank(mpi_comm())
 
 """
-    function mpi_size() :: Int64
+    function mpi_size() :: Int
 
 Return the size of the MPI communicator 
 """
-mpi_size() :: Int64 = MPI.Comm_size(mpi_comm())
+mpi_size() :: Int = MPI.Comm_size(mpi_comm())
 
 # mpi command for simple loop parallelization (main is busy) 
 """
     function mpi_split(
-        r :: UnitRange{Int64}
-        ) :: UnitRange{Int64}
+        r :: UnitRange{Int}
+        ) :: UnitRange{Int}
 
 Splits `UnitRange` evenly among available MPI ranks (including main). 
 Can, for example, be used to parallelize loops.
 """
 function mpi_split(
-    r :: UnitRange{Int64}
-    ) :: UnitRange{Int64}
+    r :: UnitRange{Int}
+    ) :: UnitRange{Int}
 
     # if there is only one rank return the full range 
     if mpi_size() == 1 
@@ -64,16 +64,16 @@ end
 
 """
     function mpi_allreduce!(
-        f :: MatsubaraFunction{GD, SD, DD, Q}
-        ) :: Nothing where {GD, SD, DD, Q <: Number}
+        f :: MeshFunction{DD, Q, MT, AT}
+        ) :: Nothing where {DD, Q <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
 
-Inplace MPI reduction (+) for MatsubaraFunction
+Inplace MPI reduction (+) for MeshFunction
 """
 function mpi_allreduce!(
-    f :: MatsubaraFunction{GD, SD, DD, Q}
-    ) :: Nothing where {GD, SD, DD, Q <: Number}
+    f :: MeshFunction{DD, Q, MT, AT}
+    ) :: Nothing where {DD, Q <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
 
-    MPI.Allreduce!(OffsetArrays.no_offset_view(f.data), +, mpi_comm())
+    MPI.Allreduce!(f.data, +, mpi_comm())
     return nothing
 end
 
@@ -123,7 +123,9 @@ function mpi_barrier() :: Nothing
     return nothing 
 end
 
-#----------------------------------------------------------------------------------------------#
+
+#-------------------------------------------------------------------------------#
+
 
 export 
     mpi_comm,
