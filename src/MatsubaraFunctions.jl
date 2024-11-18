@@ -35,4 +35,6 @@ module MatsubaraFunctions
     include("misc/mpi_helpers.jl")
     include("misc/pade.jl")
     include("misc/triqs_interface.jl")
+
+    include("symmetries/symmetry_class.jl")
 end
