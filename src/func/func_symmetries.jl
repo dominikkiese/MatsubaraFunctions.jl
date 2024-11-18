@@ -251,15 +251,35 @@ function (SG :: SymmetryGroup{DD, Q})(f :: MeshFunction{DD, Q, MT, AT}; mode :: 
 end
 
 """
-    function get_reduced(SG :: SymmetryGroup{DD, Q}, f :: MeshFunction{DD, Q, MT, AT}
+    function reduce!(SG :: SymmetryGroup{DD, Q}, f :: MeshFunction{DD, Q, MT, AT}, fvec :: AbstractVector{Q}
+        ) :: Nothing where {DD, Q <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
+
+Calculate and store symmetry reduced representation of MeshFunction in `fvec`
+"""
+function reduce!(SG :: SymmetryGroup{DD, Q}, f :: MeshFunction{DD, Q, MT, AT}, fvec :: AbstractVector{Q}
+    ) :: Nothing where {DD, Q <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
+
+    @DEBUG length(fvec) == length(SG) "Length of fvec does not match the number of classes in the symmetry group!"
+
+    for n in 1 : length(SG)
+        fvec[n] = f[irreducible(SG, n)]
+    end
+
+    return nothing 
+end
+
+"""
+    function reduce(SG :: SymmetryGroup{DD, Q}, f :: MeshFunction{DD, Q, MT, AT}
         ) :: Vector{Q} where {DD, Q <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
 
-Calculate symmetry reduced representation of MeshFunction
+Calculate and return symmetry reduced representation of MeshFunction
 """
-function get_reduced(SG :: SymmetryGroup{DD, Q}, f :: MeshFunction{DD, Q, MT, AT}
+function reduce(SG :: SymmetryGroup{DD, Q}, f :: MeshFunction{DD, Q, MT, AT}
     ) :: Vector{Q} where {DD, Q <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
 
-    return Q[f[irreducible(SG, n)] for n in 1 : length(SG)]
+    fvec = Vector{Q}(undef, length(SG))
+    reduce!(SG, f, fvec)
+    return fvec
 end
 
 """
@@ -275,13 +295,15 @@ function init_from_reduced!(
     SG   :: SymmetryGroup{DD, Q},
     f    :: MeshFunction{DD, Q, MT, AT},
     fvec :: AbstractVector{Q}
+    ;
+    mode :: Symbol = :serial
     )    :: Nothing where {DD, Q <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
 
-    for cl in eachindex(fvec)
-        f[irreducible(SG, cl)] = fvec[cl]
+    for n in eachindex(fvec)
+        f[irreducible(SG, n)] = fvec[n]
     end 
 
-    SG(f)
+    SG(f; mode)
     return nothing 
 end
 
@@ -354,6 +376,7 @@ export
     SymmetryGroup,
     class,
     irreducible,
-    get_reduced,
+    reduce!,
+    reduce,
     init_from_reduced!,
     InitFunction

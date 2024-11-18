@@ -28,6 +28,15 @@ function value(k :: BrillouinPoint{N}) :: SVector{N, Int} where {N}
     return k.value 
 end
 
+"""
+    function value(k :: BrillouinPoint{N}, n :: Int) :: Int
+
+Returns `k.value[n]`
+""" 
+function value(k :: BrillouinPoint{N}, n :: Int) :: Int where {N}
+    return k.value[n]
+end
+
 # getindex
 #-------------------------------------------------------------------------------#
 

@@ -146,11 +146,16 @@ function Base.:-(w :: MatsubaraFrequency{Boson})
     return MatsubaraFrequency(temperature(w), -index(w), Boson)
 end
 
-# comparison operator
+# comparison operators
 #-------------------------------------------------------------------------------#
 
 function Base.:(==)(w1 :: MatsubaraFrequency{PT}, w2 :: MatsubaraFrequency{PT}) where {PT <: AbstractParticle}
     return (temperature(w1) ≈ temperature(w2)) && (value(w1) ≈ value(w2)) && (index(w1) == index(w2))
+end
+
+function Base.:(isless)(w1 :: MatsubaraFrequency{PT}, w2 :: MatsubaraFrequency{PT}) where {PT <: AbstractParticle}
+    @DEBUG temperature(w1) ≈ temperature(w2) "Temperatures must be equal for comparison"
+    return index(w1) < index(w2)
 end
 
 # print 
