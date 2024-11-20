@@ -17,19 +17,19 @@ g = MatsubaraGrid(T, N, Fermion)
 
 # 1D grid, rank 1 tensor with index dimension 1 (scalar valued)
 f1_complex = MatsubaraFunction(g, 1) 
-f1_real    = MatsubaraFunction(g, 1, Float64) 
+f1_real    = MatsubaraFunction(g, 1; data_t=Float64) 
 
 # 1D grid, rank 1 tensor with index dimension 5 (vector valued)
 f2_complex = MatsubaraFunction(g, 5) 
-f2_real    = MatsubaraFunction(g, 5, Float64) 
+f2_real    = MatsubaraFunction(g, 5; data_t=Float64) 
 
 # 1D grid, rank 2 tensor with index dimension 5 (matrix valued)
-f3_complex = MatsubaraFunction(g, (5, 5)) 
-f3_real    = MatsubaraFunction(g, (5, 5), Float64) 
+f3_complex = MatsubaraFunction(g, 5, 5) 
+f3_real    = MatsubaraFunction(g, 5, 5; data_t=Float64) 
 
 # 2D grid, rank 2 tensor with index dimension 5 (matrix valued)
-f4_complex = MatsubaraFunction((g, g), (5, 5)) 
-f4_real    = MatsubaraFunction((g, g), (5, 5), Float64) 
+f4_complex = MatsubaraFunction((g, g), 5, 5) 
+f4_real    = MatsubaraFunction((g, g), 5, 5; data_t=Float64) 
 ```
 
 # Indexing and assignment
@@ -41,11 +41,9 @@ There are two possible ways to access the data of a `MatsubaraFunction`, using e
 T = 1.0
 N = 128
 g = MatsubaraGrid(T, N, Fermion)
-f = MatsubaraFunction(g, 1)
+f = MatsubaraFunction(g)
 
 for v in g
-    # if there is only one index of dimension 1, it does not need to be specified, i.e. 
-    # f[v] can be used instead of f[v, 1] (also works for the '()' operator)
     f[v] = 1.0 / (im * value(v) - ξ)
 end 
 
