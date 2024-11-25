@@ -74,7 +74,6 @@ include("func_index.jl")
 include("func_itp.jl")
 include("func_eval.jl")
 include("func_io.jl")
-include("func_symmetries.jl")
 
 export 
     MeshFunction, 

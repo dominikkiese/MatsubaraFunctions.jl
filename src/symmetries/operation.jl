@@ -2,22 +2,21 @@
 #-------------------------------------------------------------------------------#
 
 """
-    struct Operation 
+    struct Operation{Q <: Number} 
 
 Operation type with fields:
 * `sgn :: Bool` : change sign?
 * `con :: Bool` : complex conjugation?
+
+If `sgn` is `true`, the operation changes the sign of the input number. 
+If `con` is `true`, the operation applies complex conjugation to the input number.
 """
-struct Operation 
+struct Operation{Q <: Number} 
     sgn :: Bool 
     con :: Bool
 
-    function Operation(sgn :: Bool, con :: Bool)
-        return new(sgn, con)
-    end 
-
-    function Operation(; sgn :: Bool = false, con :: Bool = false)
-        return Operation(sgn, con)
+    function Operation{Q}(; sgn :: Bool = false, con :: Bool = false) where {Q <: Number}
+        return new{Q}(sgn, con)
     end
 end
 
@@ -38,16 +37,16 @@ con(op :: Operation) :: Bool = op.con
 # multiplication
 #-------------------------------------------------------------------------------#
 
-function Base.:*(op1 :: Operation, op2 :: Operation) 
-    return Operation(xor(sgn(op1), sgn(op2)), xor(con(op1), con(op2)))
+function Base.:*(op1 :: Operation{Q}, op2 :: Operation{Q}) where {Q <: Number} 
+    return Operation{Q}(sgn = xor(sgn(op1), sgn(op2)), con = xor(con(op1), con(op2)))
 end
 
 # call to Operation
 #-------------------------------------------------------------------------------#
 
-function (op :: Operation)(x :: Q) where {Q <: Number}
-    if sgn(op); return con(op) ? -conj(x) : -x; end
-    return con(op) ? conj(x) : x
+function (op :: Operation{Q})(x :: Q) where {Q <: Number}
+    x_ = sgn(op) ? -x : x
+    return con(op) ? conj(x_) : x_
 end
 
 # export
