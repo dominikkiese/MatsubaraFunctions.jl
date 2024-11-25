@@ -73,14 +73,17 @@ function symmetry_reduction!(
     # loop over all symmetries and apply them recursively
     for S in symmetries 
         w_, op_ = S(w) # S can only be called with w if type(S) == Symmetry{DD}
-        idx     = LinearIndex(f, _mesh_indices(f, w_...)...)
 
         # add to class if inbounds and not visited yet
-        if (idx in eachindex(visited)) && (!visited[idx])
-            visited[idx] = true
-            op__         = op_ * op
-            push!(SC, idx, op__)
-            symmetry_reduction!(w_, op__, f, visited, symmetries, SC)
+        if _all_inbounds(f, w_...)
+            idx = LinearIndex(f, _mesh_indices(f, w_...)...)
+            
+            if !visited[idx]
+                visited[idx] = true
+                op__         = op_ * op
+                push!(SC, idx, op__)
+                symmetry_reduction!(w_, op__, f, visited, symmetries, SC)
+            end
         end
     end 
 
@@ -120,7 +123,7 @@ end
 #-------------------------------------------------------------------------------#
 
 # use generators to avoid allocations
-function Iterators.:product(groups :: Vararg{SymmetryGroup, NG}) where {NG}
+function get_iters(groups :: Vararg{SymmetryGroup, NG}) where {NG}
     return Iterators.product((x.classes for x in groups)...)
 end
 
@@ -142,20 +145,29 @@ function SymmetryGroup(
     @DEBUG issorted(all_idxs) "Mesh indices must be sorted!"
 
     # build factorized symmetry groups
-    groups = Vector{SymmetryGroup}(undef, length(symmetries))
+    groups    = Vector{SymmetryGroup}(undef, length(symmetries))
+    mesh_tpls = Tuple[tuple(map(idx -> meshes(f, idx), idxs)...) for idxs in mesh_idxs]
     
     Threads.@threads for i in eachindex(symmetries)
-        meshes_   = map(j -> meshes(f, j), mesh_idxs[i])
-        groups[i] = SymmetryGroup(symmetries[i], MeshFunction(meshes_...; data_t = Q))
+        groups[i] = SymmetryGroup(symmetries[i], MeshFunction(mesh_tpls[i]...; data_t = Q))
     end
 
     # build product classes
-    iters   = collect(Iterators.product(groups...))
+    iters   = collect(get_iters(groups...))
+    shapes  = Tuple[length.(mesh_tpl) for mesh_tpl in mesh_tpls]
     classes = Vector{SymmetryClass{Q}}(undef, length(iters))
 
     Threads.@threads for i in eachindex(iters)
-        ids, ops   = cartesian_product(iters[i]...)
-        classes[i] = SymmetryClass(Int[LinearIndex(f, CartesianIndex(id)) for id in ids], ops)
+        ids, ops = cartesian_product(iters[i]...)
+        data_id  = Vector{Int}(undef, length(ids))
+
+        # id is tuple of linear indices for factorized meshes
+        for (j, id) in enumerate(ids) 
+            cidx       = CartesianIndex(map(x -> CartesianIndices(shapes[x])[id[x]], eachindex(id))...)
+            data_id[j] = LinearIndex(f, cidx)
+        end
+
+        classes[i] = SymmetryClass(data_id, ops)
     end
 
     return SymmetryGroup{DD, Q}(classes)
