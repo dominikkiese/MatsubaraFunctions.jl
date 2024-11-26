@@ -44,6 +44,26 @@ end
 #-------------------------------------------------------------------------------#
 
 """
+    function add(f :: MeshFunction{DD, Q, MT, AT}, val :: Qp
+        ) :: MeshFunction{DD, Q, MT, AT} where {DD, Q <: Number, Qp <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
+
+Addition of scalar to MeshFunction, returns new MeshFunction. For brevity, use `f + val` or `val + f`.
+"""
+function add(f :: MeshFunction{DD, Q, MT, AT}, val :: Qp
+    ) :: MeshFunction{DD, Q, MT, AT} where {DD, Q <: Number, Qp <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
+
+    return MeshFunction(meshes(f), f.data .+ val)
+end
+
+function Base.:+(f :: MeshFunction{DD, Q, MT, AT}, val :: Qp) where {DD, Q <: Number, Qp <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
+    return add(f, val)
+end
+
+function Base.:+(val :: Qp, f :: MeshFunction{DD, Q, MT, AT}) where {DD, Q <: Number, Qp <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
+    return add(f, val)
+end
+
+"""
     function add(f1 :: MeshFunction, f2 :: MeshFunction) :: MeshFunction
 
 Addition of two MeshFunction, returns new MeshFunction. For brevity, use `f1 + f2`.
@@ -55,6 +75,19 @@ end
 
 function Base.:+(f1 :: MeshFunction, f2 :: MeshFunction)
     return add(f1, f2)
+end
+
+"""
+    function add!(f :: MeshFunction{DD, Q, MT, AT}, val :: Qp
+        ) :: Nothing where {DD, Q <: Number, Qp <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
+
+Inplace addition of scalar to MeshFunction (`f += val`)
+"""
+function add!(f :: MeshFunction{DD, Q, MT, AT}, val :: Qp
+    ) :: Nothing where {DD, Q <: Number, Qp <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
+
+    f.data .+= val
+    return nothing
 end
 
 """
@@ -72,6 +105,22 @@ end
 #-------------------------------------------------------------------------------#
 
 """
+    function subtract(f :: MeshFunction{DD, Q, MT, AT}, val :: Qp
+        ) :: MeshFunction{DD, Q, MT, AT} where {DD, Q <: Number, Qp <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
+
+Subtraction of scalar from MeshFunction, returns new MeshFunction. For brevity, use `f - val`.
+"""
+function subtract(f :: MeshFunction{DD, Q, MT, AT}, val :: Qp
+    ) :: MeshFunction{DD, Q, MT, AT} where {DD, Q <: Number, Qp <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
+
+    return MeshFunction(meshes(f), f.data .- val)
+end
+
+function Base.:-(f :: MeshFunction{DD, Q, MT, AT}, val :: Qp) where {DD, Q <: Number, Qp <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
+    return subtract(f, val)
+end
+
+"""
     function subtract(f1 :: MeshFunction, f2 :: MeshFunction) :: MeshFunction
 
 Subtraction of two MeshFunction, returns new MeshFunction. For brevity, use `f1 - f2`.
@@ -83,6 +132,19 @@ end
 
 function Base.:-(f1 :: MeshFunction, f2 :: MeshFunction)
     return subtract(f1, f2)
+end
+
+"""
+    function subtract!(f :: MeshFunction{DD, Q, MT, AT}, val :: Qp
+        ) :: Nothing where {DD, Q <: Number, Qp <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
+
+Inplace subtraction of scalar from MeshFunction (`f -= val`)
+"""
+function subtract!(f :: MeshFunction{DD, Q, MT, AT}, val :: Qp
+    ) :: Nothing where {DD, Q <: Number, Qp <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
+
+    f.data .-= val
+    return nothing
 end
 
 """

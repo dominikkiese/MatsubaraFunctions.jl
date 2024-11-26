@@ -20,12 +20,12 @@ function value(w :: Index) :: Int
     return w.index
 end 
 
-# print 
+# info
 #-------------------------------------------------------------------------------#
 
-function Base.:show(io :: IO, w :: Index)
-    print(io, CYAN, BOLD, "Index \n", RESET)
-    print(io, "=> value : $(value(w))")
+function info(w :: Index)
+    println(CYAN, BOLD, "Index", RESET)
+    println("=> value : $(value(w))")
     return nothing 
 end
 
@@ -34,4 +34,5 @@ end
 
 export 
     Index,
-    value
+    value,
+    info

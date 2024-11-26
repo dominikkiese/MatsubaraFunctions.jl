@@ -49,14 +49,15 @@ function load_mesh_function(
     return MeshFunction(tuple(grids...), read(h, l * "/data"))
 end
 
-# print 
+# info
 #----------------------------------------------------------------------------------------------#
 
-function Base.:show(io :: IO, f :: MeshFunction)
-    print(io, CYAN, BOLD, "MeshFunction ", RESET, "with size ", "$(size(f.data))", RESET, " and meshes:")
+function info(f :: MeshFunction)
+    println(CYAN, BOLD, "MeshFunction ", RESET, "of size ", "$(size(f.data))", RESET)
     
-    for m in meshes(f)
-        print("\n"); print(m)
+    for (i, m) in enumerate(meshes(f))
+        println("---------------- ($(i)) ----------------")
+        info(m)
     end
 
     return nothing 
@@ -67,4 +68,5 @@ end
 
 export 
     save!,
-    load_mesh_function
+    load_mesh_function,
+    info

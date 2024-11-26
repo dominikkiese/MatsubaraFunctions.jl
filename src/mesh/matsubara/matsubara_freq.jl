@@ -158,14 +158,14 @@ function Base.:(isless)(w1 :: MatsubaraFrequency{PT}, w2 :: MatsubaraFrequency{P
     return index(w1) < index(w2)
 end
 
-# print 
+# info
 #-------------------------------------------------------------------------------#
 
-function Base.:show(io :: IO, w :: MatsubaraFrequency{PT}) where {PT <: AbstractParticle}
-    print(io, CYAN, BOLD, "MatsubaraFrequency ", RESET, "of type ", CYAN, BOLD, "$(PT) \n", RESET)
-    print(io, "=> temperature : $(temperature(w)) \n")
-    print(io, "=> value       : $(value(w)) \n")
-    print(io, "=> index       : $(index(w))")
+function info(w :: MatsubaraFrequency{PT}) where {PT <: AbstractParticle}
+    println(CYAN, BOLD, "MatsubaraFrequency ", RESET, "of type ", CYAN, BOLD, "$(PT)", RESET)
+    println("=> temperature : $(temperature(w))")
+    println("=> value       : $(value(w))")
+    println("=> index       : $(index(w))")
     return nothing 
 end
 
@@ -179,4 +179,5 @@ export
     MatsubaraFrequency,
     temperature,
     value, 
-    index
+    index,
+    info

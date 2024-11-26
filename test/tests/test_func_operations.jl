@@ -17,6 +17,12 @@
     set!(f3, data3)
 
     # addition
+    f4 = f1 + π
+    @test f4.data ≈ data1 .+ π
+
+    add!(f4, π)
+    @test f4.data ≈ data1 .+ 2.0 .* π
+
     f4 = f1 + f2 
     @test f3 == f4 
     
@@ -26,6 +32,12 @@
     set!(f1, data1)
 
     # subtraction
+    f4 = f1 - π
+    @test f4.data ≈ data1 .- π
+
+    subtract!(f4, π)
+    @test f4.data ≈ data1 .- 2.0 .* π
+
     f4 = f3 - f2 
     @test f4 == f1
 
