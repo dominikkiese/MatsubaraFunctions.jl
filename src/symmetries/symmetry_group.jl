@@ -123,7 +123,7 @@ end
 #-------------------------------------------------------------------------------#
 
 # use generators to avoid allocations
-function get_iters(groups :: Vararg{SymmetryGroup, NG}) where {NG}
+function get_product_iters(groups :: Vararg{SymmetryGroup, NG}) where {NG}
     return Iterators.product((x.classes for x in groups)...)
 end
 
@@ -153,7 +153,7 @@ function SymmetryGroup(
     end
 
     # build product classes
-    iters   = collect(get_iters(groups...))
+    iters   = collect(get_product_iters(groups...))
     shapes  = Tuple[length.(mesh_tpl) for mesh_tpl in mesh_tpls]
     classes = Vector{SymmetryClass{Q}}(undef, length(iters))
 
@@ -277,34 +277,48 @@ end
 #-------------------------------------------------------------------------------#
 
 """
-    function flatten!(SG :: SymmetryGroup{DD, Q}, f :: MeshFunction{DD, Q, MT, AT}, fvec :: AbstractVector{Q}
+    function flatten!(SG :: SymmetryGroup{DD, Q}, f :: MeshFunction{DD, Q, MT, AT}, fvec :: AbstractVector{Q}; mode = :serial
         ) :: Nothing where {DD, Q <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
 
 Calculate and store symmetry reduced representation of MeshFunction in `fvec`
 """
-function flatten!(SG :: SymmetryGroup{DD, Q}, f :: MeshFunction{DD, Q, MT, AT}, fvec :: AbstractVector{Q}
+function flatten!(SG :: SymmetryGroup{DD, Q}, f :: MeshFunction{DD, Q, MT, AT}, fvec :: AbstractVector{Q}; mode = :serial
     ) :: Nothing where {DD, Q <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
 
     @DEBUG length(fvec) == length(SG) "Length of fvec does not match the number of classes in the symmetry group!"
 
-    for n in eachindex(fvec)
-        fvec[n] = f[irreducible(SG, n)]
+    # serial mode
+    if mode === :serial 
+        for n in eachindex(fvec)
+            fvec[n] = f[irreducible(SG, n)]
+        end
+
+    # parallel mode
+    elseif (mode === :threads) || (mode === :hybrid)
+        Threads.@threads for n in eachindex(fvec)
+            fvec[n] = f[irreducible(SG, n)]
+        end
+
+    # exception handling
+    else 
+        @warn "Mode $(mode) unknown. Falling back to serial execution ..."
+        flatten!(SG, f, fvec; mode = :serial)
     end
 
     return nothing 
 end
 
 """
-    function flatten(SG :: SymmetryGroup{DD, Q}, f :: MeshFunction{DD, Q, MT, AT}
+    function flatten(SG :: SymmetryGroup{DD, Q}, f :: MeshFunction{DD, Q, MT, AT}; mode = :serial
         ) :: Vector{Q} where {DD, Q <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
 
 Calculate and return symmetry reduced representation of MeshFunction
 """
-function flatten(SG :: SymmetryGroup{DD, Q}, f :: MeshFunction{DD, Q, MT, AT}
+function flatten(SG :: SymmetryGroup{DD, Q}, f :: MeshFunction{DD, Q, MT, AT}; mode = :serial
     ) :: Vector{Q} where {DD, Q <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
 
     fvec = Vector{Q}(undef, length(SG))
-    flatten!(SG, f, fvec)
+    flatten!(SG, f, fvec; mode)
     return fvec
 end
 
@@ -313,6 +327,8 @@ end
         SG   :: SymmetryGroup{DD, Q},
         f    :: MeshFunction{DD, Q, MT, AT},
         fvec :: AbstractVector{Q}
+        ;
+        mode :: Symbol = :serial
         )    :: Nothing where {DD, Q <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
 
 Initialize MeshFunction from symmetry reduced representation
@@ -327,9 +343,23 @@ function unflatten!(
 
     @DEBUG length(fvec) == length(SG) "Length of fvec does not match the number of classes in the symmetry group!"
 
-    for n in eachindex(fvec)
-        f[irreducible(SG, n)] = fvec[n]
-    end 
+    # serial mode
+    if mode === :serial 
+        for n in eachindex(fvec)
+            f[irreducible(SG, n)] = fvec[n]
+        end 
+
+    # parallel mode
+    elseif (mode === :threads) || (mode === :hybrid)
+        Threads.@threads for n in eachindex(fvec)
+            f[irreducible(SG, n)] = fvec[n]
+        end 
+
+    # exception handling
+    else 
+        @warn "Mode $(mode) unknown. Falling back to serial execution ..."
+        unflatten!(SG, f, fvec; mode = :serial)
+    end
 
     SG(f; mode)
     return nothing 

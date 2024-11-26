@@ -27,6 +27,7 @@ struct SymmetryClass{Q <: Number}
 end
 
 function Base.:length(SC :: SymmetryClass)
+    @DEBUG length(SC.data_id) == length(SC.data_op) "Data length mismatch!"
     return length(SC.data_id)
 end
 
@@ -63,23 +64,23 @@ end
 #-------------------------------------------------------------------------------#
 
 # to avoid ambiguities
-function get_iters()
+function get_product_iters()
     return Iterators.product(), Iterators.product()
 end
 
 # use generators to avoid allocations
-function get_iters(classes :: Vararg{SymmetryClass{Q}, NC}) where {Q <: Number, NC}
+function get_product_iters(classes :: Vararg{SymmetryClass{Q}, NC}) where {Q <: Number, NC}
     return Iterators.product((x.data_id for x in classes)...), Iterators.product((x.data_op for x in classes)...)
 end
 
 # to avoid unbound type parameters
 function cartesian_product()
-    ids, ops = vec.(collect(get_iters()))
+    ids, ops = vec.(collect.(get_product_iters()))
     return ids, ops
 end
 
 function cartesian_product(classes :: Vararg{SymmetryClass{Q}, NC}) where {Q <: Number, NC}
-    ids, ops = vec.(collect.(get_iters(classes...)))
+    ids, ops = vec.(collect.(get_product_iters(classes...)))
     return ids, prod.(ops)
 end
 
