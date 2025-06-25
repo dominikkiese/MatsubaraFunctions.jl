@@ -204,13 +204,13 @@ function to_Wigner_Seitz(k :: T, shifts :: Matrix{SVector{N, Float64}}) :: SVect
     return kp 
 end
 
-# print 
+# info
 #-------------------------------------------------------------------------------#
 
-function Base.:show(io :: IO, bz :: BrillouinZone{N, P}) where {N, P}
-    print(io, CYAN, BOLD, "BrillouinZone ", RESET, "of dimension ", CYAN, BOLD, "$(N) \n", RESET)
-    print(io, "=> L     : $(bz.L) \n")
-    print(io, "=> basis : $(basis(bz))")
+function info(bz :: BrillouinZone{N, P}) where {N, P}
+    println(CYAN, BOLD, "BrillouinZone ", RESET, "of dimension ", CYAN, BOLD, "$(N)", RESET)
+    println("=> L     : $(bz.L)")
+    println("=> basis : $(basis(bz))")
     return nothing 
 end
 
@@ -226,4 +226,5 @@ export
     is_inbounds,
     fold_back,
     get_shifts,
-    to_Wigner_Seitz
+    to_Wigner_Seitz,
+    info

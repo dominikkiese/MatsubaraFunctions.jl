@@ -128,13 +128,13 @@ function load_mesh(h :: HDF5.File, l :: String) :: Mesh
     return load_mesh(h, l, Val(Symbol(read_attribute(h[l], "tag"))))
 end
 
-# print 
+# info 
 #-------------------------------------------------------------------------------#
 
-function Base.:show(io :: IO, m :: Mesh{T, D}) where {T <: AbstractMeshPoint, D <: AbstractDomain}
-    print(io, CYAN, BOLD, "Mesh ", RESET, "for ", CYAN, BOLD, "$(D) \n", RESET)
-    print(io, "=> hash   : $(m.hash) \n")
-    print(io, "=> length : $(length(m))")
+function info(m :: Mesh{T, D}) where {T <: AbstractMeshPoint, D <: AbstractDomain}
+    println(CYAN, BOLD, "Mesh ", RESET, "for ", CYAN, BOLD, "$(D)", RESET)
+    println("=> hash   : $(m.hash)")
+    println("=> length : $(length(m))")
     return nothing 
 end
 
@@ -156,4 +156,5 @@ export
     Mesh,
     points,
     domain,
-    load_mesh
+    load_mesh,
+    info
