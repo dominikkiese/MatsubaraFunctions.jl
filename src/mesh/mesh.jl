@@ -88,14 +88,25 @@ function domain(m :: Mesh{T, D}) :: D where {T <: AbstractMeshPoint, D <: Abstra
     return m.domain 
 end
 
-function Base.:length(m :: Mesh)
+
+"""
+    Base.length(m::Mesh)
+
+Return the number of points in the mesh.
+"""
+function Base.length(m :: Mesh)
     return length(points(m))
 end
 
 # indexing
 #-------------------------------------------------------------------------------#
 
-function Base.:eachindex(m :: Mesh)
+"""
+    Base.eachindex(m::Mesh)
+
+Return an iterator over all indices of the mesh points.
+"""
+function Base.eachindex(m :: Mesh)
     return eachindex(points(m))
 end
 

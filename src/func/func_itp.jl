@@ -35,21 +35,40 @@ struct InterpolationParam{N}
     indices :: NTuple{N, Int}
     weights :: NTuple{N, Float64}
 
+
+    """
+        InterpolationParam(indices::NTuple{N, Int}, weights::NTuple{N, Float64})
+
+    Construct an InterpolationParam from indices and weights.
+    """
     function InterpolationParam(indices :: NTuple{N, Int}, weights :: NTuple{N, Float64}) where {N}
         @DEBUG sum(weights) ≈ 1.0 "Weights must add up to 1"
         return new{N}(indices, weights)
     end 
 
+    """
+        InterpolationParam(index::Int, weight::Float64)
+
+    Construct an InterpolationParam for a single index and weight.
+    """
     function InterpolationParam(index :: Int, weight :: Float64) 
         return InterpolationParam((index,), (weight,))
     end 
 
-    # from mesh point or value type 
+    """
+        InterpolationParam(x, m)
+
+    Construct an InterpolationParam for a mesh point or value type and mesh.
+    """
     function InterpolationParam(x :: Union{MeshPoint, <: AbstractValue}, m :: Mesh)
         return InterpolationParam(mesh_index_bc(x, m), 1.0)
     end
 
-    # Matsubara mesh
+    """
+        InterpolationParam(w::Float64, m::Mesh{MeshPoint{MatsubaraFrequency{PT}}, MatsubaraDomain})
+
+    Construct an InterpolationParam for a Matsubara mesh and frequency value.
+    """
     function InterpolationParam(w :: Float64, m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}, MatsubaraDomain}) where {PT <: AbstractParticle}
         # calculate mesh spacing and position in mesh
         w     = max(first_value(m), min(w, last_value(m)))
@@ -67,7 +86,11 @@ struct InterpolationParam{N}
         end
     end
 
-    # Brillouin zone mesh
+    """
+        InterpolationParam(k, m)
+
+    Construct an InterpolationParam for a Brillouin zone mesh and k-vector.
+    """
     function InterpolationParam(k :: T, m :: Mesh{MeshPoint{BrillouinPoint{N}}, BrillouinDomain{N, P}}) where {N, P, T <: AbstractVector{Float64}}
         @DEBUG length(k) == N "Length mismatch for input vector"
 

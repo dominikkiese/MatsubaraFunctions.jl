@@ -47,21 +47,30 @@ end
 # debugging
 #-------------------------------------------------------------------------------#
 
+
+"""
+    debug_f1_f2(f1::MeshFunction, f2::MeshFunction)
+
+Check that two MeshFunctions have compatible data shapes and meshes for operations.
+"""
 function debug_f1_f2(f1 :: MeshFunction{DD, Q, MT, AT}, f2 :: MeshFunction{DD, Q, MT, BT}
     ) where {DD, Q <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}, BT <: AbstractArray{Q, DD}}
-
     @DEBUG size(f1.data) == size(f2.data) "Size of data arrays not equal"
-    
     for i in 1 : DD 
         @DEBUG meshes(f1, Val(i)) == meshes(f2, Val(i)) "Meshes are different"
     end
-
     return nothing 
 end
 
 # comparison
 #-------------------------------------------------------------------------------#
 
+
+"""
+    Base.:(==)(f1::MeshFunction, f2::MeshFunction)
+
+Compare two MeshFunctions for approximate equality of their data arrays and mesh compatibility.
+"""
 function Base.:(==)(f1 :: MeshFunction, f2 :: MeshFunction)
     debug_f1_f2(f1, f2) 
     return f1.data ≈ f2.data 

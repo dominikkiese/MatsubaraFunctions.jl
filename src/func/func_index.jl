@@ -25,14 +25,26 @@ linidx = LinearIndex(f, meshpoint1, meshpoint2)
 
 # eachindex method
 #----------------------------------------------------------------------------------------------#
-function Base.:eachindex(f :: MeshFunction{DD, Q, MT, AT}
+
+"""
+    Base.eachindex(f :: MeshFunction)
+
+Return an iterator over all indices of the underlying data array in the MeshFunction.
+"""
+function Base.eachindex(f :: MeshFunction{DD, Q, MT, AT}
     ) where {DD, Q <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
     return eachindex(f.data)
 end
 
 # cartesian index
 #----------------------------------------------------------------------------------------------#
-function Base.:CartesianIndex(f :: MeshFunction{DD, Q, MT, AT}, x :: Vararg{Union{MeshPoint, <: AbstractValue}, DD}
+
+"""
+    Base.CartesianIndex(f :: MeshFunction, x...)
+
+Return the cartesian index in the underlying data array for the given mesh points or values.
+"""
+function Base.CartesianIndex(f :: MeshFunction{DD, Q, MT, AT}, x :: Vararg{Union{MeshPoint, <: AbstractValue}, DD}
     ) where {DD, Q <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
     return CartesianIndex(_mesh_indices(f, x...)...)
 end

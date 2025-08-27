@@ -1,3 +1,22 @@
+# ----------------------------------------------------------------------------- #
+# Symmetry Operations Module
+# ----------------------------------------------------------------------------- #
+
+"""
+    Symmetry Operations
+
+Defines the `Operation` type for representing sign and complex conjugation operations, and related utility functions for symmetry transformations.
+
+Fields:
+* `sgn` : Boolean flag for sign change
+* `con` : Boolean flag for complex conjugation
+
+Examples:
+```julia
+op = Operation{Float64}(sgn=true, con=false)
+result = op(1.0 + 2.0im)
+```
+"""
 # type def and accessors
 #-------------------------------------------------------------------------------#
 

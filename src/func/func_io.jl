@@ -71,9 +71,11 @@ function load_mesh_function(
     return MeshFunction(tuple(grids...), read(h, l * "/data"))
 end
 
-# info
-#----------------------------------------------------------------------------------------------#
+"""
+    info(f :: MeshFunction)
 
+Prints information about the MeshFunction, including its size and mesh details.
+"""
 function info(f :: MeshFunction)
     println(CYAN, BOLD, "MeshFunction ", RESET, "of size ", "$(size(f.data))", RESET)
     

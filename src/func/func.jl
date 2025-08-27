@@ -87,11 +87,22 @@ function Base.:copy(f :: MeshFunction)
     return MeshFunction(f)
 end
 
-function Base.:size(f :: MeshFunction)
+
+"""
+    Base.size(f :: MeshFunction)
+
+Return the size (dimensions) of the underlying data array in the MeshFunction.
+"""
+function Base.size(f :: MeshFunction)
     return size(f.data)
 end
 
-function Base.:length(f :: MeshFunction)
+"""
+    Base.length(f :: MeshFunction)
+
+Return the total number of elements in the underlying data array in the MeshFunction.
+"""
+function Base.length(f :: MeshFunction)
     return length(f.data)
 end
 
