@@ -41,4 +41,10 @@ save!(:: HDF5.File, :: String, :: Mesh{MeshPoint{Index}, IndexDomain})
 
 ```@docs
 load_mesh(:: HDF5.File, :: String, ::Val{:IndexMesh})
-```    
+```
+
+## Additional API
+
+```@docs
+Base.IteratorsMD.CartesianIndex
+```

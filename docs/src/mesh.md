@@ -108,4 +108,15 @@ plain_value
 
 ```@docs
 load_mesh(:: HDF5.File, :: String)
-```    
+```
+
+## Additional API
+
+```@docs
+Base.length
+Base.eachindex
+```
+
+```@docs
+MatsubaraFunctions.value
+```

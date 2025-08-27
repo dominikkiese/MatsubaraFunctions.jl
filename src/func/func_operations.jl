@@ -66,11 +66,6 @@ end
 #-------------------------------------------------------------------------------#
 
 
-"""
-    Base.:(==)(f1::MeshFunction, f2::MeshFunction)
-
-Compare two MeshFunctions for approximate equality of their data arrays and mesh compatibility.
-"""
 function Base.:(==)(f1 :: MeshFunction, f2 :: MeshFunction)
     debug_f1_f2(f1, f2) 
     return f1.data ≈ f2.data 

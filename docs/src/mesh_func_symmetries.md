@@ -59,19 +59,20 @@ InitFunction
 ```
 
 ```@docs
-get_reduced
-```
-
-```@docs
-init_from_reduced!
-```
-
-```@docs
 sgn
 ```
 
 ```@docs
 con
+```
+
+## Additional API
+
+```@docs
+MatsubaraFunctions.irreducible
+MatsubaraFunctions.AbstractSymmetry
+MatsubaraFunctions.SymmetryClass
+MatsubaraFunctions.classes
 ```
 
 ## I/O to HDF5 files

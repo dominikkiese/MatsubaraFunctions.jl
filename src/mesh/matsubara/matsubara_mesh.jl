@@ -20,6 +20,7 @@ pts = points(mesh)
 temp = domain(mesh).temperature
 ```
 """
+
 include("matsubara_freq.jl")
 
 # the domain

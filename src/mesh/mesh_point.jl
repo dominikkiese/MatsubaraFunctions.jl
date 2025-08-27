@@ -94,11 +94,6 @@ end
 # each value type must implement +, - and sign reversal
 
 
-"""
-    Base.:+(x1::MeshPoint, x2::MeshPoint)
-
-Add two MeshPoints by adding their values.
-"""
 function Base.:+(x1 :: MeshPoint{T1}, x2 :: MeshPoint{T2}) where {T1 <: AbstractValue, T2 <: AbstractValue} 
     return value(x1) + value(x2)
 end

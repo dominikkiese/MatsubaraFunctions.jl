@@ -18,6 +18,7 @@ bz_obj = bz(mesh)
 pts = points(mesh)
 ```
 """
+
 include("brillouin_pt.jl")
 include("brillouin_zone.jl")
 

@@ -183,3 +183,11 @@ absmax
 ```@docs
 arg_absmax
 ```
+
+## Additional API
+
+```@docs
+Base.size
+MatsubaraFunctions.debug_f1_f2
+MatsubaraFunctions.info
+```
