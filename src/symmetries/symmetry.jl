@@ -1,3 +1,18 @@
+# ----------------------------------------------------------------------------- #
+# Symmetry Module
+# ----------------------------------------------------------------------------- #
+
+"""
+    Symmetry Definitions
+
+Defines the main abstract and concrete types for representing symmetry operations and initialization functions for mesh-based objects.
+
+Examples:
+```julia
+sym = Symmetry{2}(w -> (w, Operation{Float64}()))
+init = InitFunction{2, Float64}(w -> 1.0)
+```
+"""
 # type defs
 #-------------------------------------------------------------------------------#
 

@@ -1,3 +1,20 @@
+# ----------------------------------------------------------------------------- #
+# Symmetry Class Module
+# ----------------------------------------------------------------------------- #
+
+"""
+    Symmetry Classes
+
+Defines the `SymmetryClass` type for grouping mesh indices and operations into equivalence classes under symmetry transformations.
+
+Examples:
+```julia
+sc = SymmetryClass{Float64}([1,2,3], [Operation{Float64}(), Operation{Float64}(sgn=true)])
+for (idx, op) in sc
+    println(idx, op)
+end
+```
+"""
 # type def and accessors
 #-------------------------------------------------------------------------------#
 

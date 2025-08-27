@@ -1,3 +1,18 @@
+# ----------------------------------------------------------------------------- #
+# Symmetry Group Module
+# ----------------------------------------------------------------------------- #
+
+"""
+    Symmetry Groups
+
+Defines the `SymmetryGroup` type for partitioning mesh functions into symmetry classes and provides functions for symmetry reduction and equivalence.
+
+Examples:
+```julia
+sg = SymmetryGroup{2, Float64}([SymmetryClass{Float64}([1], [Operation{Float64}()])])
+cl = classes(sg, 1)
+```
+"""
 # type def and accessors
 #-------------------------------------------------------------------------------#
 
