@@ -1,3 +1,30 @@
+# ----------------------------------------------------------------------------- #
+# Matsubara Frequency Types
+# ----------------------------------------------------------------------------- #
+
+"""
+    Matsubara Frequency Types
+
+Defines the `MatsubaraFrequency` type for representing fermionic and bosonic frequencies.
+
+Fields:
+* `temperature` : Temperature
+* `value`       : Frequency value
+* `index`       : Matsubara index
+
+Examples:
+```julia
+# Construct a fermionic Matsubara frequency
+freq = MatsubaraFrequency(0.1, 2, Fermion)
+
+# Construct a bosonic Matsubara frequency
+freq = MatsubaraFrequency(0.1, 2, Boson)
+
+# Access value and index
+val = value(freq)
+idx = freq.index
+```
+"""
 # abstract types 
 #-------------------------------------------------------------------------------#
 

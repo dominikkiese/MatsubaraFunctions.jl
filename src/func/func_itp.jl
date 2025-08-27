@@ -1,3 +1,26 @@
+
+# ----------------------------------------------------------------------------- #
+# MeshFunction Interpolation Routines
+# ----------------------------------------------------------------------------- #
+
+"""
+    Interpolation Routines
+
+Defines the `InterpolationParam` type and routines for constructing interpolation parameters for mesh-based functions.
+
+Examples:
+```julia
+# Construct interpolation parameters for a mesh point
+param = InterpolationParam(meshpoint, mesh)
+
+# For Matsubara mesh interpolation
+param = InterpolationParam(omega, matsubara_mesh)
+
+# For Brillouin zone mesh interpolation
+param = InterpolationParam(kvec, brillouin_mesh)
+```
+"""
+
 # type def and accessors
 #-------------------------------------------------------------------------------#
 

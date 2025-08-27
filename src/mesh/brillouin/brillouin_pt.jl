@@ -1,3 +1,25 @@
+# ----------------------------------------------------------------------------- #
+# Brillouin Zone Point Types
+# ----------------------------------------------------------------------------- #
+
+"""
+    Brillouin Zone Point
+
+Defines the `BrillouinPoint` type for representing a point in reciprocal space.
+
+Fields:
+* `value` : SVector of integer coordinates
+
+Examples:
+```julia
+# Construct a Brillouin point
+pt = BrillouinPoint(1, 2, 3)
+
+# Access coordinates
+coords = value(pt)
+coord1 = value(pt, 1)
+```
+"""
 # type def and accessors
 #-------------------------------------------------------------------------------#
 

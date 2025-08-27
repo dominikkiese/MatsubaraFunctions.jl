@@ -1,3 +1,30 @@
+# ----------------------------------------------------------------------------- #
+# MeshFunction Mathematical Operations
+# ----------------------------------------------------------------------------- #
+
+"""
+    Mathematical Operations on MeshFunction
+
+Provides functions for norms, comparison, addition, and other mathematical operations on `MeshFunction` objects.
+
+Examples:
+```julia
+# Compute infinity norm
+normval = absmax(f)
+
+# Find index of maximum value
+idx = arg_absmax(f)
+
+# Compare two MeshFunctions
+is_equal = f1 == f2
+
+# Add a scalar to a MeshFunction
+f2 = f + 1.0
+
+# Add two MeshFunctions
+f3 = f1 + f2
+```
+"""
 # ∞-norm
 #-------------------------------------------------------------------------------#
 

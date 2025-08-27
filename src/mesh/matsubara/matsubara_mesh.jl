@@ -1,3 +1,25 @@
+# ----------------------------------------------------------------------------- #
+# Matsubara Mesh Types
+# ----------------------------------------------------------------------------- #
+
+"""
+    Matsubara Mesh
+
+Defines mesh types and domains for representing Matsubara frequencies as mesh points.
+
+Examples:
+```julia
+# Construct a fermionic Matsubara mesh
+mesh = MatsubaraMesh(0.1, 10, Fermion)
+
+# Construct a bosonic Matsubara mesh
+mesh = MatsubaraMesh(0.1, 10, Boson)
+
+# Access mesh points and temperature
+pts = points(mesh)
+temp = domain(mesh).temperature
+```
+"""
 include("matsubara_freq.jl")
 
 # the domain

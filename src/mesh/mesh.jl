@@ -1,5 +1,28 @@
 include("mesh_point.jl")
 
+# ----------------------------------------------------------------------------- #
+# Mesh Types and Accessors
+# ----------------------------------------------------------------------------- #
+
+"""
+    Mesh Types
+
+Defines the abstract mesh types and the main `Mesh` struct for representing a grid of points in a domain.
+
+Fields:
+* `points` : Vector of mesh points
+* `domain` : Domain object describing the mesh
+
+Examples:
+```julia
+# Construct a mesh from points and a domain
+mesh = Mesh(:myhash, [pt1, pt2, pt3], domain)
+
+# Access mesh points and domain
+pts = points(mesh)
+dom = domain(mesh)
+```
+"""
 # abstract types
 #-------------------------------------------------------------------------------#
 

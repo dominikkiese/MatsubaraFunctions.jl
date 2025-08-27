@@ -1,3 +1,22 @@
+# ----------------------------------------------------------------------------- #
+# Index Mesh Types
+# ----------------------------------------------------------------------------- #
+
+"""
+    Index Mesh
+
+Defines mesh types and domains for representing integer indices as mesh points.
+
+Examples:
+```julia
+# Construct an index mesh
+mesh = IndexMesh(10)
+
+# Access mesh points and values
+pts = points(mesh)
+vals = values(mesh)
+```
+"""
 include("index_pt.jl")
 
 # the domain

@@ -1,3 +1,23 @@
+# ----------------------------------------------------------------------------- #
+# Brillouin Zone Mesh Types
+# ----------------------------------------------------------------------------- #
+
+"""
+    Brillouin Zone Mesh
+
+Defines mesh types and domains for representing points in the Brillouin zone of a lattice.
+
+Examples:
+```julia
+# Construct a Brillouin zone mesh
+bz = BrillouinZone(...)
+mesh = BrillouinZoneMesh(bz)
+
+# Access Brillouin zone and mesh points
+bz_obj = bz(mesh)
+pts = points(mesh)
+```
+"""
 include("brillouin_pt.jl")
 include("brillouin_zone.jl")
 

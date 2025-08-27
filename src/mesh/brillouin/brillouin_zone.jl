@@ -1,3 +1,27 @@
+# ----------------------------------------------------------------------------- #
+# Brillouin Zone Structure
+# ----------------------------------------------------------------------------- #
+
+"""
+    Brillouin Zone
+
+Defines the `BrillouinZone` type for representing the reciprocal lattice and its basis vectors.
+
+Fields:
+* `L`         : Linear system size
+* `basis`     : Matrix of reciprocal lattice vectors
+* `inv_basis` : Inverse of the basis matrix
+
+Examples:
+```julia
+# Construct a Brillouin zone
+bz = BrillouinZone(L, basis_matrix)
+
+# Access basis vectors
+vec = basis(bz, 1)
+inv_vec = inv_basis(bz, 1)
+```
+"""
 # type def and accessors
 #-------------------------------------------------------------------------------#
 

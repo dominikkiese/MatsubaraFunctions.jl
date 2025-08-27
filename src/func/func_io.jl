@@ -1,3 +1,25 @@
+## ----------------------------------------------------------------------------- #
+# MeshFunction I/O (Save/Load)
+# ----------------------------------------------------------------------------- #
+
+"""
+    MeshFunction I/O
+
+Functions for saving and loading `MeshFunction` objects to/from HDF5 files.
+
+Examples:
+```julia
+using HDF5
+h = h5open("data.h5", "w")
+save!(h, "func1", f)
+close(h)
+
+h = h5open("data.h5", "r")
+f2 = load_mesh_function(h, "func1")
+close(h)
+```
+"""
+
 """
     function save!(
         h :: HDF5.File,

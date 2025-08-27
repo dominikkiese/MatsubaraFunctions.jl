@@ -1,3 +1,24 @@
+# ----------------------------------------------------------------------------- #
+# Index Point Types
+# ----------------------------------------------------------------------------- #
+
+"""
+    Index Point
+
+Defines the `Index` type for representing an integer index as a mesh point.
+
+Fields:
+* `index` : Integer value
+
+Examples:
+```julia
+# Construct an index point
+idx = Index(5)
+
+# Access value
+val = value(idx)
+```
+"""
 # type def and accessors
 #-------------------------------------------------------------------------------#
 

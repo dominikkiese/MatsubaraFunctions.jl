@@ -1,30 +1,49 @@
+
+# ----------------------------------------------------------------------------- #
+# MeshFunction Indexing
+# ----------------------------------------------------------------------------- #
+
+"""
+    Indexing MeshFunction
+
+Provides methods for accessing and iterating over the data in a `MeshFunction` using cartesian and linear indices.
+
+Examples:
+```julia
+# Iterate over all indices
+for idx in eachindex(f)
+    println(f.data[idx])
+end
+
+# Get cartesian index from mesh points
+cidx = CartesianIndex(f, meshpoint1, meshpoint2)
+
+# Get linear index
+linidx = LinearIndex(f, meshpoint1, meshpoint2)
+```
+"""
+
 # eachindex method
 #----------------------------------------------------------------------------------------------#
-
 function Base.:eachindex(f :: MeshFunction{DD, Q, MT, AT}
     ) where {DD, Q <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
-    
     return eachindex(f.data)
 end
 
 # cartesian index
 #----------------------------------------------------------------------------------------------#
-
 function Base.:CartesianIndex(f :: MeshFunction{DD, Q, MT, AT}, x :: Vararg{Union{MeshPoint, <: AbstractValue}, DD}
     ) where {DD, Q <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
-
     return CartesianIndex(_mesh_indices(f, x...)...)
 end
 
 function CartesianIndex_bc(f :: MeshFunction{DD, Q, MT, AT}, x :: Vararg{Union{MeshPoint, <: AbstractValue}, DD}
     ) where {DD, Q <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
-
     return CartesianIndex(_mesh_indices_bc(f, x...)...)
 end
 
 # linear index
 #----------------------------------------------------------------------------------------------#
-
 """
     function LinearIndex(f :: MeshFunction{DD, Q, MT, AT}, x :: Vararg{Union{MeshPoint, <: AbstractValue}, DD}
         ) :: Int where {DD, Q <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
@@ -33,7 +52,6 @@ Returns linear index for access to `f.data`
 """
 function LinearIndex(f :: MeshFunction{DD, Q, MT, AT}, x :: Vararg{Union{MeshPoint, <: AbstractValue}, DD}
     ) :: Int where {DD, Q <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
-
     return LinearIndices(size(f.data))[_mesh_indices(f, x...)...]
 end
 
@@ -45,7 +63,6 @@ Returns linear index for access to `f.data` under boundary conditions
 """
 function LinearIndex_bc(f :: MeshFunction{DD, Q, MT, AT}, x :: Vararg{Union{MeshPoint, <: AbstractValue}, DD}
     ) :: Int where {DD, Q <: Number, MT <: NTuple{DD, Mesh}, AT <: AbstractArray{Q, DD}}
-
     return LinearIndices(size(f.data))[_mesh_indices_bc(f, x...)...]
 end
 

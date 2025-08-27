@@ -1,3 +1,26 @@
+# ----------------------------------------------------------------------------- #
+# Mesh Point Types and Accessors
+# ----------------------------------------------------------------------------- #
+
+"""
+    Mesh Point Types
+
+Defines the abstract mesh point types and the main `MeshPoint` struct for representing a point in a mesh.
+
+Fields:
+* `index` : Index of the mesh point
+* `value` : Coordinates or value of the mesh point
+
+Examples:
+```julia
+# Construct a mesh point
+pt = MeshPoint(:myhash, 1, value)
+
+# Access index and value
+idx = index(pt)
+val = value(pt)
+```
+"""
 # abstract types
 #-------------------------------------------------------------------------------#
 

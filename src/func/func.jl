@@ -1,3 +1,32 @@
+# ----------------------------------------------------------------------------- #
+# MeshFunction Type and Accessors
+# ----------------------------------------------------------------------------- #
+
+"""
+    MeshFunction
+
+Main type representing a function defined on one or more meshes (grids).
+Stores the mesh objects and the associated multidimensional data array.
+
+Type parameters:
+* `DD` : Number of mesh dimensions
+* `Q`  : Data type (e.g., Float64, ComplexF64)
+* `MT` : Tuple of mesh types
+* `AT` : Array type for data storage
+
+Fields:
+* `meshes :: MT` : Tuple of mesh objects
+* `data   :: AT` : Multidimensional array of function values
+
+Example:
+```julia
+using MatsubaraFunctions
+mesh1 = MatsubaraMesh(...)
+mesh2 = BrillouinMesh(...)
+f = MeshFunction(mesh1, mesh2; data_t=ComplexF64)
+f[1,2] = 1.0 + 0.0im
+```
+"""
 # type def and accessors
 #-------------------------------------------------------------------------------#
 
