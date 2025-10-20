@@ -102,6 +102,15 @@ function reverse(m :: Mesh{MeshPoint{BrillouinPoint{N}}, BrillouinDomain{N, P}})
     return lin_idxs(m).reverse
 end
 
+"""
+    function volume_element(m :: Mesh{MeshPoint{BrillouinPoint{N}}, BrillouinDomain{N, P}}) :: Float64 where {N, P}
+
+Returns volume element of mesh
+"""
+function volume_element(m :: Mesh{MeshPoint{BrillouinPoint{N}}, BrillouinDomain{N, P}}) :: Float64 where {N, P}
+    return 1. / length(m)
+end
+
 # conversion from reciprocal to euclidean coordinates
 #-------------------------------------------------------------------------------#
 

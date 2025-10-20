@@ -33,6 +33,7 @@ module MatsubaraFunctions
     include("func/func.jl")
     include("boilerplate/boilerplate.jl")
     include("symmetries/symmetries.jl")
+    include("misc/integrate.jl")
     include("misc/mpi_helpers.jl")
     include("misc/pade.jl")
     include("misc/triqs_interface.jl")
