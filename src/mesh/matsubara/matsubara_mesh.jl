@@ -165,6 +165,15 @@ function Base.:values(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}, MatsubaraDoma
     return plain_value.(points(m))
 end
 
+"""
+    function volume_element(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}, MatsubaraDomain}) :: Float64 where {PT <: AbstractParticle}
+
+Returns volume element of mesh
+"""
+function volume_element(m :: Mesh{MeshPoint{MatsubaraFrequency{PT}}, MatsubaraDomain}) :: Float64 where {PT <: AbstractParticle}
+    return temperature(m)
+end
+
 # bounds checking
 #-------------------------------------------------------------------------------#
 

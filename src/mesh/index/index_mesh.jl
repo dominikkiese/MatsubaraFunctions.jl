@@ -70,6 +70,15 @@ function Base.:values(m :: Mesh{MeshPoint{Index}, IndexDomain}) :: Vector{Int}
     return plain_value.(points(m))
 end
 
+"""
+    function volume_element(m :: Mesh{MeshPoint{Index}, IndexDomain}) :: Float64
+
+Returns volume element of mesh
+"""
+function volume_element(m :: Mesh{MeshPoint{Index}, IndexDomain}) :: Float64
+    return 1.
+end
+
 # bounds checking
 #-------------------------------------------------------------------------------#
 
