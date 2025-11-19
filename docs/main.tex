@@ -1,0 +1,1282 @@
+% =========================================================================
+% SciPost LaTeX template
+% Version 1a (2016/06/14)
+%
+% Submissions to SciPost Journals should make use of this template.
+%
+% INSTRUCTIONS: simply look for the `TODO:' tokens and adapt your file.
+%
+% - please enable line numbers (package: lineno)
+% - you should run LaTeX twice in order for the line numbers to appear
+% =========================================================================
+
+\documentclass{SciPost}
+\usepackage{minted}
+\usepackage{bbold}
+\usepackage{graphicx}
+\usepackage{diagrams}
+\usepackage[square, sort&compress, numbers]{natbib}
+
+\usepackage[most]{tcolorbox}
+\newtcolorbox{fequation}[1][]{ams equation,size=small,#1}
+
+\usepackage{caption}
+    \captionsetup{labelfont = bf}
+    \captionsetup[figure]{font = footnotesize, skip = 5pt} 
+    \captionsetup[table]{font = footnotesize, skip = 5pt}
+
+\hypersetup{colorlinks = true, urlcolor = blue, linkcolor = blue, citecolor = blue}
+
+\newcommand{\cdag}{c^{\dagger}}
+\newcommand{\cnodag}{c^{\phantom{\dagger}}}
+\newcommand{\Gn}[1]{G^{(#1)}}
+\newcommand{\Gmat}{\boldsymbol{G}}
+\newcommand{\Sigmamat}{\boldsymbol{\Sigma}}
+\renewcommand{\i}{\mathrm{i}}
+\renewcommand{\Im}{\mathrm{Im}}
+\newcommand{\fcirc}{\mathbin{\vcenter{\hbox{\scalebox{0.65}{$\bullet$}}}}} 
+\newcommand{\boldI}{\mathbf{1}}
+
+\DeclareUnicodeCharacter{03B7}{$\eta$}
+\DeclareUnicodeCharacter{03BB}{$\lambda$}
+\DeclareUnicodeCharacter{2212}{$-$}
+\DeclareUnicodeCharacter{03A9}{$\Omega$}
+\DeclareUnicodeCharacter{03BD}{$\nu$}
+\DeclareUnicodeCharacter{2248}{$\approx$}
+
+\begin{document}
+
+\begin{center}{\Large \textbf{
+\texttt{MatsubaraFunctions.jl}: An equilibrium Green's function library in the Julia programming language}}\end{center}
+
+\begin{center}
+    Dominik Kiese\textsuperscript{1*}, 
+    Anxiang Ge\textsuperscript{2}, 
+    Nepomuk Ritz\textsuperscript{2},
+    Jan von Delft\textsuperscript{2},
+    Nils Wentzell\textsuperscript{1}
+\end{center}
+ 
+\begin{center}
+    {\bf 1} Center for Computational Quantum Physics, Flatiron Institute, 162 5th Avenue, New York, NY 10010, USA
+    \\
+    {\bf 2} Arnold Sommerfeld Center for Theoretical Physics, Center for NanoScience, and Munich Center for Quantum Science and Technology, Ludwig-Maximilians-Universit\"at M\"unchen, 80333 Munich, Germany
+    \\
+    *dkiese@flatironinstitute.org
+\end{center}
+
+\begin{center}
+\today
+\end{center}
+
+% for convenience during refereeing: line numbers
+% \linenumbers
+
+\section*{Abstract}
+{\bf The Matsubara Green's function formalism stands as a powerful technique for computing the thermodynamic characteristics of interacting quantum many-particle systems at finite temperatures. In this manuscript, our focus centers on introducing \texttt{MatsubaraFunctions.jl}, a Julia library that implements data structures for generalized $n$-point Green's functions on Matsubara frequency grids. The package's architecture prioritizes user-friendliness without compromising the development of efficient solvers for quantum field theories in equilibrium. Following a comprehensive introduction of the fundamental types, we delve into a thorough examination of key facets of the interface. This encompasses avenues for accessing Green's functions, techniques for extrapolation and interpolation, as well as the incorporation of symmetries and a variety of parallelization strategies. Examples of increasing complexity serve to demonstrate the practical utility of the library, supplemented by discussions on strategies for sidestepping impediments to optimal performance.}
+
+\vspace{10pt}
+\noindent\rule{\textwidth}{1pt}
+
+{
+  \hypersetup{linkcolor=black}
+  \tableofcontents\thispagestyle{fancy}
+}
+
+\noindent\rule{\textwidth}{1pt}
+\vspace{10pt}
+
+\section{Motivation}
+\label{sec:intro}
+
+In condensed matter physics, strongly correlated electrons emerge as paradigmatic examples of quantum many-body systems that defy a description in terms of simple band theory, due to their strong interactions with each other and with the atomic lattice. Their study has led to a cascade of discoveries, ranging from high-temperature superconductivity in copper oxides (\textsl{cuprates}) \cite{Bednorz1986PossibleHS, Keimer2015FromQM} to the Mott metal-insulator transition in various condensed matter systems such as, e.g., transition metal oxides or transition metal chalcogenides \cite{mott_metal-insulator_2004, hubbard_electron_1963, RevModPhys.70.1039} and the emergence of quantum spin liquids in frustrated magnets \cite{Savary2016QuantumSL, Knolle2018AFG}, to name but a few. 
+
+The study of correlated electron systems is equally exciting and challenging, not only because the construction of accurate theoretical models requires the consideration of many different degrees of freedom, such as spin, charge, and orbital degrees of freedom, as well as disorder and frustration, but also because of the scarcity of exactly solvable reference Hamiltonians. The single-band Hubbard model in more than one dimension, for example, has remained at the forefront of computational condensed matter physics for decades, although it in many respects can be regarded as the simplest incarnation of a realistic correlated electron system \cite{Qin2021TheHM, Scalapino2012ACT}. It is therefore not surprising that a plethora of different numerical methods have been developed to deal with these models \cite{Schafer2020TrackingTF}.
+
+However, no single algorithm is capable of accurately describing all aspects of these complex systems: each algorithm has its strengths and weaknesses, and the choice of algorithm usually depends on the specific problem under investigation. For example, some algorithms, such as \textsl{exact diagonalization} (ED) \cite{PhysRevB.42.6561, 10.1063/1.4823192, weisse2008exact} or the \textsl{density matrix renormalization group} (DMRG) \cite{PhysRevLett.69.2863, RevModPhys.77.259} are better suited for studying ground-state properties, while others (\textsl{quantum Monte Carlo} (QMC) simulations \cite{10.1063/1.1699114, doi:10.1126/science.231.4738.555, RevModPhys.73.33, becca_sorella_2017}, \textsl{functional renormalization group} (fRG) calculations \cite{WETTERICH199390, kopietz2010introduction, RevModPhys.84.299}, ...) perform better when one is interested in dynamic properties such as transport or response functions. 
+
+Another popular method, dynamical mean-field theory (DMFT) has been immensely successful; in particular it correctly predicts the Mott transition in the Hubbard model \cite{RevModPhys.68.13}. By approximating the electron self-energy to be local, it however disregards non-local correlation effects, leading to a violation of the Mermin-Wagner theorem \cite{PhysRevLett.17.1307, PhysRev.158.383} as well as a failure to predict the pseudo-gap in the Hubbard model \cite{Schafer2020TrackingTF}. Non-local (e.g. cluster \cite{RevModPhys.77.1027, RevModPhys.78.865, 10.1063/1.2199446, PhysRevB.62.R9283} or diagrammatic \cite{RevModPhys.90.025003}) extensions of DMFT improve on that front, but are computationally much more expensive. Ultimately, the choice of algorithm is guided by the computational resources available and the trade-off between accuracy and efficiency, as well as by physical insights into which approximations may be justified more than others.
+
+A common motif of many of these algorithms is that they rely on the computation of $n$-particle \textsl{Green's functions}, where usually $n = 1, 2$. Roughly speaking, these functions describe correlations within the physical system of interest, such as its response to an external perturbation. In thermal equilibrium, Green's functions are usually defined as imaginary-time-ordered correlation functions, which allows the use of techniques and concepts from statistical mechanics, such as the partition function and free energy. In Fourier space, the corresponding frequencies take on discrete and complex values. This \textsl{Matsubara} formalism is widely used to study strongly correlated electron systems, where it provides a powerful tool for calculating thermodynamic quantities, such as the specific heat and magnetic susceptibility, as well as dynamical properties, such as the electron self-energy and optical conductivity \cite{10.1143/PTP.14.351, doi:10.1143/JPSJ.12.570}.
+
+In this manuscript, we present \texttt{MatsubaraFunctions.jl}, a software package written in Julia \cite{bezanson2017julia} that implements containers for Green's functions in thermal equilibrium. More specifically, it provides a convenient interface for quickly prototyping algorithms involving multivariable Green's functions of the form $G_{i_1 ... i_n}(\omega_1, ..., \omega_m)$, with lattice/orbital indices $i_k$ ($k = 1, ..., n$) and Matsubara frequencies $\omega_l$ ($l = 1, ..., m$). In an attempt to mitigate monilithic code design and superfluous code reproduction, our goal is to promote a common interface between algorithms where these types of functions make up the basic building blocks. We implement this interface in Julia, since some more recently developed methods, such as the pseudofermion  \cite{PhysRevB.81.144410, PhysRevB.83.024402, PhysRevB.84.014417, PhysRevB.84.100406, thoenniss2020multiloop, PhysRevResearch.4.023185, ritter_benchmark_2022, PhysRevResearch.5.L012025} and pseudo-Majorana fRG \cite{PhysRevB.103.104431, 10.21468/SciPostPhys.12.5.156, sbierski2023magnetism, PhysRevLett.130.196601}, seem to have been implemented in Julia as the preferred programming language. In the spirit of similar software efforts, such as the \texttt{TRIQS} library for C++ \cite{Parcollet_2015}, this package therefore aims to provide a common foundation for these and related codes in Julia that is fast enough to facilitate large-scale computations on high-performance computing architectures \cite{Rohe_2016}, while remaining flexible and easy to use. 
+
+\section{Equilibrium Green's functions}
+\label{sec:gf}
+
+In this section, we give a brief introduction to equilibrium Green's functions and their properties. 
+In its most general form, an imaginary time, $n$-particle Green's function $\Gn{n}$ is defined as the correlator \cite{rohringer2013}
+%
+\begin{linenomath}
+    \begin{align}
+        \Gn{n}_{i_1 ... i_{2n}}(\tau_1, ..., \tau_{2n}) = \langle \hat{T} \cdag_{i_1}(\tau_1) \cnodag_{i_2}(\tau_2) ... \cdag_{i_{2n - 1}}(\tau_{2n - 1}) \cnodag_{i_{2n}}(\tau_{2n}) \rangle \,,
+        \label{eq:gf_def}
+    \end{align}
+\end{linenomath}
+%
+where $\hat{T}$ is the imaginary-time-ordering operator and $\langle \hat{\mathcal{O}} \rangle = \tfrac{1}{Z} \mathrm{Tr}(e^{-\beta \hat{\mathcal{H}}} \hat{\mathcal{O}})$ denotes the thermal expectation value of an operator $\hat{\mathcal{O}}$ with respect to the Hamiltonian $\hat{\mathcal{H}}$ at temperature $T = 1 / \beta$. Note that natural units are used throughout, in particular we set $k_B\equiv 1$. Here, $c^{(\dagger)}$ are fermionic or bosonic creation and annihilation operators and $Z = \mathrm{Tr}(e^{-\beta \hat{\mathcal{H}}})$ is the partition function. The indices $i_k$ represent additional degrees of freedom such as lattice site, spin and orbital index. In order for the right-hand side in Eq.~\eqref{eq:gf_def} to be well defined, it is necessary to restrict the $\tau$ arguments to an interval of length $\beta$, as can be seen, for example, from a spectral (\textsl{Lehmann}) representation of the expectation value \cite{rohringer2013}. Furthermore, the cyclicity of the trace implies that the field variables are anti-periodic in $\beta$ for fermions, or periodic in $\beta$ for bosons, respectively. This allows us to define their Fourier series expansion
+%
+\begin{linenomath}
+    \begin{align}
+        c_{i}(\tau) &= \tfrac{1}{\beta} \sum_{\nu_k} c_{i, k}\, e^{-\mathrm{i}\nu_k\tau} & \bar{c}_{i}(\tau) &= \tfrac{1}{\beta} \sum_{\nu_k} \bar{c}_{i, k}\, e^{\mathrm{i}\nu_k\tau} \\
+        c_{i, k} & = \int_0^\beta d\tau\, c_{i}(\tau)\, e^{\mathrm{i}\nu_k\tau} & \bar{c}_{i, k} & = \int_0^\beta d\tau\, \bar{c}_{i}(\tau)\, e^{-\mathrm{i}\nu_k\tau}
+    \end{align}
+\end{linenomath}
+%
+where $\nu_k = \frac{\pi}{\beta}
+\begin{cases}
+     2k + 1  \\
+     2k
+\end{cases}$, with $k \in \mathbb{Z}$ are the fermionic or bosonic Matsubara frequencies\footnote{ This way, $e^{i \beta \nu_k} = -1$ for fermions and $e^{i \beta \nu_k} = +1$ for bosons such that anti-periodicity or periodicity, respectively, of $c_{i}(\tau)$ are ensured.}. These definitions carry over to the $n$-particle Green's function $G^{(n)}$, giving
+%
+\begin{linenomath}
+    \begin{align}
+        \Gn{n}_{i_1 ... i_{2n}}(\tau_1, ..., \tau_{2n}) &= \tfrac{1}{\beta} \sum_{\nu_1} e^{i\nu_1 \tau_1} ... \tfrac{1}{\beta} \sum_{\nu_{2n}} e^{-i \nu_{2n} \tau_{2n}} \Gn{n}_{i_1 ... i_{2n}}(\nu_1, ..., \nu_{2n}) \\
+        \Gn{n}_{i_1 ... i_{2n}}(\nu_1, ..., \nu_{2n}) &= \int_{0}^{\beta} d\tau_1\, e^{-i\nu_1 \tau_1} ... \int_{0}^{\beta} d\tau_{2n}\, e^{i \nu_{2n} \tau_{2n}}\Gn{n}_{i_1 ... i_{2n}}(\tau_1, ..., \tau_{2n}) \,.
+        \label{eq:gf_ft}
+    \end{align}
+\end{linenomath}
+
+\section{Code structure}
+\label{sec:structure}
+
+\texttt{MatsubaraFunctions.jl} is an open-source project distributed via Github \cite{matsubara_functions} and licensed under the MIT license. Using Julia's built-in package manager, the code can be easily installed using 
+%
+\begin{minted}[breaklines,escapeinside=||,mathescape=true, linenos, numbersep=3pt, gobble=2, frame=lines, fontsize=\scriptsize, framesep=2mm]{julia}
+$ julia
+julia> ]
+pkg> add https://github.com/dominikkiese/MatsubaraFunctions.jl
+\end{minted}
+%
+from the terminal. Here, \mintinline{julia}{]} activates the package manager from the Julia REPL, where \mintinline{julia}{add} downloads the code and its dependencies. The following is an overview of the functionality of the package, starting with a discussion of its basic types and how to use them. \textcolor{blue}{A full documentation of the package is available from the github repository.}
+
+\subsection{Basic types}
+\label{subsec:basics}
+
+The package evolves around three concrete Julia types: \texttt{MatsubaraFrequency}, \texttt{MatsubaraGrid} and \texttt{MatsubaraFunction}. A Matsubara frequency can be either fermionic or bosonic, that is, $\nu_k = \tfrac{\pi}{\beta} (2 k + 1)$ or $\nu_k = \tfrac{2\pi}{\beta} k$. For a given temperature $T = 1 / \beta$ and Matsubara index $k$ they can be constructed using
+%
+\begin{minted}[breaklines,escapeinside=||,mathescape=true, linenos, numbersep=3pt, gobble=2, frame=lines, fontsize=\scriptsize, framesep=2mm]{julia}
+v = MatsubaraFrequency(T, k, Fermion)
+w = MatsubaraFrequency(T, k, Boson) 
+\end{minted}
+%
+Basic arithmetic operations on these objects include addition, subtraction and sign reversal, each of which creates a new \texttt{MatsubaraFrequency} instance.
+%
+\begin{minted}[breaklines,escapeinside=||,mathescape=true, linenos, numbersep=3pt, gobble=2, frame=lines, fontsize=\scriptsize, framesep=2mm]{julia}
+v1 = v + v # type(v1) = :Boson
+v2 = w - v # type(v2) = :Fermion
+v3 = -v    # type(v3) = :Fermion 
+\end{minted}
+%
+\texttt{MatsubaraGrid}s are implemented as sorted collections of uniformly (and symmetrically) spaced Matsubara frequencies. To construct them, users need only specify the temperature, number of positive frequencies, and the particle type.
+%
+\begin{minted}[breaklines,escapeinside=||,mathescape=true, linenos, numbersep=3pt, gobble=2, frame=lines, fontsize=\scriptsize, framesep=2mm]{julia}
+T  = 1.0
+N  = 128
+g1 = MatsubaraGrid(T, N, Fermion) # total no. frequencies is 2N
+g2 = MatsubaraGrid(T, N, Boson)   # total no. frequencies is 2N - 1
+\end{minted}
+%
+Note that the bosonic Matsubara frequency at zero is included in the positive frequency count. Grid instances are iterable
+%
+\begin{minted}[breaklines,escapeinside=||,mathescape=true, linenos, numbersep=3pt, gobble=2, frame=lines, fontsize=\scriptsize, framesep=2mm]{julia}
+for v in g1
+  println(value(v)) 
+  println(index(v))
+end
+\end{minted}
+%
+and can be evaluated using either a \texttt{MatsubaraFrequency} or \texttt{Float64} as input.
+%
+\begin{minted}[breaklines,escapeinside=||,mathescape=true, linenos, numbersep=3pt, gobble=2, frame=lines, fontsize=\scriptsize, framesep=2mm]{julia}
+idx = rand(eachindex(g1))
+@assert g1(g1[idx]) == idx 
+@assert g1(value(g1[idx])) == idx 
+\end{minted}
+%
+Here, we first select a random linear index \mintinline{julia}{idx} and then evaluate \mintinline{julia}{g1} using either the corresponding Matsubara frequency \mintinline{julia}{g1[idx]} or its value. In the former case, \mintinline{julia}{g1(g1[idx])} returns the corresponding linear index of the frequency in the grid, whereas \mintinline{julia}{g1(value(g1[idx]))} finds the linear index of the closest mesh point\footnote{ In both cases the argument must be in bounds, otherwise an exception is thrown.}. The package supports storage of grid instances in H5 file format.
+%
+\begin{minted}[breaklines,escapeinside=||,mathescape=true, linenos, numbersep=3pt, gobble=2, frame=lines, fontsize=\scriptsize, framesep=2mm]{julia}
+using HDF5
+file = h5open("save_g1.h5", "w")
+save_matsubara_grid!(file, "g1", g1) 
+g1p = load_matsubara_grid(file, "g1")
+close(file)
+\end{minted}
+%
+Finally, a \texttt{MatsubaraFunction} is a collection of Matsubara grids with an associated tensor structure $G_{i_1 ... i_n}$ for each point $(\nu_1, ..., \nu_m)$ in the Cartesian product of the grids. The indices $i_k$ could, for example, represent lattice sites or orbitals. To construct a \texttt{MatsubaraFunction} users need to provide a tuple of \texttt{MatsubaraGrid} objects, as well as the dimension of each $i_k$.
+%
+\begin{minted}[breaklines,escapeinside=||,mathescape=true, linenos, numbersep=3pt, gobble=2, frame=lines, fontsize=\scriptsize, framesep=2mm]{julia}
+T = 1.0
+N = 128
+g = MatsubaraGrid(T, N, Fermion)
+
+# 1D grid, rank 1 tensor with index dimension 1 (scalar valued)
+f1_complex = MatsubaraFunction(g, 1) 
+f1_real    = MatsubaraFunction(g, 1, Float64) 
+
+# 1D grid, rank 1 tensor with index dimension 5 (vector valued)
+f2_complex = MatsubaraFunction(g, 5) 
+f2_real    = MatsubaraFunction(g, 5, Float64) 
+
+# 1D grid, rank 2 tensor with index dimension 5 (matrix valued)
+f3_complex = MatsubaraFunction(g, (5, 5)) 
+f3_real    = MatsubaraFunction(g, (5, 5), Float64) 
+
+# 2D grid, rank 2 tensor with index dimension 5 (matrix valued)
+f4_complex = MatsubaraFunction((g, g), (5, 5)) 
+f4_real    = MatsubaraFunction((g, g), (5, 5), Float64)
+\end{minted}
+%
+In addition, a floating point type can be passed to the constructor, which fixes the data type for the underlying multidimensional array\footnote{ By default, \texttt{ComplexF64} is used.}. Similar to the grids, \texttt{MatsubaraFunction}s can be conveniently stored in H5 format.
+%
+\begin{minted}[breaklines,escapeinside=||,mathescape=true, linenos, numbersep=3pt, gobble=2, frame=lines, fontsize=\scriptsize, framesep=2mm]{julia}
+using HDF5
+file = h5open("save_f1_complex.h5", "w")
+save_matsubara_function!(file, "f1_complex", f1_complex)
+f1p = load_matsubara_function(file, "f1_complex")
+close(file)
+\end{minted}
+
+\subsection{Accessing and assigning Green's function data}
+\label{subsec:gfdata}
+
+The library provides two possible ways to access the data of a \texttt{MatsubaraFunction}, using either the bracket (\texttt{[]}) or parenthesis (\texttt{()}) operator. While the notion of the former is that of a \texttt{Base.getindex}, the latter evaluates the \texttt{MatsubaraFunction} for the given arguments in such a way that its behavior is well-defined even for out-of-bounds access. The bracket can be used with a set of \texttt{MatsubaraFrequency} instances and tensor indices $i_k$, as well as with Cartesian indices for the underlying data array. It returns the value of the data exactly for the given input arguments, throwing an exception if they are not in bounds. In addition, the bracket can be used to assign values to a \texttt{MatsubaraFunction} as shown in the following example.
+%
+\begin{minted}[breaklines,escapeinside=||,mathescape=true, linenos, numbersep=3pt, gobble=2, frame=lines, fontsize=\scriptsize, framesep=2mm]{julia}
+y = 0.5
+T = 1.0
+N = 128
+g = MatsubaraGrid(T, N, Fermion)
+f = MatsubaraFunction(g, 1)
+
+for v in g
+    # if there is only one index of dimension 1, it does not need 
+    # to be specified, i.e. f[v] can be used instead of f[v, 1] 
+    # (also works for the '()' operator)
+    f[v] = 1.0 / (im * value(v) - y)
+end 
+
+# access MatsubaraFunction data
+v = g[rand(eachindex(g))]
+println(f[v]) # fast data access, throws error if v is out of bounds
+\end{minted}
+%
+When $\texttt{f}$ is evaluated using Matsubara frequencies within its grid, it returns the same result as if a bracket was used. However, if the frequencies are replaced by $\texttt{Float64}$ values, a multilinear interpolation within the Cartesian product of the grids is performed. If the frequency / float arguments are out of bounds, \texttt{MatsubaraFunction}s falls back to extrapolation. The extrapolation algorithm distinguishes between one-dimensional and multidimensional frequency grids. In the 1D case, an algebraic decay is fitted to the high-frequency tail of the \texttt{MatsubaraFunction}, which is then evaluated for the given arguments. The functional form of the asymptote is currently restricted to $f(\nu) = \alpha_0 + \tfrac{\alpha_1}{\nu} + \tfrac{\alpha_2}{\nu^2}$ (with $\alpha_0, \alpha_1, \alpha_2 \in \mathbb{C}$)\footnote{ Note that $\alpha_0$ has to be provided by the user.}, which is motivated by the linear or quadratic decay that physical Green's functions typically exhibit. For multidimensional grids, a constant extrapolation is performed from the boundary. Different modes of evaluation are illustrated in an example below.
+%
+\begin{minted}[breaklines,escapeinside=||,mathescape=true, linenos, numbersep=3pt, gobble=2, frame=lines, fontsize=\scriptsize, framesep=2mm]{julia}
+y = 0.5
+T = 1.0
+N = 128
+g = MatsubaraGrid(T, N, Fermion)
+f = MatsubaraFunction(g, 1)
+
+for v in g
+    f[v] = 1.0 / (im * value(v) - y)
+end 
+
+# access MatsubaraFunction data
+v = g[rand(eachindex(g))]
+println(f(v))        # fast data access, defined even if v is out of bounds
+println(f(value(v))) # slow data access, uses interpolation
+
+# polynomial extrapolation in 1D, constant term set to 0 (the default)
+vp = MatsubaraFrequency(T, 256, Fermion)
+println(f(vp; extrp = ComplexF64(0.0))) 
+\end{minted}
+
+\subsection{Extrapolation of Matsubara sums}
+\label{subsec:matsubarasums}
+
+A common task when working with equilibrium Green's functions is the calculation of Matsubara sums $\frac{1}{\beta} \sum_{\nu} f(\nu)$, where we have omitted additional indices of $f$ for brevity. However, typical Green's functions decay rather slowly (algebraically) for large frequencies, which presents a technical difficulty for the accurate numerical calculation of their Matsubara sums: they may require some regulator function to control the convergence\footnote{For example, a factor $e^{i\nu 0^{\pm}}$ might be necessary in cases where $f$ decays linearly in $\nu$.} (difficult to implement) and a large number of frequencies to sum over (expensive). In contrast, there exist analytical results for simple functional forms of $f$ even in cases where a straightforward numerical summation fails. \texttt{MatsubaraFunctions} provides the \texttt{sum\textunderscore me} function, which can be used to calculate sums over complex-valued $f(\nu)$, if $f(z)$ (with $z \in \mathbb{C}$) decays to zero for large $|z|$ and is representable by a Laurent series in an elongated annulus about the imaginary axis (see App.~\ref{app:extrapolation} for details). An example for its use is shown below. Note that this feature is experimental and its API as well as the underlying algorithm might change in future versions.
+%
+\begin{minted}[breaklines,escapeinside=||,mathescape=true, linenos, numbersep=3pt, gobble=2, frame=lines, fontsize=\scriptsize, framesep=2mm]{julia}
+y = 0.5
+T = 1.0
+N = 128
+g = MatsubaraGrid(T, N, Fermion)
+f = MatsubaraFunction(g, 1)
+
+for v in g
+    f[v] = 1.0 / (im * value(v) - y)
+end 
+
+# evaluate the series and compare to analytic result
+rho(x, T) = 1.0 / (exp(x / T) + 1.0)
+println(abs(sum_me(f) - (rho(+y, T) - 1.0)))
+\end{minted}
+
+\subsection{Pad\'e approximants}
+\label{subsec:pade}
+
+Although the Matsubara formalism provides a powerful tool for the calculation of thermodynamic quantities, it lacks the ability to directly determine, for example, dynamic response functions or transport properties associated with real-frequency Green's functions, which facilitate comparison with experiments. There have been recent advances in the use of real-frequency quantum field theory \cite{jakobs2010, schimmel2017, weidinger2021, ge2023}, yet the calculation of dynamic real-frequency Green's functions remains a technically challenging endeavor. In many applications, therefore, one resorts to calculations on the imaginary axis and then performs an analytic continuation in the complex upper half-plane to determine observables on the real-frequency axis. The analytic continuation problem is ill-conditioned, because there may be significantly different real-frequency functions describing the same set of complex-frequency data within finite precision. Nevertheless, there has been remarkable progress in the development of numerical techniques such as the maximum entropy method \cite{jarell1996, bergeron2016, goulko2017} or stochastic analytical continuation \cite{beach2004, sandvik2016}. These methods are particularly useful when dealing with stochastic noise induced by Monte Carlo random sampling. A corresponding implementation in Julia is, for example, provided by the \texttt{ACFlow} toolkit \cite{huang2022}. On the other hand, if the input data are known with a high degree of accuracy (as in the fRG and related approaches), analytic continuation using Pad\'e approximants is a valid alternative. Here, one first fits a rational function to the complex frequency data which is then used as a proxy for the Green's function in the upper half-plane. If the function of interest has simple poles this procedure can already provide fairly accurate results, see e.g.~Ref.~\cite{karrasch2008}. In \texttt{MatsubaraFunctions} we implement the fast algorithm described in the appendix of Ref.~\cite{vidberg1977}, which computes an $N$-point Pad\'e approximant for a given set of data points $\{(x_i, y_i) | i = 1, ..., N \}$. A simple example of its use is shown below. Note that it might be necessary to use higher precision floating-point arithmetic to cope with rounding errors in the continued fraction representation used for calculating the Pad\'e approximant.
+%
+\begin{minted}[breaklines,escapeinside=||,mathescape=true, linenos, numbersep=3pt, gobble=2, frame=lines, fontsize=\scriptsize, framesep=2mm]{julia}
+# some dummy function
+as   = ntuple(x -> rand(BigFloat), 4)
+f(x) = as[1] / (1.0 + as[2] * x / (1.0  + as[3] * x / (1.0 + as[4] * x)))
+
+# generate sample and compute Pade approximant
+xdata = Vector{BigFloat}(0.01 : 0.01 : 1.0)
+ydata = f.(xdata)
+PA    = PadeApprox(xdata, ydata)
+
+@assert length(coeffs(PA)) == 5
+@assert PA.(xdata) ≈ ydata
+\end{minted}
+
+\subsection{Automated symmetry reduction}
+\label{subsec:symmetry}
+
+In many cases, the numerical effort of computing functions in the Matsubara domain can be drastically reduced by the use of symmetries. For one-particle fermionic Green's functions $G_{i_1 i_2}(\nu)$, for example, complex conjugation implies that $G_{i_1 i_2}(\nu) = G^{*}_{i_2 i_1}(-\nu)$, relating positive and negative Matsubara frequencies. Our package provides an automated way to compute the set of irreducible \texttt{MatsubaraFunction} components\footnote{ These are all elements of the underlying data array which cannot be mapped to each other by symmetries.}, given a list of one or more symmetries as is illustrated in the following example
+%
+\begin{minted}[breaklines,escapeinside=||,mathescape=true, linenos, numbersep=3pt, gobble=2, frame=lines, fontsize=\scriptsize, framesep=2mm]{julia}
+y = 0.5
+T = 1.0
+N = 128
+g = MatsubaraGrid(T, N, Fermion)
+f = MatsubaraFunction(g, 1)
+
+for v in g
+    f[v] = 1.0 / (im * value(v) - y)
+end 
+
+# complex conjugation acting on Green's function
+function conj(
+    w :: Tuple{MatsubaraFrequency},
+    x :: Tuple{Int64}
+    ) :: Tuple{Tuple{MatsubaraFrequency}, Tuple{Int64}, MatsubaraOperation}
+
+    return (-w[1],), (x[1],), MatsubaraOperation(sgn = false, con = true)
+end 
+
+# compute the symmetry group 
+SG = MatsubaraSymmetryGroup([MatsubaraSymmetry{1, 1}(conj)], f)
+
+# obtain another Green's function by symmetrization
+function init(
+    w :: Tuple{MatsubaraFrequency},
+    x :: Tuple{Int64}
+    ) :: ComplexF64
+
+    return f[w, x...]
+end 
+
+InitFunc = MatsubaraInitFunction{1, 1, ComplexF64}(init)
+h        = MatsubaraFunction(g, 1)
+SG(h, InitFunc)
+@assert h == f
+\end{minted}
+%
+Here, one first constructs an instance of type \texttt{MatsubaraSymmetry} by passing a function that maps the input arguments of \texttt{f} to new arguments extended by a \texttt{MatsubaraOperation}. The latter specifies whether the evaluation of \texttt{f} on the mapped arguments should be provided with an additional sign or complex conjugation. Next, the irreducible array elements are computed and an object of type \texttt{MatsubaraSymmetryGroup}\footnote{ A \texttt{MatsubaraSymmetryGroup} contains all groups of symmetry equivalent elements and the operations needed to map them to each other.} is constructed from a vector of symmetries provided by the user. Here, the length of the vector is one (we only considered complex conjugation), but the generalization to multiple symmetries is straightforward (see Ref.~\cite{mbe_solver} for more examples).~A \texttt{MatsubaraSymmetryGroup} can be called with a \texttt{MatsubaraFunction} and an initialization function\footnote{ A \texttt{MatsubaraInitFunction} takes a tuple of Matsubara frequencies and tensor indices and returns a floating point type.}.~This call will evaluate the \texttt{MatsubaraInitFunction} for all irreducible elements of the symmetry group of \texttt{f}, writing the result into the data array of \texttt{h}. Finally, all symmetry equivalent elements are determined without additional calls to the (costly) initialization function. Symmetry groups can be stored in H5 format as shown below.
+%
+\begin{minted}[breaklines,escapeinside=||,mathescape=true, linenos, numbersep=3pt, gobble=2, frame=lines, fontsize=\scriptsize, framesep=2mm]{julia}
+using HDF5
+file = h5open("save_SG.h5", "w")
+save_matsubara_symmetry_group!(file, "SG", SG)
+SGp = load_matsubara_symmetry_group(file, "SG")
+close(file)
+\end{minted}
+    
+\subsection{Running in parallel}
+\label{subsec:mpi}
+
+To simplify code parallelization when using \texttt{MatsubaraFunctions.jl}, the package has some preliminary MPI support based on the \texttt{MPI.jl} wrapper and illustrated in an example below.
+%
+\begin{minted}[breaklines,escapeinside=||,mathescape=true, linenos, numbersep=3pt, gobble=2, frame=lines, fontsize=\scriptsize, framesep=2mm]{julia}
+using MatsubaraFunctions 
+using MPI 
+
+MPI.Init()
+mpi_info()
+mpi_println("I print on main.")
+ismain = mpi_ismain() # ismain = true if rank is 0
+
+y = 0.5
+T = 1.0
+N = 128
+g = MatsubaraGrid(T, N, Fermion)
+f = MatsubaraFunction(g, 1)
+
+for v in g
+    f[v] = 1.0 / (im * value(v) - y)
+end 
+
+# simple loop parallelization for UnitRange
+for vidx in mpi_split(1 : length(g))
+  println("My rank is $(mpi_rank()): $(vidx)")
+end
+
+# simple (+) allreduce
+mpi_allreduce!(f)
+\end{minted}
+%
+Calls of \texttt{MatsubaraSymmetryGroup} with an initialization function have an opt-in switch ($\texttt{mode}$) to enable parallel evaluation of the \texttt{MatsubaraInitFunction} (by default \mintinline{julia}{mode = :serial}). If \mintinline{julia}{mode = :polyester}, shared memory multithreading as provided by the \texttt{Polyester} Julia package \cite{polyester} is used\footnote{Here, the \texttt{batchsize} argument can be used to control the number of threads involved.}. This mode is recommended for initialization functions that are cheap to evaluate and are unlikely to benefit from \texttt{Threads.@threads} due to the overhead from invoking the Julia scheduler. For more expensive functions, users can choose between \mintinline{julia}{mode = :threads}, which simply uses \texttt{Threads.@threads}, and \mintinline{julia}{mode = :hybrid}. The latter combines both \texttt{MPI} and native Julia threads and can therefore be used to run calculations on multiple compute nodes.
+
+\subsection{Performance note}
+
+By default, types in \texttt{MatsubaraFunctions.jl} perform intrinsic consistency checks when they are invoked. For example, when computing the linear index of a \texttt{MatsubaraFrequency} in a \texttt{MatsubaraGrid}, we make sure that the particle types and temperatures match between the two. While this ensures a robust \textsl{modus operandi}, it unfortunately impacts performance, especially for larger projects. To deal with this issue, we have implemented a simple switch, \texttt{MatsubaraFunctions.sanity\_checks()}, which, when turned off\footnote{ \texttt{MatsubaraFunctions.sanity\_checks() = false}} disables \texttt{@assert} expressions. It is not recommended to touch this switch until an application has been thoroughly tested, as it leads to wrong results on improper use. For the MBE solver discussed in Sec.~\ref{subsec:impl}, we found runtime improvements of up to $10\%$ when the consistency checks were disabled.
+
+\section{Examples}
+\label{sec:example}
+
+\subsection{Hartree-Fock calculation in the atomic limit}
+\label{subsec:HF}
+
+As a first example of the use of \texttt{MatsubaraFunctions.jl} we consider the calculation of the one-particle Green's function $G$ using the Hartree-Fock (HF) approximation in the atomic limit of the Hubbard model, i.e., we consider the Hamiltonian
+%
+\begin{linenomath}
+    \begin{align}
+        \hat{\mathcal{H}} = U \hat{n}_{\uparrow} \hat{n}_{\downarrow} - \mu (\hat{n}_{\uparrow} + \hat{n}_{\downarrow}) \,,
+    \end{align}
+\end{linenomath}
+%
+where $U$ denotes the Hubbard interaction and $\hat{n}_\sigma$ are the density operators for spin up and down. In the following, we fix the chemical potential to $\mu = 0$, i.e., we consider the system in the strongly hole-doped regime. 
+
+The Hartree-Fock theory \cite{hartree_1928, fock_naherungsmethode_1930, PhysRev.81.385} is a widespread method in condensed matter physics used to describe, e.g., electronic structures and properties of materials \cite{BAERENDS197341, NEESE200998}. It is a mean-field approximation as it treats the electrons in a solid as independent particles being subject to an effective background field due to all the other particles.
+
+In an interacting many-body system, the bare Green's function $\Gmat_0$ has to be dressed by self-energy insertions, here denoted by $\Sigmamat$, in order to obtain $\Gmat$, which is summarized in the Dyson equation 
+%
+\begin{linenomath}
+    \begin{align}
+        \Gmat = \Gmat_0 [\mathbb{1} - \Sigmamat \ \Gmat_0]^{-1} = \Gmat_0 + \Gmat_0 \Sigmamat \Gmat_0 + \Gmat_0 \Sigmamat \Gmat_0 \Sigmamat \Gmat_0 + ... \,,
+    \end{align}
+\end{linenomath}
+%
+where $\Gmat_0$, $\Gmat$ and $\Sigmamat$ in general are matrix-valued. In HF theory one only considers the lowest order term contributing to the self-energy, which is linear in the interaction potential. For the spin-rotation invariant single-site system at hand, $\Sigmamat = \Sigma_{\sigma} = \Sigma$ and the HF approximation for the self-energy reads
+%
+\begin{linenomath}
+    \begin{align}
+        \Sigma(\nu) \approx \tfrac{U}{\beta} \sum_{\nu'} G(\nu') e^{i\nu'0^{+}} = U n \,,
+        \label{eq:Sigma_HF}
+    \end{align}
+\end{linenomath}
+%
+where $n$ is the density per spin. The Dyson equation then takes the simple form
+%
+\begin{linenomath}
+    \begin{align}
+        G(\nu) \approx [G^{-1}_0(\nu) - U n]^{-1} \,.
+        \label{eq:dyson_HF}
+    \end{align}
+\end{linenomath}
+%
+Below, we demonstrate how to set up and solve Eqs.~\eqref{eq:Sigma_HF} \& \eqref{eq:dyson_HF} self-consistently for the density $n$ using Anderson acceleration \cite{anderson_iterative_1965, walker_anderson_2011} as provided by the \texttt{NLsolve} Julia package\cite{nlsolve} in conjunction with \texttt{MatsubaraFunctions.jl}.
+%
+\begin{minted}[breaklines,escapeinside=||,mathescape=true, linenos, numbersep=3pt, gobble=2, frame=lines, fontsize=\scriptsize, framesep=2mm]{julia}
+using MatsubaraFunctions
+using NLsolve
+
+const T = 0.3  # temperature
+const U = 0.9  # interaction
+const N = 1000 # no. frequencies
+
+# initialize Green's function container
+g = MatsubaraGrid(T, N, Fermion)
+G = MatsubaraFunction(g, 1)
+
+for v in g 
+    G[v] = 1.0 / (im * value(v))
+end
+
+# set up fixed-point equation for NLsolve 
+function fixed_point!(F, n, G)
+
+    # calculate G
+    for v in grids(G, 1)
+        G[v] = 1.0 / (im * value(v) - U * n[1])
+    end
+
+    # calculate the residue
+    F[1] = density(G) - n[1]
+    
+    return nothing
+end
+
+res = nlsolve((F, n) -> fixed_point!(F, n, G), [density(G)], method = :anderson)
+\end{minted}
+%
+Here, we first build the \texttt{MatsubaraFunction} container for $G$ and initialize it to $G_0(\nu) = \tfrac{1}{i\nu}$. This container is then passed to the fixed-point equation using an anonymous function, which mutates $G$ on each call to incorporate the latest estimate of $n$\footnote{ Here, we make use of the \texttt{density} function, which calculates the Fourier transform $f(\tau \to 0^{-})$ given a complex-valued input function $f(\nu)$.}. Fig.~\ref{fig:HF_calc} shows exemplary results for the full Green's function and HF density. As can be seen from Fig.~\ref{fig:HF_calc}(b) the latter deviates from its bare value $n_0 = \frac{1}{2}$ when the temperature is decreased and approaches $n = 0$ for $T \to 0$, as expected.
+%
+\begin{figure}
+    \centering
+    \includegraphics[width = \columnwidth]{figures/figure1.pdf}
+    \caption{\textbf{Exemplary Hartree-Fock results.} (a) Comparison of the bare Green's function $G_0$ with the HF result $G_\text{HF}$ for $T / U = \tfrac{1}{3}$. (b) Hartree-Fock density $n$ as a function of temperature.}
+    \label{fig:HF_calc}
+\end{figure}
+
+\subsection{$GW$ calculation in the atomic limit}
+\label{subsec:GW}
+
+In this section, we extend our Hartree-Fock code to include \textsl{bubble} corrections\footnote{ That is, Feynman diagrams formed by a closed loop of two single-particle Green's functions.} in the calculation of the self-energy. The resulting equations, commonly known as the $GW$ approximation, allow us to exemplify the use of more advanced library features, such as extrapolation of the single-particle Green's function and the implementation of symmetries. Therefore, they present a good starting point for the more involved application discussed in Sec.~\ref{subsec:SBE}.
+
+The $GW$ approximation is a widely used method in condensed matter physics and quantum chemistry for calculating electronic properties of materials \cite{PhysRev.139.A796, FAryasetiawan_1998, RevModPhys.74.601}. In addition to the Hartree term $\Sigma_{\text{H}} = Un$, which considers only the bare interaction, the mutual screening of the Coulomb interaction between electrons is partially taken into account. For spin-rotation invariant systems it is common practice to decouple these \textsl{screened interactions} $\eta$\footnote{Here, we denote the screened interactions by $\eta$ instead of $W$ to avoid conflicting notation with the code examples in Sec.~\ref{subsec:impl}.} into a density (or charge) component $\eta^{D}$ and a magnetic (or spin) component $\eta^{M}$ (see App.~\ref{app:MBEdetails}), such that
+%
+\begin{linenomath}
+    \begin{align}
+        \Sigma(\nu) \approx \tfrac{U n}{2} - \tfrac{1}{\beta} \sum_{\nu'} G(\nu') \left[ \tfrac{1}{4} \eta^{D}(\nu - \nu') + \tfrac{3}{4} \eta^{M}(\nu - \nu') \right] \,,
+        \label{eq:Sigma_GW}
+    \end{align}
+\end{linenomath}
+%
+for the atomic limit Hamiltonian. The $\eta$ are computed by summing a series of bubble diagrams in the particle-hole channel, i.e.,
+%
+\begin{linenomath}
+    \begin{align}
+        \eta^{D/M}(\Omega) &= \frac{\pm U}{1 \mp U P(\Omega)} \,,
+        \label{eq:W_GW}
+    \end{align}
+\end{linenomath}
+%
+where the \textsl{polarization bubble} $P$ is given by
+%
+\begin{linenomath}
+    \begin{align}
+        P(\Omega) = \tfrac{1}{\beta} \sum_{\nu} G(\Omega + \nu) G(\nu) \,.
+        \label{eq:P_GW}
+    \end{align}
+\end{linenomath}
+%
+A diagrammatic representation of these relations is shown in Fig.~\ref{fig:GWdiag}. Finally, the set of equations is closed by computing $G$ from the Dyson equation.
+%
+\begin{figure}
+    \centering
+    \includegraphics[width = 0.75\columnwidth]{figures/figure2.pdf}
+    \caption{\textbf{Diagrammatic representation of spin-conserving $GW$ equations in the atomic limit.} Wavy lines denote the screened interactions in the density (red) and magnetic (blue) channel. They are obtained by dressing the respective bare interactions with a series of bubble diagrams $P(\Omega)$, as illustrated in the second and third line from the top.}
+    \label{fig:GWdiag}
+\end{figure}
+%
+Since the Green's function transforms as $G^{*}(\nu) = G(-\nu)$ under complex conjugation \cite{rohringer2013}, we also have that
+%
+\begin{linenomath}
+    \begin{align}
+        P(-\Omega) &= \tfrac{1}{\beta} \sum_{\nu} G(-\Omega + \nu) G(\nu) = \tfrac{1}{\beta} \sum_{\nu} G(-\Omega - \nu) G(-\nu) = \tfrac{1}{\beta} \sum_{\nu} G^{*}(\Omega + \nu) G^{*}(\nu) \nonumber \\
+        &= P^{*}(\Omega) \,,
+    \end{align}
+\end{linenomath}
+%
+and likewise $\Sigma^{*}(\nu) = \Sigma(-\nu)$. Thus, the numerical effort for evaluating Eqs.~\eqref{eq:Sigma_GW} and \eqref{eq:P_GW} can be reduced by a factor of two using a \texttt{MatsubaraSymmetryGroup} object. To structure the $GW$ code, we first write a solver class which takes care of the proper initialization of the necessary \texttt{MatsubaraFunction} instances. 
+%
+\begin{minted}[breaklines,escapeinside=||,mathescape=true, linenos, numbersep=3pt, gobble=2, frame=lines, fontsize=\scriptsize, framesep=2mm]{julia}
+using MatsubaraFunctions
+using HDF5
+
+conj(w, x) = (-w[1],), (x[1],), MatsubaraOperation(sgn = false, con = true)
+
+struct GWsolver
+    T     :: Float64
+    U     :: Float64
+    N     :: Int64  
+    G     :: MatsubaraFunction{1, 1, 2, ComplexF64}
+    Sigma :: MatsubaraFunction{1, 1, 2, ComplexF64}
+    P     :: MatsubaraFunction{1, 1, 2, ComplexF64}
+    η_D   :: MatsubaraFunction{1, 1, 2, ComplexF64}
+    η_M   :: MatsubaraFunction{1, 1, 2, ComplexF64}
+    SGf   :: MatsubaraSymmetryGroup
+    SGb   :: MatsubaraSymmetryGroup
+
+    function GWsolver(T, U, N)
+    
+        # fermionic containers
+        gf    = MatsubaraGrid(T, N, Fermion)
+        G     = MatsubaraFunction(gf, 1)
+        Sigma = MatsubaraFunction(gf, 1)
+
+        # bosonic containers
+        gb  = MatsubaraGrid(T, N, Boson)
+        P   = MatsubaraFunction(gb, 1)
+        η_D = MatsubaraFunction(gb, 1)
+        η_M = MatsubaraFunction(gb, 1)     
+
+        # symmetry groups
+        SGf = MatsubaraSymmetryGroup([MatsubaraSymmetry{1, 1}(conj)], G)
+        SGb = MatsubaraSymmetryGroup([MatsubaraSymmetry{1, 1}(conj)], P)
+
+        return new(T, U, N, G, Sigma, P, η_D, η_M, SGf, SGb)
+    end 
+end
+\end{minted}
+%
+As a second step, we implement the self-consistent equations, which we solve using Anderson acceleration. Note that we have rewritten the $GW$ equation for the self-energy as 
+%
+\begin{linenomath}
+    \begin{align}
+        \Sigma(\nu) \approx Un - \tfrac{1}{\beta} \sum_{\nu'} G(\nu') \left[ \tfrac{1}{4} \eta^{D}(\nu - \nu') + \tfrac{3}{4} \eta^{M}(\nu - \nu') + \tfrac{U}{2} \right] \,,
+    \end{align}
+\end{linenomath}
+%
+which is beneficial since the product of $G$ with the constant contributions to $\eta^{D/M}$ simply shifts the real part of the self-energy by $\tfrac{Un}{2}$ such that $\Sigma = \Sigma_{\text{H}} + \mathcal{O}(U^2)$.
+%
+\begin{minted}[breaklines,escapeinside=||,mathescape=true, linenos, numbersep=3pt, gobble=2, frame=lines, fontsize=\scriptsize, framesep=2mm]{julia}
+function fixed_point!(F, x, S)
+    
+    # update Sigma 
+    unflatten!(S.Sigma, x)
+
+    # calculate G
+    for v in grids(S.G, 1)
+        S.G[v] = 1.0 / (im * value(v) - S.Sigma[v])
+    end
+
+    sum_grid = MatsubaraGrid(S.T, 4 * S.N, Fermion)
+
+    # calculate P using symmetries
+    function calc_P(wtpl, xtpl)
+
+        P = 0.0 
+
+        for v in sum_grid 
+            P += S.G(v + wtpl[1]) * S.G(v)
+        end
+        
+        return S.T * P
+    end 
+    
+    S.SGb(S.P, MatsubaraInitFunction{1, 1, ComplexF64}(calc_P))
+
+    # calculate η_D and η_M
+    for w in S.P.grids[1] 
+        S.η_D[w] = +S.U / (1.0 - S.U * S.P[w])
+        S.η_M[w] = -S.U / (1.0 + S.U * S.P[w])
+    end 
+
+    # calculate Sigma using symmetries
+    function calc_Sigma(wtpl, xtpl)
+
+        Sigma = S.U * density(S.G)
+
+        for v in sum_grid
+            Sigma -= S.T * S.G(v) * (
+                0.25 * S.η_D(wtpl[1] - v; extrp = ComplexF64(+S.U)) + 
+                0.75 * S.η_M(wtpl[1] - v; extrp = ComplexF64(-S.U)) + 
+                0.50 * S.U)
+        end
+        
+        return Sigma
+    end 
+
+    S.SGf(S.Sigma, MatsubaraInitFunction{1, 1, ComplexF64}(calc_Sigma))
+
+    # calculate the residue
+    flatten!(S.Sigma, F)
+    F .-= x
+    
+    return nothing
+end
+\end{minted}
+%
+Here, we make use of the \texttt{flatten!}~and \texttt{unflatten!}~functions which allow us to parse \texttt{MatsubaraFunction} data into a one dimensional array\footnote{We also export \texttt{flatten} which will allocate a new 1D array from the \texttt{MatsubaraFunction}.}. The fixed-point can now easily be computed with, for example, 
+%
+\begin{minted}[breaklines,escapeinside=||,mathescape=true, linenos, numbersep=3pt, gobble=2, frame=lines, fontsize=\scriptsize, framesep=2mm]{julia}
+const T = 0.3  # temperature
+const U = 0.9  # interaction
+const N = 1000 # no. frequencies
+
+S    = GWsolver(T, U, N)
+init = zeros(ComplexF64, length(S.Sigma))
+res  = nlsolve((F, x) -> fixed_point!(F, x, S), init, method = :anderson, m = 8, beta = 0.5, show_trace = true)
+\end{minted}
+%
+In Fig.~\ref{fig:GW_calc} we show exemplary results for the self-energy and density obtained in $GW$. In contrast to the Hartree-Fock calculations in the previous section, $\Sigma$ is now a frequency-dependent quantity, whose real part asymptotically approaches $U n_{GW}$. As can be seen from Fig.~\ref{fig:GW_calc}(b), these $GW$ densities agree quantitatively with the HF result for weak interactions $U / T \lesssim \tfrac{1}{2}$, but yield larger densities for higher values of $U$ as expected when the local interaction is partially screened.
+%
+\begin{figure}
+    \centering
+    \includegraphics[width = \columnwidth]{figures/figure3.pdf}
+    \caption{\textbf{Exemplary $GW$ results.} (a) The complex-valued self-energy $\Sigma_{GW}$ with its real part offset by the Hartree shift $\Sigma_{\text{H}} = U n_{GW}$ for $T / U = \tfrac{1}{3}$. (b) $GW$ and Hartree-Fock densities as a function of $U / T$.}
+    \label{fig:GW_calc}
+\end{figure}
+
+\subsection{Multiboson exchange solver for the single impurity Anderson model}
+\label{subsec:SIAM}
+
+\textsl{Note: Readers who are not interested in the formal discussion presented below should feel free to skip this section and proceed directly to Section~\ref{sec:future_directions} on future directions.} \\
+
+In the following, we extend upon the previous computations for the Hubbard atom by coupling the single electronic level to a bath of non-interacting electrons. Specifically, we consider the \textsl{single-impurity Anderson model}, a minimal model for localized magnetic impurities in metals introduced by P.W.~Anderson to explain the physics behind the Kondo effect \cite{anderson_localized_1961}. It is defined by the Hamiltonian
+%
+\begin{linenomath}
+    \begin{align}
+        H=\sum_\sigma \epsilon_{\mathrm{d}} d_\sigma^{\dagger} d_\sigma+U n_{\mathrm{d}, \uparrow} n_{\mathrm{d}, \downarrow}+\sum_{k, \sigma}\left(V_k d_\sigma^{\dagger} c_{k, \sigma}+V_k^* c_{k, \sigma}^{\dagger} d_\sigma\right)+\sum_{k, \sigma} \epsilon_{k, \sigma} c_{k, \sigma}^{\dagger} c_{k, \sigma}\, ,
+    \end{align}
+\end{linenomath}
+%
+describing an impurity $d$ level $\epsilon_{\mathrm{d}}$, hybridized with conduction electrons of the metal via a matrix element $V_k$. The electrons in the localized $d$ state, where $n_{\mathrm{d}, \sigma}=d_\sigma^{\dagger} d_\sigma$, interact according to the interaction strength $U$, whereas the $c$ electrons of the bath are non-interacting. Following \cite{hewson_renormalized_2001}, in a path-integral formulation for the partition function $Z=\int \prod_\sigma \mathcal{D}\left(\bar{d}_\sigma\right) \mathcal{D}\left(d_\sigma\right) \mathcal{D}\left(\bar{c}_{k, \sigma}\right) \mathcal{D}\left(c_{k, \sigma}\right) \mathrm{e}^{-S}$ with the action $S=\int_0^\beta \mathcal{L}(\tau) \mathrm{d} \tau$, the Lagrangian for the model is given by 
+%
+\begin{linenomath}
+    \begin{align}
+    \mathcal{L}(\tau)=\sum_\sigma & \bar{d}_\sigma(\tau)\left(\partial_\tau+\epsilon_{\mathrm{d}}\right) d_\sigma(\tau)+\sum_{k, \sigma} \bar{c}_{k, \sigma}(\tau)\left(\partial_\tau+\epsilon_k\right) c_{k, \sigma}(\tau) \nonumber \\
+    & +U n_{\uparrow}(\tau) n_{\downarrow}(\tau)+\sum_{k,\sigma} V_k\left[\bar{d}_\sigma(\tau) c_{k, \sigma}(\tau)+\bar{c}_{k, \sigma}(\tau) d_\sigma(\tau)\right]\ ,
+    \end{align}
+\end{linenomath}
+%
+where $n_\sigma(\tau)=\bar{d}_\sigma(\tau) d_\sigma(\tau)$. Integrating over the only quadratically occurring Grassmann variables for the bath electrons, one formally obtains $Z=\int \prod_\sigma \mathcal{D}\left(\bar{d}_\sigma\right) \mathcal{D}\left(d_\sigma\right) \mathrm{e}^{-S_{\text{red}}}$ with the reduced action given by
+%
+\begin{linenomath}
+    \begin{align}
+        S_{\mathrm{red}}=\int_0^\beta \mathrm{d} \tau \int_0^\beta \mathrm{d} \tau^{\prime} \sum_\sigma \bar{d}_\sigma(\tau)\left[-G_\sigma^{(0)}\left(\tau-\tau^{\prime}\right)\right]^{-1} d_\sigma\left(\tau^{\prime}\right)+U \int_0^\beta \mathrm{d} \tau\,  n_{\uparrow}(\tau) n_{\downarrow}(\tau)\ .
+    \end{align}
+\end{linenomath}
+%
+Switching to Matsubara frequencies as described in section \ref{sec:gf}, the non-interacting Green's function for the localized $d$ electrons reads
+%
+\begin{linenomath}
+    \begin{align}
+        G_\sigma^{(0)}\left(\nu_n\right)=\frac{1}{\mathrm{i} \nu_n-\epsilon_{\mathrm{d}}+ \Delta(\nu_n)}\ .
+        \label{eq:G0_SIAM}
+    \end{align}
+\end{linenomath}
+%
+Following \cite{Chalupa2021} we choose an isotropic hybridization strength $V_k \equiv V$ and a flat density of states with bandwidth $2D$ for the bath electrons, leading to the hybridization function\footnote{ Note that we use a different sign convention for the hybridization function compared to \cite{Chalupa2021}.} \newline $\Delta(\nu_n) = \mathrm{i} \frac{V^2}{D} \arctan \frac{D}{\nu_n}$. In the following, we set $V=2$, measure energy in units of $V/2=1$ and set the half bandwidth to $D=10$. In the context of this work, we focus on the particle-hole symmetric model, setting $\epsilon_\mathrm{d}=-U/2$. Then, the Hartree term of the self-energy, $\Sigma_\mathrm{H}=U/2$ is conveniently absorbed into the bare propagator,
+%
+\begin{linenomath}
+    \begin{align}
+        G_\sigma^{(0)}(\nu_n) \rightarrow G_\sigma^{\mathrm{H}}(\nu_n) = \frac{1}{\mathrm{i} \nu_n-\epsilon_{\mathrm{d}}+ \Delta(\nu_n)  - \Sigma_\mathrm{H}} =  \frac{1}{\mathrm{i} \nu_n + \Delta(\nu_n) }\ .
+    \end{align}
+\end{linenomath}
+%
+Consequently, the Hartree propagator is used instead of the bare propagator throughout. 
+
+\subsubsection{Single boson exchange decomposition of the parquet equations}
+\label{subsec:SBE}
+
+Following \cite{gievers_multiloop_2022}, we now reiterate the single-boson exchange (SBE) decomposition of the four-point vertex and, subsequently, of the parquet equations. The starting point for the SBE decomposition, which was originally developed in \cite{PhysRevB.99.235106, PhysRevB.100.155149, PhysRevB.100.245147, PhysRevB.102.235133, PhysRevB.102.195131, PhysRevResearch.3.013149}, is the unambiguous classification of vertex diagrams according to their \textsl{$U$-reducibility} in each channel. In order to introduce this concept in the context of the parquet equations, we first have to discuss the similar concept of two-particle reducibility, which provides the basis for the parquet decomposition of the vertex,
+%
+\begin{linenomath}
+    \begin{align}
+        \Gamma = \Lambda_{\text{2PI}} + \gamma_a + \gamma_p + \gamma_t
+        \label{eq:parquet-decomp} \,.
+    \end{align}
+\end{linenomath}
+%
+This decomposition states that all diagrams which contribute to the two-particle vertex $\Gamma$ can be classified as being part of one of four disjoint contributions: $\gamma_r$ with $r\in \{a,p,t\}$ collects those diagrams which are two-particle reducible (2PR) in channel $r$, i.e., they can be disconnected by cutting a pair of propagator lines, which can either be aligned in an antiparallel ($a$), parallel ($p$) or transverse antiparallel ($t$) way. All remaining diagrams, which are not 2PR in either of the three channels, contribute to $\Lambda_{\text{2PI}}$, the fully two-particle irreducible (2PI) vertex. One can equally well decompose $\Gamma$ w.r.t. its two-particle reducibility in one of the three channels, $\Gamma = I_r + \gamma_r$, which defines $I_r = \Lambda_{\text{2PI}} + \sum_{r'\neq r} \gamma_{r'}$, collecting all diagrams that are 2PI in channel $r$. The Bethe-Salpeter equations (BSEs) then relate the reducible diagrams to the irreducible ones,
+%
+\begin{linenomath}
+    \begin{align}
+    \gamma_r = I_r \circ \Pi_r \circ \Gamma = \Gamma \circ \Pi_r \circ I_r.
+    \label{eq:Bethe-Salpeter-equations}
+    \end{align}
+\end{linenomath}
+%
+This short-hand notation introduces the $\Pi_r$ bubble, i.e., the propagator pair connecting the two vertices, see \cite{gievers_multiloop_2022} for their precise channel-dependent definition, as well as for the connector symbol $\circ$, which channel-dependently denotes summation over internal frequencies and quantum numbers. The self-energy $\Sigma$, which enters the propagator via the Dyson equation $G=G_0+G_0\Sigma G$, is provided by the Schwinger-Dyson equation (SDE),
+%
+\begin{linenomath}
+    \begin{align}
+    \Sigma = - \left(U+U\circ\Pi_p\circ\Gamma\right)\cdot G = - \left(U+\tfrac{1}{2}U\circ\Pi_a\circ\Gamma\right)\cdot G\, ,
+    \label{eq:SDE}
+    \end{align}
+\end{linenomath}
+%
+where $U$ is the bare interaction and the symbol $\cdot$ denotes the contraction of two vertex legs with a propagator.
+Together, equations \eqref{eq:parquet-decomp}, \eqref{eq:Bethe-Salpeter-equations} and \eqref{eq:SDE} are known as the \textsl{parquet equations} \cite{10.1063/1.1704062, 10.1063/1.1704064} and can be solved self-consistently, if the 2PI vertex $\Lambda_{\text{2PI}}$ is provided \cite{PhysRevLett.62.961, PhysRevB.43.8044, doi:10.1142/S021797929100016X, Bickers2004}. Unfortunately, $\Lambda_{\text{2PI}}$ is the most complicated object, as its contributions contain nested contractions over internal arguments. Often, the parquet approximation (PA) is therefore employed, which truncates $\Lambda_{\text{2PI}}$ beyond the bare interaction $U$.
+%
+\begin{figure*}
+	\begin{align*}
+		\begin{array}{ccc}
+			a: \quad
+			\tikzm{U-a-reducibility}{
+				\arrowslefthalffull{0}{0}{0.8}
+				\fullvertex{$\Gamma_1$}{0}{0}{0.8}
+				\abubblefullbare{0.24}{0}{0.6}{0.8}
+				\barevertex{0.96}{0}
+				\abubblebarefull{0.96}{0}{0.6}{0.8}
+				\fullvertex{$\Gamma_2$}{1.92}{0}{0.8}
+				\arrowsrighthalffull{1.92}{0}{0.8}
+				\draw[red,very thick,dotted] (0.96,-0.5) -- (0.96,0.5);
+			}
+			&\longrightarrow&
+			\tikzm{U-a-reducibility-leftright}{
+				\arrowslefthalffull{0}{0}{0.8}
+				\fullvertex{$\Gamma_1$}{0}{0}{0.8}
+				\abubblefullfull{0.24}{0}{0.6}{0.8}{0.2}
+				\abubblefullfull{1.68}{0}{0.6}{0.2}{0.8}
+				\fullvertex{$\Gamma_2$}{2.64}{0}{0.8}
+				\arrowsrighthalffull{2.64}{0}{0.8}
+			}
+			\\
+			\\
+			p: \quad
+			\tikzm{U-p-reducibility}{
+				\draw[lineWithArrowCenterEnd] (-0.24,-0.24) -- (-0.54,-0.54);
+				\draw[lineWithArrowCenterEnd] (0.24,0.24) .. controls ++(45:0.8) and ++(180:0.5) .. (2.46,0.72);
+				\fullvertex{$\Gamma_1$}{0}{0}{0.8}
+				\draw[lineWithArrowCenterEnd] (0.96,0) .. controls ++(45:0.8) and ++(135:0.5) .. (-0.24,0.24);
+				\draw[lineWithArrowCenter] (0.96,0) to [out=225, in=315] (0.24,-0.24);
+				\barevertex{0.96}{0}
+				\draw[lineWithArrowCenterStart] (2.16,0.24) .. controls ++(45:0.5) and ++(135:0.8) .. (0.96,0);
+				\draw[lineWithArrowCenter] (1.68,-0.24) to [out=225, in=315] (0.96,0);
+				\fullvertex{$\Gamma_2$}{1.92}{0}{0.8}
+				\draw[lineWithArrowCenterEnd] (2.46,-0.54) -- (2.16,-0.24);
+				\draw[lineWithArrowCenterStart] (-0.54,0.72) .. controls ++(0:0.5) and ++(135:0.8) .. (1.68,0.24);
+				\draw[red,very thick,dotted] (0.96,-0.5) -- (0.96,0.5);
+			}
+			&\longrightarrow&
+			\tikzm{U-p-reducibility-leftright}{
+				\draw[lineWithArrowCenterEnd] (-0.24,-0.24) -- (-0.54,-0.54);
+				\draw[lineWithArrowCenterEnd] (0.24,0.24) .. controls ++(45:0.5) and ++(180:0.5) .. (1.16,0.72);
+				\node at (1.16,0.72) {};
+				\fullvertex{$\Gamma_1$}{0}{0}{0.8}
+				\draw[lineWithArrowCenterEnd] (1.02,0.06) .. controls ++(45:0.8) and ++(135:0.5) .. (-0.24,0.24);
+				\draw[lineWithArrowCenter] (0.9,-0.06) to [out=225, in=315] (0.24,-0.24);
+				\draw[lineWithArrowCenterStart] (2.88,0.24) .. controls ++(45:0.5) and ++(135:0.8) .. (1.62,0.06);
+				\draw[lineWithArrowCenter] (2.4,-0.24) to [out=225, in=315] (1.74,-0.06);
+				\fullvertex{$\Gamma_2$}{2.64}{0}{0.8}
+				\draw[lineWithArrowCenterEnd] (3.18,-0.54) -- (2.88,-0.24);
+				\draw[lineWithArrowCenterStart] (1.48,0.72) .. controls ++(0:0.5) and ++(135:0.5) .. (2.4,0.24);
+				\node at (1.48,0.72) {};
+			}
+		\end{array}
+		\qquad
+		t: \quad
+		\tikzm{U-t-reducibility}{
+			\arrowsupperhalffull{0}{0.96}{0.8}
+			\fullvertex{$\Gamma_1$}{0}{0.96}{0.8}
+			\draw[lineWithArrowCenter] (-0.24,0.72) to [out=225, in=135] (0,0);
+			\draw[lineWithArrowCenter] (0,0) to [out=45, in=315] (0.24,0.72);
+			\barevertex{0}{0}
+			\draw[lineWithArrowCenter] (0,0) to [out=225, in=135] (-0.24,-0.72);
+			\draw[lineWithArrowCenter] (0.24,-0.72) to [out=45, in=315] (0,0);
+			\fullvertex{$\Gamma_2$}{0}{-0.96}{0.8}
+			\arrowslowerhalffull{0}{-0.96}{0.8}
+			\draw[red,very thick,dotted] (-0.5,0) -- (0.5,0);
+		}
+		\longrightarrow
+		\tikzm{U-t-reducibility-leftright}{
+			\arrowsupperhalffull{0}{1.14}{0.8}
+			\fullvertex{$\Gamma_1$}{0}{1.14}{0.8}
+			\draw[lineWithArrowCenter] (-0.24,0.9) to [out=225, in=135] (-0.06,0.24);
+			\draw[lineWithArrowCenter] (0.06,0.24) to [out=45, in=315] (0.24,0.9);
+			\draw[lineWithArrowCenter] (-0.06,-0.24) to [out=225, in=135] (-0.24,-0.9);
+			\draw[lineWithArrowCenter] (0.24,-0.9) to [out=45, in=315] (0.06,-0.24);
+			\fullvertex{$\Gamma_2$}{0}{-1.14}{0.8}
+			\arrowslowerhalffull{0}{-1.14}{0.8} 
+		} 
+	\end{align*} \vspace{-3mm}
+	\caption{\textbf{Illustration of $U$-reducibility in the three two-particle channels $a$, $p$ and $t$}. The Figure is analogous to Fig.~4 of \cite{PhysRevB.100.155149} and adapted from \cite{gievers_multiloop_2022}. $\Gamma_1$ and $\Gamma_2$ can be any vertex diagram or the unit vertex.
+		\label{fig:U-r-reducibility}
+	} 
+\end{figure*}
+%
+In the context of the SBE decomposition relevant to this work, $U$-reducibility is an alternative criterion to the concept of two-particle reducibility for the classification of vertex diagrams. A diagram that is 2PR in channel $r$ is also said to be $U$-reducible in channel $r$ if it can be disconnected by removing one bare vertex that is attached to a $\Pi_r$ bubble, as illustrated in Fig. \ref{fig:U-r-reducibility}. Furthermore, the bare vertex $U$ is defined to be $U$-reducible in all three channels. The $U$-reducible diagrams in channel $r$ are in the following denoted $\nabla_r$ and are said to describe \textsl{single-boson exchange} processes, as the linking bare interaction $U$, which would disconnect the diagram if cut, mediates just a single bosonic transfer frequency. The diagrams which are 2PR in channel $r$ but not $U$-reducible in channel $r$ are called multi-boson exchange diagrams and denoted $M_r$. With these classifications, the two-particle reducible vertices can be written as $\gamma_r = \nabla_r - U + M_r$, making sure to exclude $U$, which is contained in $\nabla_r$ but not in $\gamma_r$. The parquet decomposition \eqref{eq:parquet-decomp} yields in this language,
+%
+\begin{linenomath}
+    \begin{align}
+    \Gamma &= \varphi^{U\text{irr}}+{\textstyle \sum_r} \nabla_r-2U, &
+    	\varphi^{U\text{irr}} &= \Lambda_{\text{2PI}} - U + {\textstyle \sum_r} M_r \ , 
+    \end{align}
+\end{linenomath}
+%
+where $\varphi^{U\text{irr}}$ is the fully $U$-irreducible part of $\Gamma$. For a diagrammatic illustration of the first equation, see Fig. 8 in \cite{gievers_multiloop_2022}. The channel-dependent decomposition of the vertex $\Gamma = I_r + \gamma_r = \nabla_r + T_r$ can also be split into $U$-reducible and $U$-irreducible parts in channel $r$, defining the $U$-irreducible remainder $T_r= I_r - U + M_r$ in channel $r$. Inserting all these definitions into the BSEs \eqref{eq:Bethe-Salpeter-equations} and separating $U$-reducible and $U$-irreducible contributions gives the two sets of equations,
+%
+\begin{linenomath}
+    \begin{align}
+    \nabla_r - U  &= 	 I_r\circ\Pi_r \circ \nabla_r + U \circ\Pi_r \circ  T_r = \nabla_r\circ\Pi_r \circ I_r + T_r \circ\Pi_r \circ U,  \label{eq:nabla-BSE}\\
+     M_r &= (I_r - U) \circ\Pi_r\circ  T_r = T_r \circ \Pi_r \circ (I_r-U),
+    \end{align}
+\end{linenomath}
+%
+for each channel $r$. From equation \eqref{eq:nabla-BSE} one can derive (see \cite{gievers_multiloop_2022} for details) that the single-boson exchange terms can be written as $\nabla_r = \bar{\lambda}_r\fcirc \eta_r \fcirc\lambda_r$, where $ \bar{\lambda}_r, \lambda_r$ denote the \textsl{Hedin vertices} \cite{PhysRev.139.A796} and $\eta_r$ the screened interaction in channel $r$. The former are related to the $U$-irreducible vertex in channel $r$ via $\bar{\lambda}_r = \boldI_r + T_r \circ \Pi_r \circ \boldI_r = \boldI_r + \boldI_r \circ \Pi_r \circ T_r$ and can be understood as $U$-irreducible, amputated parts of three-point functions, as they depend on only two frequencies. In contrast to the $GW$ approximation discussed in Sec.~\ref{subsec:GW}, the screened interaction $\eta_r$ is now defined in terms of a Dyson equation, $\eta_r = U + U \fcirc P_r \fcirc \eta_r = U + \eta_r \fcirc P_r \fcirc U$, with the polarization $P_r = \lambda_r \circ \Pi_r \circ \boldI_r = \boldI_r \circ \Pi_r \circ \bar \lambda_r$ dressed by vertex corrections. In the previous expressions, the connector $\fcirc$ denotes an internal summation similar to $\circ$, the only difference being that summation over frequencies is excluded. The corresponding unit vertex is denoted $\boldI_r$.
+
+Lastly, one can rewrite the SDE in terms of the screened interaction and the Hedin vertex in channel $r$ which yields, for example, $-\Sigma = (\eta_p\fcirc\lambda_p)\cdot G = (\bar\lambda_p\fcirc \eta_p)\cdot G$ if one chooses $r = p$.
+
+In summary, the SBE-equations to be solved read
+%
+\begin{subequations}
+\begin{fequation}[ams align]
+\eta_r &= U + U \fcirc P_r \fcirc \eta_r = U + \eta_r \fcirc P_r \fcirc U, \\
+P_r  & = \lambda_r \circ \Pi_r \circ \boldI_r = \boldI_r \circ \Pi_r \circ \bar \lambda_r  , \\
+\bar{\lambda}_r &= \boldI_r + T_r \circ \Pi_r \circ \boldI_r, \\
+\lambda_r &= \boldI_r + \boldI_r \circ \Pi_r \circ T_r,\\
+T_r &= \Gamma - \bar{\lambda}_r \fcirc \eta_r \fcirc \lambda_r, \\
+\Gamma & = \varphi^{U\text{irr}}+ {\textstyle \sum_r} \bar{\lambda}_r\fcirc \eta_r\fcirc\lambda_r -2U \\
+\varphi^{U\text{irr}} & = \Lambda_{\text{2PI}} - U + {\textstyle \sum_r} M_r , \\
+M_r &= (T_r \!-\! M_r ) \circ\Pi_r\circ  T_r  = T_r \circ \Pi_r \circ (T_r \!-\! M_r) \\
+-\Sigma &= (\eta_p\fcirc\lambda_p)\cdot G = (\bar\lambda_p\fcirc \eta_p)\cdot G\, .
+\end{fequation}
+\label{eq:SBE_decomp}
+\end{subequations}
+%
+As before, they require only the fully two-particle irreducible vertex $\Lambda_{\text{2PI}}$ as an input. Notably, if one employs the so-called SBE approximation \cite{PhysRevB.100.155149}, which amounts to setting $\Lambda_{\text{2PI}}=U$ as in the parquet approximation \textsl{and} neglecting multi-boson exchange contributions $M_r = 0$, all objects involved depend on at most two frequencies. This scheme is therefore numerically favorable compared to the PA if the SBE approximation can be justified \cite{PhysRevResearch.4.013034} . In the context of this paper, we do not employ the SBE approximation, but include multi-boson exchange (MBE) contributions.
+
+\subsubsection{Implementation in \texttt{MatsubaraFunctions.jl}}
+\label{subsec:impl}
+
+\begin{figure}
+    \centering
+    \includegraphics[width = \columnwidth]{figures/figure5.pdf}
+    \caption{\textbf{Structure of the MBE code.} First, an instance $S$ of type \texttt{MBEsolver} is constructed by passing the SIAM parameters $T$, $U$, $V$ and $D$ and the sizes for the Matsubara grids. The self-energy $\Sigma$ is initialized using second order perturbation theory (PT2), while all other \texttt{MatsubaraFunction}s are set to their bare values. In an optional step, \texttt{MatsubaraSymmetryGroup}s for $\lambda_r$ and $M_r$ (here denoted by $SG$) can be precomputed. Next, the \texttt{solve!} function is used to find the fixed-point of the MBE equations using Anderson acceleration. To interface with \texttt{NLsolve}, the fields $\Sigma$, $\eta_r$, $\lambda_r$ and $M_r$ of $S$ (which are sufficient to determine all other involved quantities) are flattened into a single one-dimensional array. After convergence, $S$ is finally written to disk in H5 file format.}
+    \label{fig:MBEcode}
+\end{figure}
+
+In this section, we present the implementation of the PA in its MBE formulation using \texttt{MatsubaraFunctions.jl}. In doing so, we build upon the code structure developed in Sec.~\ref{subsec:GW}, i.e.~we first define a solver class for which we later implement the self-consistent equations, as well as an interface to solve for the fixed point using Anderson acceleration, see Fig.~\ref{fig:MBEcode}. In order to keep the discussion concise, we refrain from showing all of the code and, instead, focus on computational bottlenecks and point out tricks to circumvent them. For completeness, however, we also make the entire code available via an open-source repository on Github, see Ref.~\cite{mbe_solver} and provide additional implementation details in App.~\ref{app:MBEdetails}.
+
+Extending the \texttt{GWsolver} from Sec.~\ref{subsec:GW} to the \texttt{MBEsolver} needed here is a straightforward endeavor, since we just have to add containers and symmetry groups for the Hedin and multiboson vertices. Furthermore, we extend the solver to include buffers which store the result of evaluating Eqs.~\eqref{eq:SBE_decomp}(c), (d) and (h), such that repetitive allocations of the multidimensional data arrays for $\lambda_r$ and $M_r$ are avoided. Note that, due to the symmetries of the SIAM studied here, it suffices to include either $\lambda_r$ or $\bar{\lambda}_r$, since $\lambda_r = \bar{\lambda}_r$. In addition, all containers can be implemented as real-valued\footnote{ The Green's function $G$ and the self-energy $\Sigma$ are purely imaginary, such that $G = -i \tilde{G}$ and $\Sigma = -i \Tilde{\Sigma}$. After plugging this factorization into Eqs.~\eqref{eq:SBE_decomp}, all factors of $i$ are cancelled out such that the resulting equations are entirely real.}.
+%
+\begin{minted}[breaklines,escapeinside=||,mathescape=true, linenos, numbersep=3pt, gobble=2, frame=lines, fontsize=\scriptsize, framesep=2mm]{julia}
+function calc_T(
+    w   :: MatsubaraFrequency, 
+    v   :: MatsubaraFrequency, 
+    vp  :: MatsubaraFrequency,
+    η_S :: MatsubaraFunction{1, 1, 2, Float64},
+    λ_S :: MatsubaraFunction{2, 1, 3, Float64},
+    η_D :: MatsubaraFunction{1, 1, 2, Float64},
+    λ_D :: MatsubaraFunction{2, 1, 3, Float64},
+    η_M :: MatsubaraFunction{1, 1, 2, Float64},
+    λ_M :: MatsubaraFunction{2, 1, 3, Float64},
+    M_S :: MatsubaraFunction{3, 1, 4, Float64},
+    M_T :: MatsubaraFunction{3, 1, 4, Float64},
+    M_D :: MatsubaraFunction{3, 1, 4, Float64},
+    M_M :: MatsubaraFunction{3, 1, 4, Float64},
+    U   :: Float64,
+        :: Type{ch_D}
+    )   :: Float64
+
+    # bare contribution
+    T = -2.0 * U 
+
+    # SBE contributions
+    w1      = w + v + vp
+    η1_idx  = MatsubaraFunctions.grid_index_extrp(w1, grids(η_D, 1))
+    λ1_idx1 = MatsubaraFunctions.grid_index_extrp(w1, grids(λ_D, 1))
+    λ1_idx2 = MatsubaraFunctions.grid_index_extrp(vp, grids(λ_D, 2))
+    λ1_idx3 = MatsubaraFunctions.grid_index_extrp( v, grids(λ_D, 2))
+
+    w2      = vp - v
+    v2      = w + v
+    η2_idx  = MatsubaraFunctions.grid_index_extrp(w2, grids(η_D, 1))
+    λ2_idx1 = MatsubaraFunctions.grid_index_extrp(w2, grids(λ_D, 1))
+    λ2_idx2 = MatsubaraFunctions.grid_index_extrp(v2, grids(λ_D, 2))
+
+    T += +0.5 * λ_S[λ1_idx1, λ1_idx2, 1] * η_S[η1_idx, 1] * λ_S[λ1_idx1, λ1_idx3, 1]
+    T += -0.5 * λ_D[λ2_idx1, λ1_idx3, 1] * η_D[η2_idx, 1] * λ_D[λ2_idx1, λ2_idx2, 1]
+    T += -1.5 * λ_M[λ2_idx1, λ1_idx3, 1] * η_M[η2_idx, 1] * λ_M[λ2_idx1, λ2_idx2, 1]
+
+    # MBE contributions
+    w_idx  = MatsubaraFunctions.grid_index_extrp( w, grids(M_S, 1))
+    v_idx  = MatsubaraFunctions.grid_index_extrp( v, grids(M_S, 2))
+    vp_idx = MatsubaraFunctions.grid_index_extrp(vp, grids(M_S, 2))
+
+    w1_idx = MatsubaraFunctions.grid_index_extrp(w1, grids(M_S, 1))
+    w2_idx = MatsubaraFunctions.grid_index_extrp(w2, grids(M_S, 1))
+    v2_idx = MatsubaraFunctions.grid_index_extrp(v2, grids(M_S, 2))
+
+    T += M_D[w_idx, v_idx, vp_idx, 1]
+    T += +0.5 * M_S[w1_idx, v_idx, vp_idx, 1]
+    T += +1.5 * M_T[w1_idx, v_idx, vp_idx, 1]
+    T += -0.5 * M_D[w2_idx, v_idx, v2_idx, 1]
+    T += -1.5 * M_M[w2_idx, v_idx, v2_idx, 1]
+
+    return T 
+end
+\end{minted}
+%
+Profiling the MBE code reveals that most of the time is spent calculating the irreducible vertices $T_r$, which are needed to compute both $\lambda_r$ and $M_r$. In the former case, two legs of $T_r$ are closed with a propagator bubble, while in the latter case, $T_r$ enters both to the left and to the right of the respective (Bethe-Salpeter-like) equation. When optimizing the code, it is therefore crucial to find an efficient way to evaluate Eq.~\eqref{eq:SBE_decomp}(e). In the example above, an exemplary implementation of $T_r$ in the density channel is shown. Here, we make use of the \texttt{grid\_index\_extrp} function, which given a Matsubara frequency and a grid $g$ finds the linear index of the frequency in $g$ or, if it is out of bounds, determines the bound of $g$ that is closest. This function is normally used internally to perform constant extrapolation for \texttt{MatsubaraFunction} objects with grid dimension greater than one\footnote{ Therefore it is not exported into the global namespace.}. Here, however, it can be used to precompute multiple linear indices at once, allowing us to exclusively use the \texttt{[]} operator and thus avoid unnecessary boundary checks. Note that we could have used tailfits for the screened interactions $\eta_r$ but opt to utilize constant extrapolation instead\footnote{ Since $\eta_r$ depends only on one frequency argument, it can be stored on a rather large grid, such that its asymptotic behavior is well-captured even without polynomial extrapolation.}. 
+
+Furthermore, when $T_r$ is inserted into the equations for the Hedin and multiboson vertices, it is summed up along one fermionic axis. Therefore, some frequencies, e.g. \texttt{w1 = w + v + vp} in line 23 of the code snippet above, will assume the same value for many different external arguments. Hence, to circumvent repeated (but superfluous) \texttt{grid\_index\_extrp} calls, it is beneficial to precompute $T_r$ on a finite grid, which needs to be large enough to maintain the desired accuracy. To this end, we add buffers for the irreducible vertices to our solver class, such that we can compute e.g. the density $T^D$ and magnetic contributions $T^M$ inplace and in parallel, as shown in the example below.
+%
+\begin{minted}[breaklines,escapeinside=||,mathescape=true, linenos, numbersep=3pt, gobble=2, frame=lines, fontsize=\scriptsize, framesep=2mm]{julia}
+function calc_T_ph!(
+    T_D :: MatsubaraFunction{3, 1, 4, Float64},
+    T_M :: MatsubaraFunction{3, 1, 4, Float64},
+    η_S :: MatsubaraFunction{1, 1, 2, Float64},
+    λ_S :: MatsubaraFunction{2, 1, 3, Float64},
+    η_D :: MatsubaraFunction{1, 1, 2, Float64},
+    λ_D :: MatsubaraFunction{2, 1, 3, Float64},
+    η_M :: MatsubaraFunction{1, 1, 2, Float64},
+    λ_M :: MatsubaraFunction{2, 1, 3, Float64},
+    M_S :: MatsubaraFunction{3, 1, 4, Float64},
+    M_T :: MatsubaraFunction{3, 1, 4, Float64},
+    M_D :: MatsubaraFunction{3, 1, 4, Float64},
+    M_M :: MatsubaraFunction{3, 1, 4, Float64},
+    U   :: Float64
+    )   :: Nothing
+
+    Threads.@threads for vp in grids(T_D, 3)
+        λ1_idx2 = MatsubaraFunctions.grid_index_extrp(vp, grids(λ_D, 2))
+        vp_idx  = MatsubaraFunctions.grid_index_extrp(vp, grids(M_S, 2))
+
+        for v in grids(T_D, 2)
+            w2      = vp - v
+            λ1_idx3 = MatsubaraFunctions.grid_index_extrp( v, grids(λ_D, 2))
+            η2_idx  = MatsubaraFunctions.grid_index_extrp(w2, grids(η_D, 1))
+            λ2_idx1 = MatsubaraFunctions.grid_index_extrp(w2, grids(λ_D, 1))
+            v_idx   = MatsubaraFunctions.grid_index_extrp( v, grids(M_S, 2))
+            w2_idx  = MatsubaraFunctions.grid_index_extrp(w2, grids(M_S, 1))
+
+            for w in grids(T_D, 1)
+                w1      = w + v + vp
+                v2      = w + v
+                η1_idx  = MatsubaraFunctions.grid_index_extrp(w1, grids(η_D, 1))
+                λ1_idx1 = MatsubaraFunctions.grid_index_extrp(w1, grids(λ_D, 1))
+                λ2_idx2 = MatsubaraFunctions.grid_index_extrp(v2, grids(λ_D, 2))
+                w_idx   = MatsubaraFunctions.grid_index_extrp( w, grids(M_S, 1))
+                w1_idx  = MatsubaraFunctions.grid_index_extrp(w1, grids(M_S, 1))
+                v2_idx  = MatsubaraFunctions.grid_index_extrp(v2, grids(M_S, 2))
+
+                # compute SBE vertices
+                p1 = λ_S[λ1_idx1, λ1_idx2, 1] * η_S[η1_idx, 1] * λ_S[λ1_idx1, λ1_idx3, 1]
+                p2 = λ_D[λ2_idx1, λ1_idx3, 1] * η_D[η2_idx, 1] * λ_D[λ2_idx1, λ2_idx2, 1]
+                p3 = λ_M[λ2_idx1, λ1_idx3, 1] * η_M[η2_idx, 1] * λ_M[λ2_idx1, λ2_idx2, 1]
+
+                # compute MBE vertices
+                m1 = M_S[w1_idx, v_idx, vp_idx, 1]
+                m2 = M_T[w1_idx, v_idx, vp_idx, 1]
+                m3 = M_D[w2_idx, v_idx, v2_idx, 1]
+                m4 = M_M[w2_idx, v_idx, v2_idx, 1]
+
+                T_D[w, v, vp] = -2.0 * U + M_D[w_idx, v_idx, vp_idx, 1] + 0.5 * (p1 + m1 - p2 - m3) + 1.5 * (m2 - p3 - m4) 
+                T_M[w, v, vp] = +2.0 * U + M_M[w_idx, v_idx, vp_idx, 1] - 0.5 * (p1 + m1 + p2 + m3) + 0.5 * (m2 + p3 + m4)
+            end
+        end
+    end
+
+    return nothing 
+end
+\end{minted}
+%
+Here, we also make use of the fact that many frequency arguments (and their respective linear indices) are shared between different channels, which speeds up the calculation of $T$ even further. The implementation of, say, Eq.~\eqref{eq:SBE_decomp}(h) is now rather straightforward. $M^D$, for example, can be computed as shown below.
+%
+\begin{minted}[breaklines,escapeinside=||,mathescape=true, linenos, numbersep=3pt, gobble=2, frame=lines, fontsize=\scriptsize, framesep=2mm]{julia}
+function calc_M!(
+    M   :: MatsubaraFunction{3, 1, 4, Float64},
+    Pi  :: MatsubaraFunction{2, 1, 3, Float64}, 
+    T   :: MatsubaraFunction{3, 1, 4, Float64}, 
+    M_D :: MatsubaraFunction{3, 1, 4, Float64}, 
+    SG  :: MatsubaraSymmetryGroup,
+        :: Type{ch_D}
+    )   :: Nothing
+
+    # model the diagram 
+    function f(wtpl, xtpl)
+
+        w, v, vp  = wtpl 
+        val       = 0.0
+        v1, v2    = grids(Pi, 2)(grids(T, 3)[1]), grids(Pi, 2)(grids(T, 3)[end])
+        Pi_slice  = view(Pi, w, v1 : v2)
+        M_D_slice = view(M_D, w, v, :)
+        T_L_slice = view(T, w, v, :)
+        T_R_slice = view(T, w, vp, :)
+
+        vl = grids(T, 3)(grids(M_D, 3)[1])
+        vr = grids(T, 3)(grids(M_D, 3)[end])
+
+        for i in 1 : vl - 1
+            val -= (T_L_slice[i] - M_D_slice[1]) * Pi_slice[i] * T_R_slice[i]
+        end 
+
+        for i in vl : vr
+            val -= (T_L_slice[i] - M_D_slice[i - vl + 1]) * Pi_slice[i] * T_R_slice[i]
+        end
+
+        for i in vr + 1 : length(T_L_slice)
+            val -= (T_L_slice[i] - M_D_slice[vr - vl + 1]) * Pi_slice[i] * T_R_slice[i]
+        end
+
+        return temperature(M) * val
+    end 
+
+    # compute multiboson vertex 
+    SG(M, MatsubaraInitFunction{3, 1, Float64}(f); mode = :hybrid)
+
+    return nothing 
+end 
+\end{minted}
+%
+Here, we utilize the corresponding \texttt{MatsubaraSymmetryGroup} object with the hybrid \texttt{MPI + Threads} parallelization scheme. In addition, we make use of views for the bubble and vertices to avoid repeated memory lookups in the Matsubara summation.
+
+\subsubsection{Benchmark results}
+\label{subsec:benchmark}
+
+In this section, we benchmark the presented implementation of the MBE parquet solver against an independent implementation in C++. \textcolor{blue}{Our motivation for this comparison is twofold: Firstly, we want to verify the overall correctness of both implementations and, secondly, we want to test how robust the multiboson formalism is to implementation details. This regards, for example, the treatment of correlation functions at the boundaries of their respective frequency grids. While the Julia code relies on (polynomial or constant) extrapolation, the C++ code replaces correlators with their asymptotic value instead. Ideally, these details should be irrelevant, except in the most difficult parameter regimes.} Both codes used the physical parameters as stated after Eq.~\eqref{eq:G0_SIAM} and the frequency parameters according to Tab.~\ref{tab:benchmark_frequency_parameters}.  We begin by examining the static properties of the model including the quasiparticle residue $Z$ given by
+%
+\begin{linenomath}
+    \begin{align}
+    \label{eq:quasiparticle_weight}
+        Z^{-1} = 1 - \frac{\mathrm{d} \Im [\Sigma(\omega)]}{\mathrm{d}\omega}\bigg{\vert}_{\omega \to 0} \,,
+    \end{align}
+\end{linenomath}
+%
+as well as the susceptibilities in the density ($D$) and magnetic ($M$) channels. The latter can be obtained from the screened interactions analogous to Ref.~\cite{wentzell_high-frequency_2020}, that is 
+%
+\begin{linenomath}
+    \begin{align}
+        \chi^{D/M} = \frac{\eta^{D/M} - U^{D/M}}{(U^{D/M})^2} \,.
+    \end{align}
+\end{linenomath}
+%
+The corresponding results are summarized in Fig.~\ref{fig:Benchmark_with_LMUcode_static}. Both codes are in quantitative agreement and predict a strong enhancement of magnetic fluctuations at low temperatures. However, as has been noted in Ref.~\cite{Chalupa2021}, the characteristic signature for the formation of a local magnetic moment at the impurity, a decrease of $\chi^D$ for temperatures $T \lesssim 2$ (for the specific choice of numerical parameters used here), is not captured by the parquet approximation. Instead, $\chi^D$ increases monotonically over the entire range of temperatures considered and the system remains in a metallic state with well-defined quasiparticles (i.e.~$0 < Z < 1$).
+
+Figure \ref{fig:Benchmark_with_LMUcode_slices} shows a direct comparison of the MBE vertices and their evolution with decreasing temperature within both codes. As can be seen from the middle column, showing the screened interaction, Hedin and multiboson vertex in the magnetic channel, most of the long-lived magnetic correlations are already captured by the screened interaction itself and thus by the corresponding single-boson exchange diagrams. In contrast, low-energy scattering processes mediated by multiple bosons seem to be less relevant, as indicated by a comparatively small $M^M$ contribution. This picture is somewhat reversed in the other channels (left and right column in Fig.~\ref{fig:Benchmark_with_LMUcode_slices}). In the density channel, for example, the largest contribution originates from short and also long-lived multiboson fluctuations, especially at low temperatures. 
+
+Figure \ref{fig:M_slices} presents further results for $M^X$ as a function of its two fermionic frequencies $\nu$ and $\nu'$ (with fixed $\Omega = 0$). Remarkably, the structure of these objects is dominated by cross-like structures similar to those discussed in Ref.~\cite{wentzell_high-frequency_2020}, which become more pronounced when $T$ is decreased. A comparison of the data obtained with both codes (shown in the second row of Fig.~\ref{fig:M_slices}), reveals that it is precisely these structures that seem difficult to capture in numerical calculations, and where small differences in the implementation can have a significant effect. However, the relative difference between the results from both codes is still small ($\lesssim 0.01$).
+
+As a final benchmark of the codes, we have considered their respective serial and parallel performance for a single evaluation of the parquet equations in SBE decomposition (see Fig.~\ref{fig:benchmark_times}). Surprisingly, the Julia code based on \texttt{MatsubaraFunctions.jl} outperforms the C++ implementation by about a factor of four when run in production mode (i.e., with internal sanity checks disabled). We would like to note that this is most likely \textsl{not} due to a fundamental performance advantage of Julia over C++, but simply the result of several optimizations \textcolor{blue}{(such as those presented in Sec.~\ref{subsec:impl})} that were more easy to implement using \texttt{MatsubaraFunctions.jl}.
+%
+\begin{table}[t]
+    \centering
+    \begin{tabular}{c|l}
+                        &   total no. frequencies   \\
+       \hline
+       $G$              &   4096                    \\
+       $\Sigma$         &   512                     \\
+       $\eta$           &   1023                    \\
+       $\lambda$        &   575 $\times$ 512        \\
+       $M$              &   383 $\times$ 320 $\times$ 320             
+    \end{tabular}
+    \caption{\textbf{Frequency parameters for the benchmark results in Figs.~\ref{fig:Benchmark_with_LMUcode_static}-\ref{fig:benchmark_times}.} We show the total number of frequencies used for the various Matsubara functions. Since the boxes are symmetric around zero there is an even (odd) number of Matsubara frequencies along fermionic (bosonic) directions.}
+    \label{tab:benchmark_frequency_parameters}
+\end{table}
+%
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.75]{figures/figure6.pdf}
+    \caption{\textbf{Results for the quasi-particle residue $Z$ and the density/magnetic susceptibility $\chi^{D/M}$}. The comparison shows good agreement between the two codes. Note that we approximated the derivative in Eq.~\eqref{eq:quasiparticle_weight} by a fourth order finite differences method.}
+    \label{fig:Benchmark_with_LMUcode_static}
+\end{figure}
+%
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.7]{figures/figure7.pdf}
+    \caption{\textbf{Benchmark of vertex quantities between the Julia and C++ code.} We show frequency slices through various SBE ingredients (top to bottom: screened interactions, Hedin vertices, multiboson vertices) at different temperatures and channels. The comparison shows good agreement between both codes.}
+    \label{fig:Benchmark_with_LMUcode_slices}
+\end{figure}
+%
+\begin{figure}[H]
+    \centering
+    \def\scalehere{0.65}
+    \includegraphics[scale=\scalehere]{figures/figure8_1.pdf}
+    \includegraphics[scale=\scalehere]{figures/figure8_2.pdf}
+    \includegraphics[scale=\scalehere]{figures/figure8_3.pdf}
+    \caption{\textbf{Slice through multi-boson contributions $M^D$, $M^M$ and $M^S$.} The upper panels show the data for different temperatures, the lower panels the absolute deviation between the Julia and the C++ implementation, respectively. For lower temperatures the features in the data require the computation and storage of a larger number of frequency points. The agreement of the data persists to the lowest temperature shown in this paper.}
+    \label{fig:M_slices}
+\end{figure}
+%
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.7]{figures/figure9.pdf}
+    \caption{\textbf{Performance benchmark between the Julia and C++ code.} We show the time taken for a single evaluation of the parquet equations in SBE decomposition. Note that the runtimes have been normalized to the serial result of the C++ code.}
+    \label{fig:benchmark_times}
+\end{figure}
+
+\section{Future directions}
+\label{sec:future_directions}
+
+We have presented a first version of the \texttt{MatsubaraFunctions.jl} library and its basic functionality. Although the library already offers many features, most notably an automated interface for implementing and exploiting symmetries when working with Green's functions (including several options for parallel evaluation), as well as high performance for larger projects (see Sec.~\ref{subsec:SBE} and the discussions therein), several generalizations of the interface and further optimizations are currently under development. In addition, we will add more support for generic grid types other than just Matsubara frequency grids. These could include, for example, momentum space grids and support for continuous variables (such as real frequencies). \textcolor{blue}{Note, however, that calculations in momentum or real space are already feasible with the current state of the package, if a suitable mapping from, say, wavevectors to indices is provided.} Accuracy improvements for fitting high-frequency tails and more advanced extrapolation schemes for Matsubara sums are also in the works.  
+
+In the future, it will be very valuable to extend the ecosystem surrounding \\ \texttt{MatsubaraFunctions.jl}. For example, many state-of-the-art diagrammatic solvers rely on the efficient evaluation of similar diagrams such as vertex-bubble-vertex contractions, which are a common feature of Bethe-Salpeter-type equations. These operations could be developed independently of the main library, providing even more quality-of-life options for the user. Moreover, such a toolkit would allow for the swift deployment of different types of solvers, including fRG solvers for quantum spin systems and self-consistent impurity solvers such as the MBE code presented in Sec.~\ref{subsec:impl}, to name but a few. With many new and exciting correlated materials becoming available, fast and flexible solvers are of utmost importance to facilitate scientific progress, and we strongly believe that a package like \texttt{MatsubaraFunctions.jl} could be a useful tool for their rapid development.
+
+\section{Acknowledgements}
+
+We would like to thank Fabian Kugler, Jae-Mo Lihm, Seung-Sup Lee, Friedrich Krien, Marc Ritter, Björn Sbierski and Benedikt Schneider for helpful discussions and collaboration on ongoing projects. This work was funded in part by the Deutsche Forschungsgemeinschaft under Germany's Excellence Strategy EXC-2111 (Project No.\ 390814868). It is part of the  Munich Quantum Valley, supported by the Bavarian state government with funds from the Hightech Agenda Bayern Plus. N.R.~acknowledges funding from a graduate scholarship from the German Academic Scholarship Foundation (Studienstiftung des deutschen Volkes) and additional support from the ``Marianne-Plehn-Programm'' of the state of Bavaria. The numerical
+simulations were, in part, performed on the Linux clusters and the SuperMUC cluster (project 23769) at the Leibniz Supercomputing Center in Munich. The Flatiron Institute is a division of the Simons Foundation. 
+
+%\bibliographystyle{SciPost_bibstyle}
+\bibliography{bib.bib}
+
+\begin{appendix}
+
+\section{Extrapolation of Matsubara sums}
+\label{app:extrapolation}
+
+Suppose we want to compute the fermionic Matsubara sum $f(\tau \to 0^+) = \frac{1}{\beta} \sum_{\nu} f(\nu) e^{-i\nu0^{+}}$. We assume that $f(z)$ with $z \in \mathbb{C}$ has a Laurent series representation in an elongated annulus about the imaginary axis which decays to zero for large $|z|$. If the poles and residues of $f$ in the complex plane are known, this problem can in principle be solved by rewriting the Matsubara sum as a contour integral and applying Cauchy's residue theorem after deforming the contour. Unfortunately, these poles are usually unknown and we have to resort to numerical calculations instead. There, however, we can only compute the sum over a finite (symmetric) grid of Matsubara frequencies, which converges very slowly if at all.
+
+To tackle this problem, let us assume that $f$ is known on a grid with sufficiently large maximum (minimum) frequency $\pm \Omega$, such that we can approximate
+%
+\begin{linenomath}
+    \begin{align}
+        f(\nu) \approx \sum_{n = 1}^{N} \frac{\alpha_n}{(i\nu)^n} \,,
+        \label{eq:tail_approx}
+    \end{align}
+\end{linenomath}
+%
+for $|\nu| > \Omega$. Neglecting the factor $e^{-i\nu0^+}$ for brevity, this allows us to split up the expression for $f(\tau \to 0^+)$ as
+%
+\begin{linenomath}
+    \begin{align}
+        \frac{1}{\beta} \sum_{\nu} f(\nu) &= \frac{1}{\beta} \sum_{\nu < -\Omega} f(\nu) + \frac{1}{\beta} \sum_{-\Omega \leq \nu \leq \Omega} f(\nu) + \frac{1}{\beta} \sum_{\nu > \Omega} f(\nu) \notag \\
+        &\approx \frac{1}{\beta} \sum_{\nu < -\Omega} \sum_{n = 1}^{N} \frac{\alpha_n}{(i\nu)^n} + \frac{1}{\beta} \sum_{-\Omega \leq \nu \leq \Omega} f(\nu) + \frac{1}{\beta} \sum_{\nu > \Omega} \sum_{n = 1}^{N} \frac{\alpha_n}{(i\nu)^n} \,,
+    \end{align}
+\end{linenomath}
+%
+where \eqref{eq:tail_approx} was used to approximate the semi-infinite sums. In many cases, the dominant asymptotic behavior of single-particle Green’s functions and one-dimensional slices through higher-order vertex functions is already well captured by an algebraic decay $(i\nu)^{-q}$ with $q = 1, 2$. Therefore, by truncating the asymptotic expansion at $N = 2$, we can rewrite the right-hand side as 
+%
+\begin{linenomath}
+    \begin{align}
+        \frac{1}{\beta} \sum_{\nu} f(\nu) &\approx \frac{1}{\beta} \sum_{-\Omega \leq \nu \leq \Omega} f(\nu) + \sum_{n = 1}^{2} \left[ \frac{1}{\beta} \sum_{\nu} \frac{\alpha_n}{(i\nu)^n} - \frac{1}{\beta} \sum_{-\Omega \leq \nu \leq \Omega} \frac{\alpha_n}{(i\nu)^n} \right] \,.
+    \end{align}
+\end{linenomath}
+%
+The series in the bracket can be computed straightforwardly using Cauchy's residue theorem and we find
+%
+\begin{linenomath}
+    \begin{align}
+        \frac{1}{\beta} \sum_{\nu} f(\nu) e^{-i\nu 0^+} &\approx \frac{1}{\beta} \sum_{-\Omega \leq \nu \leq \Omega} \left[f(\nu) - \frac{\alpha_2}{(i\nu)^2} \right] - \frac{\alpha_1}{2} - \beta \frac{\alpha_2}{4} \,.
+    \end{align}
+\end{linenomath}
+%
+Thus, if the coefficients $\alpha_n$ are known (for example by fitting the high-frequency tails), this formula can provide a quick and dirty approximation to the infinite Matsubara sum.
+
+\section{Implementation details for the MBE solver}
+\label{app:MBEdetails}
+
+In this section we provide additional information on the implementation of the MBE equations, which were introduced on a general basis in Sec.~\ref{subsec:SBE} of the main text. As for any application involving many-body Green's functions, it is crucial to choose an appropriate parametrization of the self-consistent equations that reflects the symmetries of the field theory under consideration. Here, we deal with the implementation of SU(2) symmetry (spin rotation invariance) as well as time translation invariance (energy conservation) for the MBE equations of the impurity model defined in Sec.~\ref{subsec:SIAM}.
+
+\subsection{SU(2) symmetry}
+
+Consider an SU(2) transformation $U = e^{i \boldsymbol{\epsilon} \boldsymbol{\sigma}}$, where $\boldsymbol{\epsilon} \in \mathbb{R}^3$ and $\boldsymbol{\sigma}$ is the vector of Pauli matrices. Under $U$, the fermionic creation and annihilation operators transform into
+%
+\begin{linenomath}
+    \begin{align}
+        c_{s} \to U_{s s'} c_{s'}, \
+        c^{\dagger}_{s} \to c^{\dagger}_{s'} (U^{\dagger})_{s' s} \,,
+    \end{align}
+\end{linenomath}
+%
+where we have omitted all indices except the spin $s = \{\uparrow, \downarrow \}$. For SU(2) symmetric actions it can be shown that single-particle Green's functions $G^{(1)}_{s s'}$ are diagonal and also invariant under spin flips, i.e.~$G^{(1)}_{s s'} = G^{(1)} \delta_{s s'}$ \cite{rohringer2013}. Two-particle correlators $G^{(2)}_{s_{1'} s_1 s_{2'} s_{2}}$, on the other hand, can be decomposed into two components $G^{(2) | =}$ and $G^{(2) | \times}$, which preserve the total spin between incoming and outgoing particles
+%
+\begin{linenomath}
+    \begin{align}
+        G^{(2)}_{s_{1'} s_1 s_{2'} s_{2}} = G^{(2) | =} \delta_{s_{1'} s_1} \delta_{s_{2'} s_2} + G^{(2) | \times} \delta_{s_{1'} s_2} \delta_{s_{2'} s_1} \,.
+    \end{align}
+\end{linenomath}
+ %
+Furthermore, the Bethe-Salpeter-like equations \eqref{eq:nabla-BSE} can be diagonalized by introducing a singlet $(S)$ and a triplet $(T)$ component
+%
+\begin{linenomath}
+    \begin{align}
+        G^{(2) | S}_p &= G^{(2) | =}_p - G^{(2) | \times}_p \notag \\
+        G^{(2) | T}_p &= G^{(2) | =}_p + G^{(2) | \times}_p \,,
+    \end{align}
+\end{linenomath}
+%
+in the $p$ channel, and a density $(D)$ and magnetic $(M)$ contribution
+%
+\begin{linenomath}
+    \begin{align}
+        G^{(2) | D}_t &= 2 G^{(2) | =}_t + G^{(2) | \times}_t \notag \\
+        G^{(2) | M}_t &= G^{(2) | \times}_t \,,
+    \end{align}
+\end{linenomath}
+%
+in the $t$ channel. Moreover, this change of basis has the advantage that physical response functions can be obtained directly from the screened interaction in the respective channel. The spin susceptibility $\chi^M$, for example, is simply given by $-U^2 \chi^M = \eta^M + U$ for a local Hubbard $U$. For this reason, the $\{S, T, D, M\}$ basis is sometimes called the \textsl{physical} spin basis, whereas the decomposition into parallel $(=)$ and crossed terms $(\times)$ is known as the \textsl{diagrammatic} spin basis \cite{rohringer2013}. In the implementation of the MBE solver, the former is used.
+
+\subsection{Time translation invariance}
+
+\begin{figure}
+    \centering
+    \includegraphics[width = 0.95\columnwidth]{figures/figure10.pdf}
+    \caption{\textbf{Mixed frequency conventions.} In mixed notation, each 2PR channel is described in terms of one bosonic argument $\Omega$ and two fermionic frequencies $\nu, \nu'$ as opposed to the purely fermionic notation shown on the left.}
+    \label{fig:frequency-convention}
+\end{figure}
+%
+The interacting part of the impurity action from Sec.~\ref{subsec:SIAM} is static, i.e.~the bare interaction $U$ is $\tau$-independent. Consequently, one and two-particle Green's functions are invariant under translations in imaginary time, which implies conservation of the total Matsubara frequency between incoming and outgoing legs \cite{rohringer2013} and, thus, 
+%
+\begin{linenomath}
+    \begin{align}
+        G^{(1)}(\nu, \nu') &= G^{(1)}(\nu) \times \beta \delta_{\nu | \nu'} \notag \\
+        G^{(2)}(\nu_{1'}, \nu_1, \nu_{2'}, \nu_2) &= G^{(2)}(\nu_{1'}, \nu_1, \nu_{2'}) \times \beta \delta_{\nu_{1'} + \nu_{2'} | \nu_1 + \nu_2} \,.
+    \end{align}
+\end{linenomath}
+%
+Note that we have suppressed additional indices, such as spin, for brevity. For two-particle quantities, it is convenient to adopt a \textsl{mixed} frequency convention for the 2PR channels, where, instead of three fermionic arguments, one bosonic transfer frequency $\Omega$ and two fermionic frequencies $\nu, \nu'$ are used. The convention used for the MBE solver is shown in Fig.~\ref{fig:frequency-convention}.
+
+\end{appendix}
+\end{document}
