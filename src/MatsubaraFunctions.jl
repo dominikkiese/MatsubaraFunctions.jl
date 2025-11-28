@@ -3,6 +3,7 @@ module MatsubaraFunctions
     @recompile_invalidations begin
         using LinearAlgebra
         using StaticArrays
+        using ThreadsX
         using MPI
         using HDF5
         using Aqua
