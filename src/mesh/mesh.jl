@@ -23,6 +23,7 @@ pts = points(mesh)
 dom = domain(mesh)
 ```
 """
+
 # abstract types
 #-------------------------------------------------------------------------------#
 
@@ -88,41 +89,22 @@ function domain(m :: Mesh{T, D}) :: D where {T <: AbstractMeshPoint, D <: Abstra
     return m.domain 
 end
 
-
-"""
-    Base.length(m::Mesh)
-
-Return the number of points in the mesh.
-"""
-function Base.length(m :: Mesh)
-    return length(points(m))
-end
-
 # indexing
 #-------------------------------------------------------------------------------#
 
-"""
-    Base.eachindex(m::Mesh)
+# import functions for overloading
+import Base: length, eachindex, firstindex, lastindex, getindex
 
-Return an iterator over all indices of the mesh points.
-"""
-function Base.eachindex(m :: Mesh)
-    return eachindex(points(m))
-end
+# generate mesh operations as operations on its points
+for op in (:length, :eachindex, :firstindex, :lastindex)
+    @eval ($op)(m :: Mesh) = $op(points(m))
+end 
 
-function Base.:firstindex(m :: Mesh)
-    return firstindex(points(m))
-end
-
-function Base.:lastindex(m :: Mesh)
-    return lastindex(points(m))
-end
-
-function Base.:getindex(m :: Mesh, idx :: Int)
+function getindex(m :: Mesh, idx :: Int)
     return points(m, idx)
 end
 
-function Base.:getindex(m :: Mesh, idxs :: UnitRange{Int})
+function getindex(m :: Mesh, idxs :: UnitRange{Int})
     return @view points(m)[idxs]
 end
 
@@ -175,11 +157,13 @@ end
 # load implementations and export
 #-------------------------------------------------------------------------------#
 
-# for each value type the respective mesh must implement:
-# - outer constructor
-# - mapping from value type (and if needed plain_value type) to mesh index 
-# - comparison operator
-# boundary conditions are optional and only need to be implemented if meaningful
+#==
+for each value type the respective mesh must implement:
+- outer constructor
+- mapping from value type (and if needed plain_value type) to mesh index 
+- comparison operator
+boundary conditions are optional and only need to be implemented if meaningful
+==#
 
 include("matsubara/matsubara_mesh.jl")
 include("brillouin/brillouin_mesh.jl")

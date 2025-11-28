@@ -21,6 +21,7 @@ idx = index(pt)
 val = value(pt)
 ```
 """
+
 # abstract types
 #-------------------------------------------------------------------------------#
 
@@ -90,38 +91,18 @@ end
 # arithmetic operations
 #-------------------------------------------------------------------------------#
 
-# mesh point operations are operations on their values
-# each value type must implement +, - and sign reversal
+# import functions for overloading
+import Base: +, -
 
+# generate mesh point operations as operations on its value
+-(x :: MeshPoint{T}) where {T <: AbstractValue} = -value(x)
 
-function Base.:+(x1 :: MeshPoint{T1}, x2 :: MeshPoint{T2}) where {T1 <: AbstractValue, T2 <: AbstractValue} 
-    return value(x1) + value(x2)
-end
-
-function Base.:+(x1 :: T1, x2 :: MeshPoint{T2}) where {T1 <: AbstractValue, T2 <: AbstractValue} 
-    return x1 + value(x2)
-end
-
-function Base.:+(x1 :: MeshPoint{T1}, x2 :: T2) where {T1 <: AbstractValue, T2 <: AbstractValue} 
-    return value(x1) + x2
-end
-
-# subtraction
-function Base.:-(x1 :: MeshPoint{T1}, x2 :: MeshPoint{T2}) where {T1 <: AbstractValue, T2 <: AbstractValue} 
-    return value(x1) - value(x2)
-end
-
-function Base.:-(x1 :: T1, x2 :: MeshPoint{T2}) where {T1 <: AbstractValue, T2 <: AbstractValue} 
-    return x1 - value(x2)
-end
-
-function Base.:-(x1 :: MeshPoint{T1}, x2 :: T2) where {T1 <: AbstractValue, T2 <: AbstractValue} 
-    return value(x1) - x2
-end
-
-# sign reversal
-function Base.:-(x :: MeshPoint{T}) where {T <: AbstractValue} 
-    return -value(x)
+for op in (:+, :-)
+    @eval begin
+        ($op)(x1 :: MeshPoint{T1}, x2 :: MeshPoint{T2}) where {T1 <: AbstractValue, T2 <: AbstractValue} = $op(value(x1), value(x2))
+        ($op)(x1 :: T1, x2 :: MeshPoint{T2}) where {T1 <: AbstractValue, T2 <: AbstractValue} = $op(x1, value(x2))
+        ($op)(x1 :: MeshPoint{T1}, x2 :: T2) where {T1 <: AbstractValue, T2 <: AbstractValue} = $op(value(x1), x2)
+    end
 end
 
 # comparison operator

@@ -19,6 +19,7 @@ idx = Index(5)
 val = value(idx)
 ```
 """
+
 # type def and accessors
 #-------------------------------------------------------------------------------#
 
@@ -39,6 +40,26 @@ Returns `w.index`
 """
 function value(w :: Index) :: Int
     return w.index
+end 
+
+# arithmetic operations
+#-------------------------------------------------------------------------------#
+
+# import functions for overloading
+import Base: +, -
+
+# implement fallbacks, Index does not support arithmetics
+-(w :: Index) = error("Arithmetic operations not supported for Index type")
+
+for op in (:+, :-)
+    @eval ($op)(w1 :: Index, w2 :: Index) = error("Arithmetic operations not supported for Index type")
+end
+
+# comparison operator
+#-------------------------------------------------------------------------------#
+
+function Base.:(==)(w1 :: Index, w2 :: Index) 
+    return value(w1) == value(w2)
 end 
 
 # info

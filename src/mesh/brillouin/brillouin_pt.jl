@@ -20,6 +20,7 @@ coords = value(pt)
 coord1 = value(pt, 1)
 ```
 """
+
 # type def and accessors
 #-------------------------------------------------------------------------------#
 
@@ -69,19 +70,14 @@ end
 # arithmetic operations
 #-------------------------------------------------------------------------------#
 
-# addition 
-function Base.:+(k1 :: BrillouinPoint{N}, k2 :: BrillouinPoint{N}) where {N} 
-    return BrillouinPoint(value(k1) .+ value(k2))
-end
+# import functions for overloading
+import Base: +, -
 
-# subtraction 
-function Base.:-(k1 :: BrillouinPoint{N}, k2 :: BrillouinPoint{N}) where {N} 
-    return BrillouinPoint(value(k1) .- value(k2))
-end
+# generate Brillouin point operations as operations on its value
+-(k :: BrillouinPoint{N}) where {N} = BrillouinPoint(-value(k))
 
-# sign reversal 
-function Base.:-(k :: BrillouinPoint{N}) where {N} 
-    return BrillouinPoint(-value(k))
+for op in (:+, :-)
+    @eval ($op)(k1 :: BrillouinPoint{N}, k2 :: BrillouinPoint{N}) where {N} = BrillouinPoint($op(value(k1), value(k2)))
 end
 
 # comparison operator
