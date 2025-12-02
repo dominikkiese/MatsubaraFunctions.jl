@@ -25,3 +25,6 @@ Manifest.toml
 
 # data files 
 *.h5
+
+.vscode
+.DS_Store
