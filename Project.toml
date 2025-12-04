@@ -1,7 +1,8 @@
 name = "MatsubaraFunctions"
 uuid = "3b93aed6-d40a-4520-b131-eee49889bcc0"
-authors = ["Dominik Kiese <dkiese1308.physik@gmail.com>"]
-version = "0.1.0"
+version = "0.2.0"
+authors = ["Dominik Kiese <dkiese1308.physik@gmail.com>", 
+           "Nepomuk Ritz <nepomuk.ritz@gmail.com>"]
 
 [deps]
 Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
@@ -10,6 +11,7 @@ Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 HDF5 = "f67ccb44-e63f-5c2f-98bd-6dc0ccc4ba2f"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 MPI = "da04e1cc-30fd-572f-bb4f-1f8673147195"
+NLsolve = "2774e3e8-f4cf-5e23-947b-6d7e65073b56"
 PrecompileTools = "aea7be01-6a6a-4083-8856-8a6e6704d82a"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
@@ -21,6 +23,7 @@ Documenter = "0.19, 0.20, 0.21, 0.22, 0.23, 0.24, 0.25, 0.26, 0.27, 1"
 HDF5 = "0.9.4, 0.10, 0.11, 0.12, 0.13, 0.14, 0.15, 0.16, 0.17"
 LinearAlgebra = ">= 1.0.0"
 MPI = "= 0.19, 0.20"
+NLsolve = "4.5.1"
 PrecompileTools = "1"
 StaticArrays = "1.6"
 Test = ">= 1.0.0"
