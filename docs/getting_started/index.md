@@ -2,7 +2,7 @@
 
 Welcome! In this book, you will find minimal and advanced examples, showing how to use the MatsubaraFunctions.jl package for working with Matsubara frequency meshes and related functions in Julia.
 
-You can either just read this documentation online, or you can clone the repository and run the code examples interactively on your own machine. To do so, follow these steps:
+You can either just read these pages online, or you can clone the repository and run the code examples interactively on your own machine. To do so, follow these steps:
 
 1. **Install Julia**: If you haven't already, download and install Julia from the [official website](https://julialang.org/downloads/).
 
